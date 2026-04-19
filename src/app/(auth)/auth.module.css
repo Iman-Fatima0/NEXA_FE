@@ -1,0 +1,428 @@
+/* Auth — purple / grey / red / vermilion */
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px 32px;
+}
+
+.card {
+  width: min(100%, 440px);
+  padding: 28px 22px 22px;
+  border-radius: 20px;
+  border: 1px solid var(--nexa-glass-border);
+  background: var(--nexa-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 4px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 var(--nexa-glass-highlight);
+}
+
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--nexa-text);
+}
+
+.header p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--nexa-text-muted);
+}
+
+.form {
+  margin-top: 20px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.field > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nexa-grey-300);
+}
+
+.field input,
+.field select,
+.field textarea {
+  min-height: 46px;
+  width: 100%;
+  border: 1px solid rgba(138, 130, 153, 0.22);
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--nexa-text);
+  background: rgba(36, 32, 48, 0.55);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field textarea {
+  min-height: 88px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23a89fb3' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--nexa-text-soft);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(45, 38, 58, 0.65);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap input {
+  padding-right: 72px;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: rgba(74, 68, 88, 0.55);
+  color: var(--nexa-grey-300);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  background: rgba(92, 61, 122, 0.45);
+  color: var(--nexa-text);
+}
+
+.hint {
+  margin: -6px 0 12px;
+  color: var(--nexa-text-soft);
+  font-size: 12px;
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -4px 0 14px;
+}
+
+.linkMuted {
+  font-size: 13px;
+  color: var(--nexa-grey-500);
+  text-decoration: none;
+}
+
+.linkMuted:hover {
+  color: var(--nexa-vermilion);
+}
+
+.divider {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.divider span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(138, 130, 153, 0.35), transparent);
+}
+
+.divider p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nexa-text-soft);
+}
+
+.socialBlock {
+  margin-top: 16px;
+}
+
+.socialLabel {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--nexa-text-muted);
+}
+
+.socialRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.socialRowIcons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.socialButtonIconOnly {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 130, 153, 0.22);
+  background: rgba(36, 32, 48, 0.5);
+  color: var(--nexa-grey-300);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.socialButtonIconOnly:hover {
+  background: rgba(92, 61, 122, 0.35);
+  border-color: rgba(227, 66, 52, 0.45);
+  box-shadow: 0 0 0 1px var(--nexa-vermilion-glow);
+}
+
+.socialIconLg {
+  width: 24px;
+  height: 24px;
+}
+
+.socialButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid rgba(138, 130, 153, 0.22);
+  background: rgba(36, 32, 48, 0.45);
+  color: var(--nexa-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.socialButton:hover {
+  background: rgba(92, 61, 122, 0.35);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.socialButton svg {
+  flex-shrink: 0;
+}
+
+.footer {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--nexa-text-muted);
+}
+
+.footer a {
+  color: var(--nexa-vermilion);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footer a:hover {
+  color: #ff7a6e;
+  text-decoration: underline;
+}
+
+/* Account type (register) */
+.fieldsetAccount {
+  margin: 18px 0 0;
+  padding: 0;
+  border: none;
+}
+
+.fieldsetAccount legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nexa-text-soft);
+}
+
+.accountType {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.accountTypeBtn {
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 130, 153, 0.2);
+  background: rgba(36, 32, 48, 0.4);
+  color: var(--nexa-grey-300);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.accountTypeBtn:hover {
+  background: rgba(92, 61, 122, 0.25);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.accountTypeBtnActive {
+  border-color: rgba(227, 66, 52, 0.55);
+  background: rgba(92, 61, 122, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.12) inset,
+    0 4px 20px rgba(185, 28, 60, 0.12);
+  color: var(--nexa-text);
+}
+
+.accountTypeLabel {
+  display: block;
+}
+
+.accountTypeHint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--nexa-text-soft);
+}
+
+.sectionTitle {
+  margin: 18px 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nexa-text-soft);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.grid2 .field {
+  margin-bottom: 0;
+}
+
+.grid2Wrap {
+  margin-bottom: 14px;
+}
+
+/* Auth page backdrop */
+.pageMeta {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% -25%, var(--nexa-purple-glow), transparent 52%),
+    radial-gradient(circle at 95% 15%, rgba(227, 66, 52, 0.22), transparent 38%),
+    radial-gradient(circle at 5% 85%, rgba(185, 28, 60, 0.18), transparent 42%),
+    linear-gradient(168deg, #120e18 0%, var(--nexa-purple-deep) 38%, #1a1016 100%);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.cardMeta {
+  border-color: rgba(139, 92, 246, 0.28);
+  background: rgba(24, 18, 32, 0.72);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(227, 66, 52, 0.08),
+    inset 0 1px 0 var(--nexa-glass-highlight);
+}
+
+.cardMetaWide {
+  width: min(100%, 480px);
+}
+
+.brandMeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.brandLogo {
+  display: block;
+  height: 48px;
+  width: auto;
+  max-width: min(220px, 72vw);
+  object-fit: contain;
+}
+
+.btnMetaPrimary {
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--nexa-purple-mid) 0%, var(--nexa-red) 48%, var(--nexa-vermilion) 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 4px 20px rgba(185, 28, 60, 0.35),
+    0 4px 24px var(--nexa-vermilion-glow);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.btnMetaPrimary:hover {
+  filter: brightness(1.08) saturate(1.05);
+}
+
+.btnMetaPrimary:active {
+  transform: scale(0.99);
+}
+
+@media (max-width: 480px) {
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .socialRow,
+  .accountType,
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "nexa-fe",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "\"%npm_node_execpath%\" scripts/run-cli.cjs next dev",
+    "build": "\"%npm_node_execpath%\" scripts/run-cli.cjs next build",
+    "start": "\"%npm_node_execpath%\" scripts/run-cli.cjs next start",
+    "lint": "\"%npm_node_execpath%\" scripts/run-cli.cjs next lint",
+    "typecheck": "\"%npm_node_execpath%\" scripts/run-cli.cjs tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "typescript": "latest"
+  }
+}
