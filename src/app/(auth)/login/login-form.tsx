@@ -53,7 +53,7 @@ export function LoginForm() {
 
         <div className={styles.rowBetween}>
           <span />
-          <Link href="#" className={styles.linkMuted} prefetch={false}>
+          <Link href="/support" className={styles.linkMuted} prefetch={false}>
             Forgot password?
           </Link>
         </div>

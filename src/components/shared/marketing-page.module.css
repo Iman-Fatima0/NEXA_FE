@@ -1,0 +1,103 @@
+.hero {
+  border: 1px solid var(--nexa-glass-border);
+  border-radius: 1.2rem;
+  background: linear-gradient(145deg, rgba(40, 31, 58, 0.62), rgba(23, 20, 30, 0.78));
+  backdrop-filter: blur(10px);
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--nexa-text-soft);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.title {
+  margin: 0.5rem 0 0.75rem;
+  font-size: clamp(1.4rem, 2vw, 2.2rem);
+  line-height: 1.16;
+}
+
+.description {
+  margin: 0;
+  color: var(--nexa-text-muted);
+  max-width: 70ch;
+}
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  text-decoration: none;
+  color: var(--nexa-text);
+  border: 1px solid var(--nexa-glass-border);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.85rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, var(--nexa-purple-bright), var(--nexa-red-bright));
+  border-color: transparent;
+  color: #fff;
+}
+
+.grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  border: 1px solid var(--nexa-glass-border);
+  border-radius: 0.95rem;
+  background: var(--nexa-glass);
+  backdrop-filter: blur(8px);
+  padding: 0.9rem;
+}
+
+.card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--nexa-text-muted);
+  font-size: 0.92rem;
+}
+
+.links {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.chip {
+  text-decoration: none;
+  color: var(--nexa-text-muted);
+  font-size: 0.88rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--nexa-glass-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.chip:hover {
+  color: var(--nexa-text);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

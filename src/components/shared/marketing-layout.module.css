@@ -1,0 +1,140 @@
+.page {
+  min-height: 100vh;
+  color: var(--nexa-text);
+}
+
+.shell {
+  width: min(1100px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  background: rgba(20, 16, 24, 0.55);
+  border-bottom: 1px solid var(--nexa-glass-border);
+}
+
+.headerInner {
+  min-height: 4.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--nexa-text);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.brand img {
+  border-radius: 0.5rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  text-decoration: none;
+  color: var(--nexa-text-muted);
+  font-size: 0.92rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+}
+
+.nav a:hover {
+  color: var(--nexa-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.active {
+  color: var(--nexa-text) !important;
+  background: rgba(139, 92, 246, 0.22) !important;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ghost {
+  text-decoration: none;
+  color: var(--nexa-text);
+  font-size: 0.92rem;
+}
+
+.primary {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--nexa-purple-bright), var(--nexa-red-bright));
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  box-shadow: 0 8px 28px rgba(139, 92, 246, 0.28);
+}
+
+.main {
+  padding: clamp(1.25rem, 2vw, 2rem) 0 3rem;
+}
+
+.footer {
+  border-top: 1px solid var(--nexa-glass-border);
+  padding: 1.5rem 0 2rem;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.footerGroup {
+  padding: 0.9rem;
+  border: 1px solid var(--nexa-glass-border);
+  border-radius: 0.95rem;
+  background: var(--nexa-glass);
+}
+
+.footerLabel {
+  margin: 0 0 0.45rem;
+  font-size: 0.84rem;
+  color: var(--nexa-text-soft);
+}
+
+.footerLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.footerLinks a {
+  color: var(--nexa-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.footerLinks a:hover {
+  color: var(--nexa-text);
+}
+
+@media (max-width: 900px) {
+  .nav {
+    display: none;
+  }
+
+  .footerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

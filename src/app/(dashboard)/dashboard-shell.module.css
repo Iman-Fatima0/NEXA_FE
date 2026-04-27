@@ -1,0 +1,90 @@
+.page {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 1rem;
+}
+
+.sidebar {
+  border: 1px solid var(--nexa-glass-border);
+  background: var(--nexa-glass);
+  border-radius: 1rem;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+}
+
+.brand {
+  color: var(--nexa-text);
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.brand img {
+  border-radius: 0.5rem;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.menu a {
+  color: var(--nexa-text-muted);
+  text-decoration: none;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.75rem;
+}
+
+.menu a:hover {
+  color: var(--nexa-text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.active {
+  color: var(--nexa-text) !important;
+  background: rgba(139, 92, 246, 0.2) !important;
+}
+
+.main {
+  border: 1px solid var(--nexa-glass-border);
+  background: linear-gradient(145deg, rgba(40, 31, 58, 0.62), rgba(23, 20, 30, 0.78));
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
+  padding: clamp(1rem, 3vw, 1.4rem);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.topbar a {
+  color: var(--nexa-text-muted);
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+}

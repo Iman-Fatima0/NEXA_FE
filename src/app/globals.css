@@ -1,133 +1,45 @@
+@font-face {
+  font-family: "Minecraft";
+  src: url("/assets/font/Minecraft.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Monof55";
+  src: url("/assets/font/monof55.ttf") format("truetype");
+  font-display: swap;
+}
+
 :root {
-  color-scheme: dark;
-
-  /* Base */
-  --nexa-bg: #141018;
-  --nexa-bg-elevated: #1c1624;
-  --nexa-text: #f2ecf5;
-  --nexa-text-muted: rgba(242, 236, 245, 0.68);
-  --nexa-text-soft: rgba(242, 236, 245, 0.45);
-
-  /* Purple scale */
-  --nexa-purple-deep: #2d1f3d;
-  --nexa-purple-mid: #5c3d7a;
-  --nexa-purple-bright: #8b5cf6;
-  --nexa-purple-glow: rgba(139, 92, 246, 0.35);
-
-  /* Grey scale (cool, violet-tinted) */
-  --nexa-grey-900: #252030;
-  --nexa-grey-700: #4a4458;
-  --nexa-grey-500: #8a8299;
-  --nexa-grey-300: #c4bccf;
-
-  /* Red & vermilion */
-  --nexa-red: #b91c3c;
-  --nexa-red-bright: #e11d48;
-  --nexa-vermilion: #e34234;
-  --nexa-vermilion-deep: #c43126;
-  --nexa-vermilion-glow: rgba(227, 66, 52, 0.35);
-
-  /* Surfaces */
-  --nexa-glass: rgba(32, 26, 42, 0.65);
-  --nexa-glass-border: rgba(196, 188, 207, 0.14);
-  --nexa-glass-highlight: rgba(255, 255, 255, 0.06);
+  color-scheme: light;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/*
- * Scrollbar (WebKit): track fully clear; thumb has no fill — only a circular logo + red glow.
- * Mask hides the default dark thumb pill so you don’t see a black strip behind the PNG.
- */
-*::-webkit-scrollbar {
-  width: 20px;
-  height: 20px;
-  background: transparent;
-}
-
-*::-webkit-scrollbar-button {
-  display: block;
-  width: 0;
-  height: 0;
-}
-
-*::-webkit-scrollbar-track,
-*::-webkit-scrollbar-track-piece {
-  background: transparent !important;
-  -webkit-box-shadow: none;
-  box-shadow: none;
-}
-
-*::-webkit-scrollbar-thumb {
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background-color: rgba(0, 0, 0, 0) !important;
-  background-image: url("/assets/images/NEXALOGO.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 14px 14px;
-  /* Hard clip to a circle so no rectangular “black bar” remains */
-  -webkit-mask-image: radial-gradient(circle at center, #fff 0%, #fff 42%, transparent 46%);
-  -webkit-mask-size: 20px 20px;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-image: radial-gradient(circle at center, #fff 0%, #fff 42%, transparent 46%);
-  mask-size: 20px 20px;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  /* Glow follows opaque pixels of the logo, not a rectangle */
-  filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.95)) drop-shadow(0 0 14px rgba(220, 38, 38, 0.85))
-    drop-shadow(0 0 22px rgba(185, 28, 60, 0.5));
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  filter: drop-shadow(0 0 8px rgba(255, 120, 100, 1)) drop-shadow(0 0 18px rgba(225, 29, 72, 0.95))
-    drop-shadow(0 0 28px rgba(185, 28, 60, 0.6));
-}
-
-*::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-html {
-  background: var(--nexa-bg);
+html,
+body {
+  margin: 0;
+  padding: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 body {
-  margin: 0;
   min-height: 100vh;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(92, 61, 122, 0.35), transparent 50%),
-    radial-gradient(circle at 100% 80%, rgba(227, 66, 52, 0.12), transparent 42%),
-    radial-gradient(circle at 0% 60%, rgba(185, 28, 60, 0.1), transparent 40%),
-    linear-gradient(165deg, var(--nexa-bg) 0%, #0f0c14 45%, var(--nexa-purple-deep) 100%);
-  color: var(--nexa-text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #111827;
+  background: #f3f4f8;
 }
 
 a {
-  color: var(--nexa-vermilion);
+  color: inherit;
 }
 
-a:hover {
-  color: #ff6b5c;
-}
-
-/* Simple shell for non-auth pages */
-.app-shell {
-  min-height: 100vh;
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-  color: var(--nexa-text);
-}
-
-.app-shell h1,
-.app-shell h2 {
-  color: var(--nexa-text);
-  letter-spacing: -0.02em;
-}
-
-.app-shell p {
-  color: var(--nexa-text-muted);
+/* Hide scrollbar, keep page scrollable */
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }

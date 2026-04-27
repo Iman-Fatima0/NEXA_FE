@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #0a0810;
+  background: #182714;
   color: var(--nexa-text);
 }
 
@@ -15,10 +15,10 @@
   position: sticky;
   top: 0;
   z-index: 40;
-  border-bottom: 1px solid rgba(138, 130, 153, 0.12);
-  background: rgba(10, 8, 16, 0.75);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.45);
+  background: rgba(30, 48, 24, 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .navInner {
@@ -38,6 +38,7 @@
   gap: 10px;
   text-decoration: none;
   color: var(--nexa-text);
+  font-family: var(--nexa-heading-font);
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: -0.02em;
@@ -87,13 +88,13 @@
 
 .navCta {
   padding: 10px 18px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
-  color: #0a0810;
-  background: linear-gradient(135deg, #ff8a4c, #e34234);
-  box-shadow: 0 4px 24px rgba(227, 66, 52, 0.35);
+  color: #10180d;
+  background: linear-gradient(180deg, #ecd787, #d0a94c);
+  box-shadow: 0 4px 0 #7c5a20;
 }
 
 .navCta:hover {
@@ -114,9 +115,8 @@
 .hero {
   padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(3rem, 8vw, 6rem);
   background:
-    radial-gradient(ellipse 90% 60% at 80% 20%, rgba(227, 66, 52, 0.18), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 10% 40%, rgba(139, 92, 246, 0.2), transparent 50%),
-    linear-gradient(180deg, #0f0c16 0%, #0a0810 100%);
+    radial-gradient(circle at 85% 15%, rgba(118, 177, 83, 0.25), transparent 50%),
+    linear-gradient(180deg, #28451f 0%, #1a2d15 100%);
 }
 
 .heroGrid {
@@ -152,14 +152,14 @@
 
 .heroTitle {
   margin: 0 0 1.25rem;
-  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  background: linear-gradient(105deg, #93c5fd 0%, #c4b5fd 35%, #f0abfc 55%, #fb7185 85%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #f8f6e9;
+  font-family: var(--nexa-heading-font);
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.44);
 }
 
 .heroLead {
@@ -182,14 +182,14 @@
   align-items: center;
   justify-content: center;
   padding: 14px 24px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-weight: 700;
   font-size: 15px;
   text-decoration: none;
-  color: #0a0810;
-  background: linear-gradient(135deg, #ffb088, #ff6b3d 40%, #e34234);
+  color: #10180d;
+  background: linear-gradient(180deg, #ecd787, #d0a94c);
   border: none;
-  box-shadow: 0 6px 28px rgba(227, 66, 52, 0.4);
+  box-shadow: 0 4px 0 #7c5a20;
 }
 
 .btnPrimary:hover {
@@ -201,13 +201,13 @@
   align-items: center;
   justify-content: center;
   padding: 14px 24px;
-  border-radius: 12px;
+  border-radius: 6px;
   font-weight: 600;
   font-size: 15px;
   text-decoration: none;
   color: var(--nexa-text);
-  border: 1px solid rgba(196, 188, 207, 0.28);
-  background: rgba(32, 26, 42, 0.35);
+  border: 2px solid rgba(20, 28, 16, 0.5);
+  background: linear-gradient(180deg, #6da34f, #4b7336);
 }
 
 .btnOutline:hover {
@@ -257,14 +257,14 @@
 /* ——— Sections ——— */
 .section {
   padding: clamp(3.5rem, 7vw, 5.5rem) 0;
-  background: #0a0810;
+  background: #182714;
 }
 
 .sectionMuted {
   padding: clamp(3.5rem, 7vw, 5.5rem) 0;
-  background: linear-gradient(180deg, #0d0a12 0%, #0a0810 100%);
-  border-top: 1px solid rgba(138, 130, 153, 0.08);
-  border-bottom: 1px solid rgba(138, 130, 153, 0.08);
+  background: linear-gradient(180deg, #22391b 0%, #182714 100%);
+  border-top: 2px solid rgba(0, 0, 0, 0.22);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.22);
 }
 
 .kicker,
@@ -292,9 +292,11 @@
   margin: 0 0 1rem;
   font-size: clamp(1.65rem, 3vw, 2.25rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.04em;
   line-height: 1.2;
   color: var(--nexa-text);
+  font-family: var(--nexa-heading-font);
+  text-transform: uppercase;
 }
 
 .h2Center {
@@ -562,17 +564,17 @@
   justify-content: center;
   font-weight: 800;
   font-size: 1.1rem;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #f8f6e9;
+  background: linear-gradient(135deg, #45673a, #2d4525);
   flex-shrink: 0;
 }
 
 .stepNum2 {
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  background: linear-gradient(135deg, #7a6836, #5f4f28);
 }
 
 .stepNum3 {
-  background: linear-gradient(135deg, #ec4899, #be185d);
+  background: linear-gradient(135deg, #4f6c3c, #3a4f2c);
 }
 
 .stepTitle {
