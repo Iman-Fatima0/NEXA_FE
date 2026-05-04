@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className={styles.page}>
       <section className={styles.introHero} aria-label="NEXA intro hero">
         <div className={styles.heroTopActions}>
-          <Link href="/started" className={styles.heroTopLink}>
+          <Link href="/innovate" className={styles.heroTopLink}>
             Innovate
           </Link>
           <Link href="/register" className={styles.heroTopLink}>

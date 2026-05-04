@@ -1,0 +1,712 @@
+.page {
+  min-height: 100vh;
+  background: #000;
+  color: #e7e5e4;
+  position: relative;
+}
+
+.backNav {
+  position: fixed;
+  top: clamp(0.4rem, 1.4vw, 0.75rem);
+  left: clamp(0.4rem, 1.4vw, 0.75rem);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  padding: 0.2rem;
+  opacity: 0.9;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.backNav:hover {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.backNav:focus-visible {
+  outline: 2px solid rgba(248, 113, 113, 0.75);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.backNavImg {
+  display: block;
+  width: clamp(18px, 2.35vw, 24px);
+  height: auto;
+  border-radius: 3px;
+  image-rendering: auto;
+}
+
+.main {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  /* Leave room for the fixed back arrow so page content doesn’t sit under it */
+  padding:
+    clamp(0.65rem, 2vw, 1rem)
+    clamp(0.75rem, 2vw, 1rem)
+    2.5rem
+    clamp(2.15rem, 5.5vw, 2.85rem);
+}
+
+/* Trained chatbot: fixed “Test Bot” / “Save” on the right */
+.mainToolbarSpace {
+  padding-right: clamp(6.5rem, 20vw, 10.5rem);
+}
+
+.hero {
+  text-align: center;
+  padding: clamp(1.25rem, 4vw, 2.6rem) 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(1.4rem, 4.2vw, 2.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #fafaf9;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.9);
+}
+
+.heroTitle span {
+  white-space: nowrap;
+}
+
+.split {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+  min-height: min(74vh, 880px);
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+}
+
+.panel {
+  align-self: start;
+  border: none;
+  border-radius: 0;
+  background: #000;
+  padding: 1.35rem 1.3rem;
+  box-shadow: none;
+}
+
+.panelTitle {
+  margin: 0 0 1rem;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  font-weight: 700;
+  color: #f5f5f4;
+  letter-spacing: -0.02em;
+}
+
+.field {
+  margin-bottom: 0.85rem;
+}
+
+.field:has(textarea) {
+  margin-top: 0.35rem;
+  margin-bottom: 1.05rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #a8a29e;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: #0a0a0a;
+  color: #fafaf9;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #57534e;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  box-shadow: inset 0 0 0 1px rgba(82, 82, 91, 0.45);
+}
+
+.textarea {
+  min-height: 120px;
+  padding: 1.1rem 0.85rem;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.hint {
+  margin: 0.2rem 0 0.9rem;
+  color: #78716c;
+  font-size: 0.88rem;
+}
+
+.error {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  color: #fecaca;
+  background: rgba(40, 10, 10, 0.85);
+  border: none;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+}
+
+/* Full-width primary — website builder: solid orange pill, black caps (reference UI) */
+.btn {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 999px;
+  background: #ff7a18;
+  color: #000;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.72rem, 1.45vw, 0.82rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.88rem 1.6rem;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 3px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Chatbot builder primary — same pill / caps, black fill on dark page */
+.btnBlack {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: #0a0a0a;
+  color: #fafaf9;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.72rem, 1.45vw, 0.82rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.88rem 1.6rem;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.btnBlack:hover {
+  filter: brightness(1.15);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.btnBlack:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 3px;
+}
+
+/* Recessed grey “tray” — only the empty preview / placeholder state */
+.previewShell {
+  position: relative;
+  min-height: min(72vh, 840px);
+  border: none;
+  border-radius: 18px;
+  background:
+    linear-gradient(165deg, rgba(58, 58, 58, 0.55) 0%, rgba(32, 32, 32, 0.9) 38%, rgba(24, 24, 24, 0.95) 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow:
+    inset 0 6px 28px rgba(0, 0, 0, 0.92),
+    inset 0 -4px 20px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.9),
+    0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.previewPanel {
+  min-height: min(72vh, 840px);
+  border: none;
+  border-radius: 18px;
+  background: #0a0a0a;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    inset 0 4px 24px rgba(0, 0, 0, 0.75),
+    inset 0 -2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #d6d3d1;
+  background: #0a0a0a;
+}
+
+.previewMeta {
+  font-weight: 500;
+  color: #78716c;
+  font-size: 0.78rem;
+}
+
+.previewGif {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.previewScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Base wash so the whole GIF reads as “under glass” */
+  background-color: rgba(0, 0, 0, 0.36);
+  background-image:
+    radial-gradient(ellipse 95% 72% at 50% 115%, rgba(0, 0, 0, 0.88) 0%, transparent 54%),
+    radial-gradient(ellipse 58% 48% at 10% 6%, rgba(0, 0, 0, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 52% 42% at 94% 16%, rgba(0, 0, 0, 0.5) 0%, transparent 58%),
+    linear-gradient(195deg, rgba(15, 12, 10, 0.62) 0%, rgba(0, 0, 0, 0.12) 40%, rgba(0, 0, 0, 0.62) 100%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.22) 44%, rgba(0, 0, 0, 0.42) 100%);
+}
+
+.previewMessage {
+  position: relative;
+  z-index: 2;
+  max-width: 24rem;
+  padding: 1rem;
+  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.95);
+}
+
+.previewHeading {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(0.68rem, 1.5vw, 0.82rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(245, 245, 244, 0.4);
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.95), 0 1px 14px rgba(0, 0, 0, 0.7);
+}
+
+.previewFrame {
+  flex: 1;
+  width: 100%;
+  min-height: min(62vh, 720px);
+  border: 0;
+  background: #0a0a0a;
+}
+
+.emptyMessage {
+  padding: 1.25rem;
+  color: #d6d3d1;
+  font-size: 0.9rem;
+  flex: 1;
+  background: #0a0a0a;
+  border: none;
+}
+
+/* Shared builder pages (e.g. chatbot builder) */
+.panelGap {
+  margin-top: 1rem;
+}
+
+.btnRow2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.btnGhost {
+  border: none;
+  border-radius: 10px;
+  background: #141414;
+  color: #d6d3d1;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.52rem 0.85rem;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.btnGhost:hover {
+  background: #1f1f1f;
+  color: #fafaf9;
+}
+
+.btnGhostActive {
+  background: #262626;
+  color: #fafaf9;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.dropZone {
+  border: 1px dashed rgba(87, 83, 78, 0.5);
+  border-radius: 12px;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #a8a29e;
+  background: #0a0a0a;
+}
+
+.dropZoneLabel {
+  display: block;
+  cursor: pointer;
+}
+
+.dropZone:focus-visible {
+  outline: 2px solid rgba(251, 146, 60, 0.45);
+  outline-offset: 3px;
+}
+
+.dropZoneCue {
+  margin-top: 0.85rem;
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #d6d3d1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dropZoneIcon {
+  font-size: 2rem;
+  line-height: 1;
+  opacity: 0.65;
+}
+
+.dropZoneTitle {
+  font-weight: 700;
+  color: #e7e5e4;
+  margin-top: 0.35rem;
+}
+
+.dropZoneHint {
+  font-size: 0.88rem;
+  margin-top: 0.25rem;
+}
+
+.linkAsBtn {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.btnTop {
+  margin-top: 0.9rem;
+}
+
+.hintTight {
+  margin: 0.5rem 0 0;
+  color: #78716c;
+  font-size: 0.86rem;
+}
+
+.topExtras {
+  position: fixed;
+  top: clamp(0.55rem, 1.8vw, 1rem);
+  right: clamp(0.55rem, 1.8vw, 1rem);
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.topExtraGhost {
+  border: none;
+  border-radius: 999px;
+  background: #141414;
+  color: #d6d3d1;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 0.48rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.topExtraGhost:hover {
+  background: #1f1f1f;
+  color: #fafaf9;
+}
+
+.topExtraPrimary {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: #0a0a0a;
+  color: #fafaf9;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 0.42rem 0.95rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.topExtraPrimary:hover {
+  filter: brightness(1.12);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.topExtraPrimary:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 3px;
+}
+
+.ctaBanner {
+  max-width: 100%;
+  margin: 0 auto 0.5rem;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  background: linear-gradient(95deg, rgba(251, 146, 60, 0.35) 0%, rgba(234, 88, 12, 0.28) 45%, rgba(220, 38, 38, 0.32) 100%);
+  border: none;
+  color: #fafaf9;
+}
+
+.ctaBannerTitle {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  font-weight: 700;
+}
+
+.ctaBannerText {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  color: rgba(250, 250, 249, 0.88);
+}
+
+.chatDark {
+  margin-top: 0.9rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  background: #0a0a0a;
+}
+
+.chatDarkHeader {
+  padding: 0.65rem 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #e7e5e4;
+  background: #141414;
+}
+
+.chatDarkBody {
+  min-height: 280px;
+  padding: 0.9rem;
+  background: #0c0a09;
+}
+
+.chatDarkBubble {
+  display: inline-block;
+  max-width: 92%;
+  background: #1a1816;
+  color: #e7e5e4;
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-bottom: 0.65rem;
+}
+
+.chatDarkBubbleUser {
+  background: linear-gradient(95deg, #c2410c 0%, #b91c1c 100%);
+  color: #fafaf9;
+  margin-left: auto;
+  display: table;
+}
+
+.dropZoneDragging {
+  border-color: rgba(251, 146, 60, 0.55);
+  background: #121212;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fileList {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.48rem 0.6rem;
+  border-radius: 8px;
+  background: #111;
+  font-size: 0.82rem;
+  color: #e7e5e4;
+}
+
+.fileMeta {
+  color: #78716c;
+  font-weight: 400;
+}
+
+.fileRemove {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #a8a29e;
+  cursor: pointer;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.4rem;
+  border-radius: 6px;
+}
+
+.fileRemove:hover {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.kbHint {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+  color: #78716c;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.fieldRow .label {
+  margin-bottom: 0;
+}
+
+.checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: #ea580c;
+  cursor: pointer;
+}
+
+.checkbox:disabled {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.browserDark {
+  margin-top: 0.9rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  background: #0a0a0a;
+}
+
+.browserDarkBar {
+  height: 14px;
+  background: #1c1917;
+}
+
+.browserDarkBody {
+  padding: 1rem;
+  background: #111;
+  min-height: 200px;
+}
+
+.browserDarkShim {
+  height: 26px;
+  border-radius: 6px;
+  background: #262626;
+  margin-bottom: 10px;
+  width: 55%;
+}
+
+.browserDarkHero {
+  height: 118px;
+  border-radius: 6px;
+  background: #292524;
+  margin-bottom: 10px;
+}
+
+.browserDarkBubble {
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  border-radius: 10px;
+  padding: 0.42rem 0.58rem;
+  background: #1a1816;
+  color: #e7e5e4;
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

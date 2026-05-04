@@ -41,12 +41,6 @@ export default function GeneratedWebsitePage() {
             <button type="button" className={styles.btnPrimary} style={{ width: "100%" }}>
               Generate Website
             </button>
-            <div className={styles.examples}>
-              <h3 style={{ margin: "0 0 0.8rem", fontSize: "1.45rem" }}>Example Prompts</h3>
-              <div className={styles.exampleItem}>Create a portfolio website for a photographer with gallery and contact sections</div>
-              <div className={styles.exampleItem}>Build a landing page for a SaaS product with pricing tiers and testimonials</div>
-              <div className={styles.exampleItem}>Design a restaurant website with menu, reservation system, and location map</div>
-            </div>
           </article>
 
           <article className={styles.panel}>

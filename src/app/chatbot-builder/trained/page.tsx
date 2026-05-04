@@ -1,72 +1,90 @@
 import Link from "next/link";
-import styles from "../../nexa-ss.module.css";
+import wb from "../../website-builder/website-builder.module.css";
 
 export default function TrainedChatbotPage() {
   return (
-    <div className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.topbarInner}>
-          <Link href="/dashboard" className={styles.btnLight}>
-            ← Back
-          </Link>
-          <div className={styles.brand}>
-            <img src="/assets/images/NEXALOGO.png" alt="" width={24} height={24} />
-            <span>Chatbot Builder</span>
-          </div>
-          <div className={styles.topActions}>
-            <Link href="/chatbot-testing" className={styles.btnLight}>
-              Test Bot
-            </Link>
-            <Link href="/dashboard" className={styles.btnPrimary}>
-              Save Chatbot
-            </Link>
-          </div>
-        </div>
-      </header>
-      <main className={styles.container}>
-        <section className={styles.split}>
+    <div className={wb.page}>
+      <Link href="/dashboard" className={wb.backNav} aria-label="Back to dashboard">
+        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
+      </Link>
+      <div className={wb.topExtras}>
+        <Link href="/chatbot-testing" className={wb.topExtraGhost}>
+          Test Bot
+        </Link>
+        <Link href="/dashboard" className={wb.topExtraPrimary}>
+          Save Chatbot
+        </Link>
+      </div>
+      <main className={`${wb.main} ${wb.mainToolbarSpace}`}>
+        <section className={wb.split}>
           <div>
-            <article className={styles.panel}>
-              <h2 style={{ marginTop: 0, fontSize: "2rem" }}>Chatbot Configuration</h2>
-              <div className={styles.field}>
-                <label>Chatbot Name</label>
-                <input className={styles.input} value="customer support assistance" readOnly />
+            <article className={wb.panel}>
+              <h2 className={wb.panelTitle}>Chatbot Configuration</h2>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="cb-trained-name">
+                  Chatbot Name
+                </label>
+                <input
+                  id="cb-trained-name"
+                  className={wb.input}
+                  defaultValue=""
+                  placeholder="e.g. Customer Support Assistant"
+                  autoComplete="off"
+                />
               </div>
-              <div className={styles.field}>
-                <label>Personality &amp; Tone</label>
-                <input className={styles.input} value="proffessional" readOnly />
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="cb-trained-tone">
+                  Personality &amp; Tone
+                </label>
+                <input
+                  id="cb-trained-tone"
+                  className={wb.input}
+                  defaultValue=""
+                  placeholder="Example: Friendly and professional, helpful but concise"
+                  autoComplete="off"
+                />
               </div>
             </article>
-            <article className={styles.panel} style={{ marginTop: "1rem" }}>
-              <h2 style={{ marginTop: 0, fontSize: "2rem" }}>Add Knowledge Base</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.35rem", marginBottom: "0.9rem" }}>
-                <button type="button" className={styles.btnLight}>
+            <article className={`${wb.panel} ${wb.panelGap}`}>
+              <h2 className={wb.panelTitle}>Add Knowledge Base</h2>
+              <div className={wb.btnRow2}>
+                <button type="button" className={wb.btnGhost}>
                   Upload Files
                 </button>
-                <button type="button" className={styles.btnLight}>
+                <button type="button" className={wb.btnGhost}>
                   Enter Text
                 </button>
               </div>
-              <input className={styles.input} value="cofee shop" readOnly />
-              <p style={{ margin: "0.5rem 0 0", color: "#6b7280", fontSize: "0.86rem" }}>
-                Enter as much information as possible to help your chatbot answer questions
-              </p>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="cb-trained-kb">
+                  Knowledge text
+                </label>
+                <input
+                  id="cb-trained-kb"
+                  className={wb.input}
+                  defaultValue=""
+                  placeholder="Paste or type knowledge for your bot (FAQs, docs, product info…)"
+                  autoComplete="off"
+                />
+              </div>
+              <p className={wb.hintTight}>Enter as much information as possible to help your chatbot answer questions</p>
             </article>
           </div>
-          <article className={styles.panel}>
-            <h2 style={{ marginTop: 0, fontSize: "2rem" }}>Chatbot Preview</h2>
-            <div className={styles.ctaBand} style={{ maxWidth: "100%", padding: "1.4rem 1rem" }}>
-              <h2 style={{ margin: 0, fontSize: "2rem" }}>🤖 Chatbot Ready!</h2>
-              <p style={{ marginBottom: 0 }}>Your AI assistant has been trained successfully</p>
+
+          <article className={wb.panel}>
+            <h2 className={wb.panelTitle}>Chatbot Preview</h2>
+            <div className={wb.ctaBanner}>
+              <h3 className={wb.ctaBannerTitle}>Chatbot ready</h3>
+              <p className={wb.ctaBannerText}>Your AI assistant has been trained successfully</p>
             </div>
-            <div className={styles.chatWindow} style={{ marginTop: "0.9rem" }}>
-              <div className={styles.chatHeader}>customer support assistance</div>
-              <div className={styles.chatBody}>
-                <div className={styles.chatBubble}>Hi! I&apos;m customer support assistance. How can I help you today?</div>
-                <div className={`${styles.chatBubble} ${styles.chatBubbleRight}`}>Hello! Can you tell me about your services?</div>
-                <div className={styles.chatBubble}>
-                  Of course! Based on the data you&apos;ve provided, I can answer questions about your products, services,
-                  and help your customers.
+            <div className={wb.chatDark}>
+              <div className={wb.chatDarkHeader}>customer support assistance</div>
+              <div className={wb.chatDarkBody}>
+                <div className={wb.chatDarkBubble}>Hi! I&apos;m customer support assistance. How can I help you today?</div>
+                <div className={`${wb.chatDarkBubble} ${wb.chatDarkBubbleUser}`}>Hello! Can you tell me about your services?</div>
+                <div className={wb.chatDarkBubble}>
+                  Of course! Based on the data you&apos;ve provided, I can answer questions about your products, services, and help your
+                  customers.
                 </div>
               </div>
             </div>

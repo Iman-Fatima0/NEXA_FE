@@ -382,6 +382,10 @@
   margin-bottom: 10px;
 }
 
+.brandMetaStart {
+  justify-content: flex-start;
+}
+
 .brandLogo {
   display: block;
   height: 48px;
@@ -415,6 +419,933 @@
   transform: scale(0.99);
 }
 
+/* —— Auth on black (login + register): no card container —— */
+
+.pageCyber {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px 40px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+  background: #000;
+}
+
+.authMinimal {
+  width: min(100%, 420px);
+  margin-inline: auto;
+  padding: 0 8px;
+}
+
+.authMinimalWide {
+  width: min(100%, 480px);
+}
+
+.authMinimalHeader {
+  text-align: center;
+}
+
+.authMinimalHeader h1,
+.authMinimalHeader p {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.authMinimalLoading {
+  padding-top: min(28vh, 200px);
+  text-align: center;
+  color: rgba(250, 250, 250, 0.55);
+  font-size: 15px;
+}
+
+/* Login + signup: fire GIF centered in viewport, form above it */
+.authPageWithFire {
+  position: relative;
+  z-index: 0;
+  width: min(100%, 560px);
+  margin-inline: auto;
+}
+
+.authFireMiddle {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  width: min(88vw, 440px);
+}
+
+.authFireMiddleImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(72vh, 520px);
+  object-fit: contain;
+  opacity: 0.48;
+}
+
+.authFormLayer {
+  position: relative;
+  z-index: 1;
+}
+
+.loginPageFlow {
+  height: calc(100vh - 88px);
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.loginHero {
+  position: absolute;
+  left: 50%;
+  top: clamp(8px, 3dvh, 28px);
+  transform: translateX(-50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.loginHeroImg {
+  display: block;
+  width: min(92vw, 640px);
+  max-width: 100%;
+  height: auto;
+  /* Full asset visible: cap by viewport minus header + bottom form band */
+  max-height: min(62dvh, calc(100dvh - 420px));
+  object-fit: contain;
+  object-position: center top;
+  opacity: 0.95;
+}
+
+.loginBottomStack {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: min(100%, 460px);
+}
+
+.loginForgotRow {
+  margin-top: 20px;
+  margin-bottom: 18px;
+}
+
+.loginNeutral .loginFieldsGrid {
+  gap: 12px;
+}
+
+.loginNeutral .fieldCyber > span {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Login email + password: glassy transparent, no neumorphic shade (matches hero GIF) */
+.loginNeutral .loginFieldsGrid .fieldCyber input {
+  min-height: 40px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 18, 0.38);
+  color: rgba(244, 246, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: none;
+}
+
+.loginNeutral .loginFieldsGrid .fieldCyber input:focus {
+  outline: none;
+  border-color: rgba(220, 230, 255, 0.35);
+  background: rgba(10, 12, 26, 0.48);
+  box-shadow: 0 0 0 1px rgba(180, 200, 255, 0.12);
+}
+
+.loginNeutral .loginFieldsGrid .fieldCyber input::placeholder {
+  color: rgba(220, 228, 255, 0.42);
+}
+
+.loginNeutral .passwordToggleCyber.passwordToggleIconCyber {
+  color: rgba(220, 228, 255, 0.55);
+}
+
+.loginNeutral .passwordToggleCyber.passwordToggleIconCyber:hover {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.loginNeutral .cyberDivider {
+  background: linear-gradient(90deg, transparent, rgba(210, 214, 224, 0.65), transparent);
+}
+
+.loginNeutral .socialRowCyberIconsOnly {
+  gap: 32px;
+}
+
+.loginNeutral .socialIconLg {
+  width: 30px;
+  height: 30px;
+}
+
+.loginNeutral .socialPillCyberIcon {
+  width: auto;
+  height: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f6fb;
+  box-shadow: none;
+  transition: transform 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+}
+
+.loginNeutral .socialPillCyberIcon:hover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: brightness(1.12);
+  transform: scale(1.08);
+  opacity: 1;
+}
+
+.loginNeutral .linkCyber,
+.loginNeutral .footerCyber {
+  color: rgba(228, 230, 238, 0.88);
+}
+
+.loginNeutral .linkCyber:hover,
+.loginNeutral .footerCyber a,
+.loginNeutral .footerCyber a:hover {
+  color: #ffffff;
+}
+
+/* Register step 2 — centered GIF + form block vertically centered when it fits the viewport */
+.registerStep2Page.loginPageFlow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 88px);
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 8px max(24px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Fixed in viewport so it stays centered while the form scrolls from the top */
+.registerStep2Page .loginHero {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.registerStep2Page .loginHeroImg {
+  width: min(100%, 420px);
+  max-width: 100%;
+  max-height: min(48dvh, calc(100dvh - 200px));
+  object-position: center;
+}
+
+.loginBottomStack.registerStep2BottomStack {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  flex-shrink: 0;
+  width: min(100%, 460px);
+  margin-inline: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 0 8px 8px;
+  z-index: 1;
+}
+
+.loginNeutral .registerBackLink {
+  color: rgba(210, 218, 245, 0.92);
+}
+
+.loginNeutral .registerBackLink:hover {
+  color: #ffffff;
+}
+
+.loginNeutral .registerStep2Form .sectionTitleCyber {
+  color: rgba(228, 232, 255, 0.88);
+}
+
+.loginNeutral .registerStep2Form .hintCyber {
+  margin: 16px 0 12px;
+  color: rgba(198, 208, 235, 0.72);
+}
+
+.loginNeutral .registerStep2Form .registerFormError {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  color: #fecaca;
+}
+
+.loginNeutral .registerStep2Form .registerFormNotice {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(210, 220, 255, 0.88);
+}
+
+/* Primary CTA on neutral auth (Sign in, Create account) — default matches glass fields; hover keeps ::before gradient sweep */
+.loginNeutral .btnCyberPrimary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 18, 0.38);
+  color: rgba(244, 246, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: none;
+  border-radius: 999px;
+  transition:
+    transform 0.12s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.loginNeutral .btnCyberPrimary:hover:not(:disabled) {
+  border-color: rgba(220, 230, 255, 0.4);
+  background: rgba(10, 12, 26, 0.45);
+}
+
+/* Glass fields outside the email/password grid (company + full name) */
+.loginNeutral .registerStep2Form .fieldCyber input:not([type="hidden"]),
+.loginNeutral .registerStep2Form .fieldCyber select,
+.loginNeutral .registerStep2Form .fieldCyber textarea {
+  min-height: 40px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 18, 0.38);
+  color: rgba(244, 246, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: none;
+}
+
+.loginNeutral .registerStep2Form .fieldCyber textarea {
+  min-height: 88px;
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.loginNeutral .registerStep2Form .fieldCyber input:focus,
+.loginNeutral .registerStep2Form .fieldCyber select:focus,
+.loginNeutral .registerStep2Form .fieldCyber textarea:focus {
+  outline: none;
+  border-color: rgba(220, 230, 255, 0.35);
+  background: rgba(10, 12, 26, 0.48);
+  box-shadow: 0 0 0 1px rgba(180, 200, 255, 0.12);
+}
+
+.loginNeutral .registerStep2Form .fieldCyber input::placeholder,
+.loginNeutral .registerStep2Form .fieldCyber textarea::placeholder {
+  color: rgba(220, 228, 255, 0.42);
+}
+
+.loginFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.loginFieldsGrid .field {
+  margin-bottom: 0;
+}
+
+/* Register step 1 — same circleloop as login, enlarged, account type over the GIF */
+.registerStep1Flow {
+  height: calc(100vh - 88px);
+  position: relative;
+  width: min(100%, 560px);
+  margin-inline: auto;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.registerStep1SrLegend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.registerStep1Fieldset {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 0;
+}
+
+.registerStep1Hero {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.registerStep1HeroImg {
+  display: block;
+  width: min(96vw, 720px);
+  max-width: none;
+  height: auto;
+  max-height: min(78dvh, calc(100dvh - 120px));
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.95;
+}
+
+.registerStep1Overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  /* Extra bottom padding so “Already have an account?” clears the clip */
+  padding: clamp(1.25rem, 4vh, 2.5rem) 16px 52px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.registerStep1Inner {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 18px;
+  width: min(100%, 440px);
+  /* Slightly higher so the footer line stays fully visible */
+  margin-top: clamp(11.5rem, 50vh, 27rem);
+}
+
+.registerStep1LeadWrap {
+  margin: 0;
+  /* ~2 lines while typing — tighter band above Personal / Company */
+  min-height: 3rem;
+  text-align: center;
+  font-size: clamp(0.9rem, 2.4vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+}
+
+.registerStep1LeadMetallic {
+  background: linear-gradient(
+    118deg,
+    #4a4d58 0%,
+    #9ea3b0 14%,
+    #f2f4fa 28%,
+    #cfd3df 40%,
+    #ffffff 52%,
+    #aeb4c4 66%,
+    #e8ebf4 82%,
+    #6d717d 100%
+  );
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: rgba(220, 225, 235, 0.95);
+  -webkit-text-fill-color: transparent;
+  animation: registerStep1LeadShine 5s ease-in-out infinite;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28))
+    drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 18px rgba(0, 0, 0, 0.65));
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .registerStep1LeadMetallic {
+    color: #d4d8e4;
+    -webkit-text-fill-color: unset;
+    background: none;
+    animation: none;
+  }
+}
+
+@keyframes registerStep1LeadShine {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.registerStep1LeadCaret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 3px;
+  vertical-align: -0.08em;
+  border-radius: 1px;
+  -webkit-text-fill-color: unset;
+  background: linear-gradient(180deg, #ffffff 0%, #b8c0d8 100%);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.45);
+  animation: registerStep1CaretBlink 0.88s steps(1, end) infinite;
+}
+
+@keyframes registerStep1CaretBlink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.registerStep1 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 0;
+  padding-block: 0;
+}
+
+.registerStep1Inner .fieldsetAccountCyber {
+  margin-top: 0;
+}
+
+.registerStep1Inner .footerCyber {
+  margin: 0;
+  text-align: center;
+}
+
+/* Step 1 — match circleloop / starfield (glass, cool light, no red cyber chrome) */
+.registerStep1Flow .accountTypeCyber .accountTypeBtn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 8, 20, 0.45);
+  color: rgba(244, 246, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.4);
+  border-radius: 18px;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.registerStep1Flow .accountTypeCyber .accountTypeBtn:hover {
+  background: rgba(10, 12, 30, 0.58);
+  border-color: rgba(190, 205, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(160, 175, 255, 0.12),
+    0 10px 36px rgba(0, 0, 0, 0.45);
+}
+
+.registerStep1Flow .accountTypeCyber .accountTypeBtnActive {
+  border-color: rgba(220, 230, 255, 0.45);
+  background: rgba(14, 16, 38, 0.65);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(170, 190, 255, 0.22) inset,
+    0 0 32px rgba(130, 150, 255, 0.18);
+}
+
+.registerStep1Flow .accountTypeCyber .accountTypeHint {
+  color: rgba(198, 208, 235, 0.68);
+}
+
+.registerStep1Flow .accountTypeCyber .accountTypeBtn:hover .accountTypeHint {
+  color: rgba(228, 234, 255, 0.88);
+}
+
+.registerStep1Flow .registerStep1Inner .footerCyber {
+  color: rgba(200, 210, 240, 0.72);
+}
+
+.registerStep1Flow .registerStep1Inner .footerCyber a {
+  color: rgba(252, 250, 255, 0.92);
+  font-weight: 600;
+  text-decoration: none;
+  text-shadow: 0 0 20px rgba(140, 160, 255, 0.35);
+}
+
+.registerStep1Flow .registerStep1Inner .footerCyber a:hover {
+  color: #ffffff;
+  text-decoration: none;
+  text-shadow: 0 0 24px rgba(180, 200, 255, 0.45);
+}
+
+.registerBackLink {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(252, 165, 165, 0.95);
+  text-align: left;
+  text-decoration: none;
+}
+
+.registerBackLink:hover {
+  color: #f87171;
+  text-decoration: underline;
+}
+
+.headerCyber {
+  text-align: left;
+}
+
+.headerCyber h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff7f7;
+}
+
+.headerCyber p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(254, 202, 202, 0.82);
+  max-width: 42ch;
+}
+
+.authMinimalHeader.headerCyber {
+  text-align: center;
+}
+
+.cyberDivider {
+  margin: 18px 0 16px;
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(248, 113, 113, 0.45), transparent);
+}
+
+.socialRowCyber {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.socialRowCyberTriple {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.socialPillCyber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 165, 165, 0.38);
+  background: rgba(24, 6, 10, 0.35);
+  color: #fef2f2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.socialPillCyber:hover {
+  background: rgba(254, 226, 226, 0.08);
+  border-color: rgba(248, 113, 113, 0.65);
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.28);
+}
+
+.socialPillCyberIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(252, 165, 165, 0.38);
+  background: rgba(24, 6, 10, 0.35);
+  color: #fef2f2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.socialPillCyberIcon:hover {
+  background: rgba(254, 226, 226, 0.08);
+  border-color: rgba(248, 113, 113, 0.65);
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.28);
+}
+
+.socialRowCyberIconsOnly {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.fieldCyber input,
+.fieldCyber select,
+.fieldCyber textarea {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: linear-gradient(180deg, #dedee4 0%, #d9d9df 100%);
+  color: #4b4d59;
+  box-shadow:
+    inset 6px 6px 12px rgba(159, 162, 177, 0.55),
+    inset -6px -6px 12px rgba(246, 247, 252, 0.95),
+    0 8px 20px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fieldCyber textarea {
+  border-radius: 16px;
+  min-height: 88px;
+  padding: 12px 14px;
+}
+
+.fieldCyber input:focus,
+.fieldCyber select:focus,
+.fieldCyber textarea:focus {
+  border-color: rgba(239, 68, 68, 0.55);
+  background: linear-gradient(180deg, #e4e4ea 0%, #dddde3 100%);
+  box-shadow:
+    inset 6px 6px 12px rgba(159, 162, 177, 0.58),
+    inset -6px -6px 12px rgba(250, 251, 255, 0.98),
+    0 10px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(239, 68, 68, 0.18);
+}
+
+.fieldCyber > span {
+  color: rgba(254, 226, 226, 0.9);
+}
+
+.fieldCyber input::placeholder,
+.fieldCyber textarea::placeholder {
+  color: rgba(76, 79, 94, 0.7);
+}
+
+.accountTypeCyber .accountTypeHint {
+  color: rgba(254, 202, 202, 0.72);
+}
+
+.btnCyberPrimary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  height: 3rem;
+  min-height: 3rem;
+  margin-top: 6px;
+  padding: 0 2rem;
+  border: none;
+  border-radius: 1.5rem;
+  background: #3d3a4e;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+
+.btnCyberPrimary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    82.3deg,
+    #fde047 0%,
+    #fb923c 22%,
+    #ea580c 48%,
+    #7f1d1d 78%,
+    #0a0a0a 100%
+  );
+  transition: transform 0.475s ease;
+}
+
+.btnCyberPrimary:hover:not(:disabled)::before {
+  transform: scaleX(1);
+}
+
+.btnCyberPrimary:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.btnCyberPrimary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btnCyberPrimaryContent {
+  position: relative;
+  z-index: 1;
+}
+
+.footerCyber {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(254, 202, 202, 0.78);
+}
+
+.footerCyber a {
+  color: #f87171;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.footerCyber a:hover {
+  text-decoration: underline;
+  color: #fca5a5;
+}
+
+.linkCyber {
+  font-size: 13px;
+  color: rgba(254, 202, 202, 0.78);
+  text-decoration: none;
+}
+
+.linkCyber:hover {
+  color: #f87171;
+}
+
+.passwordToggleCyber {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(185, 28, 60, 0.35);
+  background: rgba(40, 10, 14, 0.82);
+  color: rgba(254, 226, 226, 0.95);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.passwordToggleCyber.passwordToggleIconCyber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  font-size: 0;
+  line-height: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  color: rgba(254, 226, 226, 0.88);
+}
+
+.passwordToggleSvg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.passwordToggleCyber:hover:not(.passwordToggleIconCyber) {
+  background: rgba(69, 10, 18, 0.92);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #fff;
+}
+
+.passwordToggleCyber.passwordToggleIconCyber:hover {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: brightness(1.15);
+}
+
+.headerCyber .brandMeta {
+  margin-bottom: 16px;
+}
+
+.fieldsetAccountCyber {
+  margin: 16px 0 0;
+  padding: 0;
+  border: none;
+}
+
+.fieldsetAccountCyber legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(252, 165, 165, 0.9);
+}
+
+.accountTypeCyber .accountTypeBtn {
+  border: 1px solid rgba(185, 28, 60, 0.32);
+  background: rgba(24, 6, 10, 0.45);
+  color: rgba(254, 242, 242, 0.92);
+}
+
+.accountTypeCyber .accountTypeBtn:hover {
+  background: rgba(50, 10, 16, 0.62);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.accountTypeCyber .accountTypeBtnActive {
+  border-color: rgba(248, 113, 113, 0.75);
+  background: rgba(69, 10, 20, 0.55);
+  color: #fff7f7;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.2) inset,
+    0 6px 28px rgba(185, 28, 60, 0.28);
+}
+
+.sectionTitleCyber {
+  margin: 18px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(252, 165, 165, 0.88);
+}
+
+.hintCyber {
+  margin: -4px 0 12px;
+  color: rgba(254, 202, 202, 0.75);
+  font-size: 12px;
+}
+
 @media (max-width: 480px) {
   .header h1 {
     font-size: 24px;
@@ -422,7 +1353,19 @@
 
   .socialRow,
   .accountType,
-  .grid2 {
+  .grid2,
+  .loginFieldsGrid {
     grid-template-columns: 1fr;
   }
+
+  .socialRowCyber,
+  .socialRowCyberTriple {
+    grid-template-columns: 1fr;
+  }
+
+  .headerCyber h1 {
+    font-size: 22px;
+  }
 }
+
+

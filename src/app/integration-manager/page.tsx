@@ -1,67 +1,72 @@
 import Link from "next/link";
-import styles from "../nexa-ss.module.css";
+import wb from "../website-builder/website-builder.module.css";
+
+const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 
 export default function IntegrationManagerPage() {
   return (
-    <div className={styles.page}>
-      <header className={styles.topbar}>
-        <div className={styles.topbarInner}>
-          <Link href="/dashboard" className={styles.btnLight}>
-            ← Back
-          </Link>
-          <div className={styles.brand}>
-            <span>✦</span>
-            <span>Integration Manager</span>
-          </div>
-          <span />
-        </div>
-      </header>
-      <main className={styles.container}>
-        <section className={styles.split}>
+    <div className={wb.page}>
+      <Link href="/dashboard" className={wb.backNav} aria-label="Back to dashboard">
+        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
+      </Link>
+      <main className={wb.main}>
+        <section className={wb.split}>
           <div>
-            <article className={styles.panel}>
-              <h2 style={{ marginTop: 0, fontSize: "2rem" }}>Connect Chatbot to Website</h2>
-              <div className={styles.field}>
-                <label>Select Website</label>
-                <select className={styles.select} defaultValue="">
+            <article className={wb.panel}>
+              <h2 className={wb.panelTitle}>Connect Chatbot to Website</h2>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="im-website">
+                  Select Website
+                </label>
+                <select id="im-website" className={wb.select} defaultValue="">
                   <option value="">Choose a website</option>
                 </select>
               </div>
-              <div style={{ textAlign: "center", fontSize: "2.2rem", color: "#ef0f86", margin: "0.6rem 0" }}>🔗</div>
-              <div className={styles.field}>
-                <label>Select Chatbot</label>
-                <select className={styles.select} defaultValue="">
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="im-chatbot">
+                  Select Chatbot
+                </label>
+                <select id="im-chatbot" className={wb.select} defaultValue="">
                   <option value="">Choose a chatbot</option>
                 </select>
               </div>
             </article>
 
-            <article className={styles.panel} style={{ marginTop: "1rem" }}>
-              <h2 style={{ marginTop: 0, fontSize: "2rem" }}>Customize Widget</h2>
-              <div className={styles.field}>
-                <label>Position on Page</label>
-                <select className={styles.select} defaultValue="Bottom Right">
-                  <option>Bottom Right</option>
+            <article className={`${wb.panel} ${wb.panelGap}`}>
+              <h2 className={wb.panelTitle}>Customize Widget</h2>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="im-position">
+                  Position on Page
+                </label>
+                <select id="im-position" className={wb.select} defaultValue="bottom-right">
+                  <option value="bottom-right">Bottom Right</option>
+                  <option value="bottom-left">Bottom Left</option>
+                  <option value="top-right">Top Right</option>
                 </select>
               </div>
-              <div className={styles.field} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label style={{ marginBottom: 0 }}>Show Chat Bubble</label>
-                <input type="checkbox" checked readOnly />
+              <div className={wb.fieldRow}>
+                <label className={wb.label} htmlFor="im-bubble">
+                  Show Chat Bubble
+                </label>
+                <input id="im-bubble" type="checkbox" className={wb.checkbox} defaultChecked />
               </div>
-              <div className={styles.field}>
-                <label>Widget Size: 60px</label>
+              <div className={wb.field}>
+                <span className={wb.label}>Widget Size</span>
+                <p className={wb.hintTight} style={{ marginTop: "0.25rem" }}>
+                  60px
+                </p>
               </div>
-              <Link href="/integration-manager/completed" className={`${styles.btnPrimary} ${styles.btnPink}`} style={{ width: "100%" }}>
+              <Link href="/integration-manager/completed" className={`${wb.btn} ${wb.linkAsBtn} ${wb.btnTop}`}>
                 Connect to Website
               </Link>
             </article>
           </div>
 
-          <article className={styles.previewPlaceholder}>
-            <div>
-              <div style={{ fontSize: "3rem", color: "#ef0f86" }}>🔗</div>
-              <h3 style={{ margin: "0.8rem 0 0.35rem", fontSize: "1.8rem" }}>Preview your integration</h3>
-              <p style={{ margin: 0 }}>Select a website and chatbot to see how they&apos;ll work together</p>
+          <article className={wb.previewShell}>
+            <img className={wb.previewGif} src={PREVIEW_WAIT_GIF} alt="" width={800} height={600} decoding="async" />
+            <div className={wb.previewScrim} aria-hidden />
+            <div className={wb.previewMessage}>
+              <h3 className={wb.previewHeading}>Preview your integration</h3>
             </div>
           </article>
         </section>

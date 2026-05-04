@@ -1,0 +1,427 @@
+.page {
+  min-height: 100vh;
+  background: #000;
+  color: #f8fafc;
+}
+
+.hero {
+  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #000;
+  background-image: url("/assets/images/hellowrold.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Full-viewport row of social-style tiles */
+.cardsSection {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vh, 3.5rem) 1rem;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+  background: #000;
+}
+
+.innovateDividerHoverWrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: inline-flex;
+}
+
+.innovateSectionDividerPixel {
+  width: clamp(110px, 16vw, 210px);
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+}
+
+.innovateDividerBubble {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  right: 50%;
+  transform: translateX(50%) translateY(4px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(4, 6, 12, 0.9);
+  color: #f8fafc;
+  font-family: "Monof55", monospace;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  padding: 0.38rem 0.52rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+  z-index: 6;
+}
+
+.innovateDividerHoverWrap:hover .innovateDividerBubble {
+  opacity: 1;
+  transform: translateX(50%) translateY(0);
+}
+
+.cardsInner {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.35rem, 3.2vw, 2.75rem);
+  align-items: start;
+}
+
+.tileColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.tileBadge {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #c2410c;
+  color: #fffafa;
+  font-weight: 800;
+  font-size: 1rem;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: -20px;
+  position: relative;
+  z-index: 4;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  letter-spacing: -0.02em;
+}
+
+.tileSurface {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 22px;
+  padding: 1.5rem 1.15rem 1.15rem;
+  box-sizing: border-box;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.tileSurface:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 34px 70px rgba(0, 0, 0, 0.6);
+}
+
+.tileLayer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.tileContentCentered {
+  align-items: center;
+  text-align: center;
+}
+
+.tileContentCentered .tileBrand {
+  align-self: center;
+}
+
+.tileContentCentered .tileHeadline {
+  width: 100%;
+  margin-top: 0.9rem;
+}
+
+.tileContentCentered .tileSubline {
+  width: 100%;
+  max-width: 235px;
+  margin-top: 0.8rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tileContentCentered .tileFooter {
+  align-self: stretch;
+  text-align: center;
+  margin-top: 1.25rem;
+}
+
+.tileContentCentered .tileCtaLight,
+.tileContentCentered .tileCtaDark {
+  align-self: center;
+  margin-top: 0.95rem;
+}
+
+.tileBrand {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+.tileHeadline {
+  margin: 0.65rem 0 0;
+  font-size: clamp(0.95rem, 1.35vw, 1.12rem);
+  font-weight: 800;
+  line-height: 1.22;
+  font-family: system-ui, "Segoe UI", sans-serif;
+}
+
+.tileHeadlineCenter {
+  text-align: center;
+  align-self: stretch;
+}
+
+.tileBodyOnDark {
+  font-weight: 500;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.tileSubline {
+  margin: 0.55rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  font-weight: 500;
+  opacity: 0.92;
+  flex: 1;
+  min-height: 0;
+}
+
+.tileFooter {
+  margin-top: auto;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  opacity: 0.85;
+  padding-top: 0.55rem;
+}
+
+.tileTextOnDark {
+  color: #fafafa;
+}
+
+.tileTextOnLight {
+  color: #111827;
+}
+
+/* Red “gem” tile */
+.tileRed {
+  background:
+    linear-gradient(128deg, rgba(254, 226, 226, 0.35) 0%, transparent 38%),
+    linear-gradient(310deg, rgba(69, 10, 10, 0.95) 0%, transparent 45%),
+    linear-gradient(205deg, #f87171 0%, #b91c1c 42%, #450a0a 100%);
+  align-items: center;
+  text-align: center;
+}
+
+.tileRed .tileBrand {
+  align-self: center;
+}
+
+.tileRed .tileHeadline {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tileRed .tileFooter {
+  text-align: center;
+  align-self: stretch;
+}
+
+/* Frosted glass tile */
+.tileGlass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 28px 60px rgba(0, 0, 0, 0.45);
+}
+
+.tileGlass::before {
+  content: "";
+  position: absolute;
+  inset: -40% -20% auto -30%;
+  height: 70%;
+  background: radial-gradient(circle at 30% 40%, rgba(248, 113, 113, 0.38), transparent 58%);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+.tileGlass::after {
+  content: "";
+  position: absolute;
+  inset: auto -35% -45% 10%;
+  height: 65%;
+  background: radial-gradient(circle at 70% 60%, rgba(253, 186, 116, 0.35), transparent 55%);
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.tileCtaLight {
+  margin-top: 0.75rem;
+  align-self: flex-start;
+  display: inline-block;
+  padding: 0.38rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fafafa;
+  background: #111827;
+}
+
+.tileCtaDark {
+  margin-top: 0.75rem;
+  align-self: flex-start;
+  display: inline-block;
+  padding: 0.38rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0c0a09;
+  background: #fb923c;
+}
+
+/* Dark geometric tile */
+.tileDark {
+  background:
+    linear-gradient(125deg, rgba(251, 146, 60, 0.12) 0%, transparent 35%),
+    repeating-linear-gradient(
+      -12deg,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 10px
+    ),
+    linear-gradient(165deg, #292524 0%, #0c0a09 100%);
+  border: 1px solid rgba(251, 146, 60, 0.18);
+}
+
+.tileDarkAccent {
+  margin: 0.4rem 0 0;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  font-weight: 200;
+  font-size: clamp(2.1rem, 4vw, 2.65rem);
+  line-height: 1;
+  color: #fb923c;
+  letter-spacing: 0.02em;
+}
+
+.tileDarkAccent span {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #fafafa;
+  letter-spacing: 0.12em;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.tileBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  width: 100%;
+  max-width: 300px;
+  padding: 0 0.15rem;
+}
+
+.tileBarSpacer {
+  flex: 1;
+}
+
+.tileBarIcon {
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+.gifSection {
+  min-height: 100vh;
+  height: 100vh;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.afterSection {
+  position: relative;
+  z-index: 3;
+  min-height: 50vh;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem);
+  background: #000;
+  font-family: "Monof55", monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(248, 250, 252, 0.92);
+}
+
+.afterInner {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  margin-top: 1.25rem;
+  color: #f87171;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(248, 113, 113, 0.45);
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.backLink:hover {
+  color: #fca5a5;
+  border-bottom-color: rgba(252, 165, 165, 0.75);
+}
+
+@media (max-width: 920px) {
+  .tileGrid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
