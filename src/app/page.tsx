@@ -1,7 +1,14 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { SESSION_COOKIE } from "../lib/auth/session-cookie-names";
 import styles from "./nexa-ss.module.css";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const jar = await cookies();
+  const startBuildingHref = jar.get(SESSION_COOKIE)?.value
+    ? "/dashboard"
+    : `/login?next=${encodeURIComponent("/dashboard")}`;
+
   return (
     <div className={styles.page}>
       <section className={styles.introHero} aria-label="NEXA intro hero">
@@ -78,7 +85,7 @@ export default function HomePage() {
         <div className={styles.redReadyInner}>
           <h2 className={styles.redReadyTitle}>Ready to Get Started?</h2>
           <p className={styles.redReadyText}>Join thousands of users building amazing websites and chatbots with Nexa</p>
-          <Link href="/dashboard" className={styles.redReadyButton}>
+          <Link href={startBuildingHref} prefetch={false} className={styles.redReadyButton}>
             <span>Start Building Now</span>
             <span className={styles.redReadyButtonIcon} aria-hidden>
               ↗

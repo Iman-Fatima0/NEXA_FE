@@ -5,6 +5,7 @@ import { useState } from "react";
 import styles from "../auth.module.css";
 import { EyeIcon, EyeOffIcon, FacebookLogo, GitHubLogo, GoogleLogo } from "../../../components/auth/icons";
 import { formString, loginWithCredentials, readAuthErrorMessage } from "../../../lib/auth-api";
+import { rememberProfileIconSeedEmail } from "../../../lib/user-profile-icon";
 
 function safeRedirectPath(next: string | null): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
@@ -57,6 +58,7 @@ export function LoginForm({ nextParam = null }: LoginFormProps) {
                 const msg = await readAuthErrorMessage(res, "Sign in failed. Try again.");
                 throw new Error(msg);
               }
+              rememberProfileIconSeedEmail(email);
               const fromUrl = new URL(globalThis.location.href).searchParams.get("next");
               const next = safeRedirectPath(fromUrl ?? nextParam);
               globalThis.location.assign(next);

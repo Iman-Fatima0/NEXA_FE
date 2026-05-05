@@ -1,17 +1,22 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { dashboardPathOrLogin, hubBackHrefForSession } from "../../../lib/auth/hub-nav-for-session";
 import wb from "../../website-builder/website-builder.module.css";
 
-export default function TrainedChatbotPage() {
+export default async function TrainedChatbotPage() {
+  const jar = await cookies();
+  const backHref = hubBackHrefForSession(jar, "bot");
+  const saveHref = dashboardPathOrLogin(jar, "/dashboard/bots");
   return (
-    <div className={wb.page}>
-      <Link href="/dashboard" className={wb.backNav} aria-label="Back to dashboard">
+    <div className={`${wb.page} ${wb.botReviewPage}`}>
+      <Link href={backHref} className={wb.backNav} aria-label="Back">
         <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
       </Link>
       <div className={wb.topExtras}>
         <Link href="/chatbot-testing" className={wb.topExtraGhost}>
           Test Bot
         </Link>
-        <Link href="/dashboard" className={wb.topExtraPrimary}>
+        <Link href={saveHref} className={wb.topExtraPrimary}>
           Save Chatbot
         </Link>
       </div>
@@ -59,11 +64,12 @@ export default function TrainedChatbotPage() {
                 <label className={wb.label} htmlFor="cb-trained-kb">
                   Knowledge text
                 </label>
-                <input
+                <textarea
                   id="cb-trained-kb"
-                  className={wb.input}
+                  className={wb.textarea}
                   defaultValue=""
                   placeholder="Paste or type knowledge for your bot (FAQs, docs, product info…)"
+                  rows={6}
                   autoComplete="off"
                 />
               </div>
@@ -78,9 +84,9 @@ export default function TrainedChatbotPage() {
               <p className={wb.ctaBannerText}>Your AI assistant has been trained successfully</p>
             </div>
             <div className={wb.chatDark}>
-              <div className={wb.chatDarkHeader}>customer support assistance</div>
+              <div className={wb.chatDarkHeader}>Customer support bot · online</div>
               <div className={wb.chatDarkBody}>
-                <div className={wb.chatDarkBubble}>Hi! I&apos;m customer support assistance. How can I help you today?</div>
+                <div className={wb.chatDarkBubble}>Hi! I&apos;m your AI assistant. How can I help you today?</div>
                 <div className={`${wb.chatDarkBubble} ${wb.chatDarkBubbleUser}`}>Hello! Can you tell me about your services?</div>
                 <div className={wb.chatDarkBubble}>
                   Of course! Based on the data you&apos;ve provided, I can answer questions about your products, services, and help your

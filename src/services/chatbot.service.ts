@@ -1,3 +1,4 @@
+/** Direct-to-backend chatbot APIs; see `lib/api/nexa-backend-contract.ts`. */
 import { env } from "../config/env";
 import { apiRequest } from "../lib/api";
 import type { Chatbot } from "../types/api.types";

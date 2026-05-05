@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "../auth.module.css";
 import { EyeIcon, EyeOffIcon, FacebookLogo, GitHubLogo, GoogleLogo } from "../../../components/auth/icons";
+import { formString, readAuthErrorMessage, registerAccount, type RegisterAccountPayload } from "../../../lib/auth-api";
 type AccountMode = "personal" | "company";
 type RegisterStep = 1 | 2;
 
@@ -15,6 +16,7 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [leadTypedLen, setLeadTypedLen] = useState(0);
   const [signupPendingNotice, setSignupPendingNotice] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (step !== 1) {
@@ -131,9 +133,38 @@ export function RegisterForm() {
                   form.reportValidity();
                   return;
                 }
-                setSignupPendingNotice(
-                  "Signup is not connected to a server yet—only browser checks run here. Share your API routes when ready and we will wire them in.",
-                );
+                setSignupPendingNotice(null);
+                setSubmitting(true);
+                void (async () => {
+                  try {
+                    const fd = new FormData(form);
+                    const payload: RegisterAccountPayload = {
+                      accountType: mode,
+                      fullName: formString(fd, "fullName").trim(),
+                      email: formString(fd, "email").trim().toLowerCase(),
+                      password: formString(fd, "password"),
+                      ...(mode === "company"
+                        ? {
+                            companyName: formString(fd, "companyName").trim(),
+                            industry: formString(fd, "industry").trim(),
+                            companyWebsite: formString(fd, "companyWebsite").trim(),
+                            companyDetails: formString(fd, "companyDetails").trim(),
+                          }
+                        : {}),
+                    };
+                    const res = await registerAccount(payload);
+                    if (!res.ok) {
+                      const msg = await readAuthErrorMessage(res, "Could not create account.");
+                      setSignupPendingNotice(msg);
+                      setSubmitting(false);
+                      return;
+                    }
+                    globalThis.location.assign("/login?registered=1");
+                  } catch (err) {
+                    setSignupPendingNotice(err instanceof Error ? err.message : "Registration failed.");
+                    setSubmitting(false);
+                  }
+                })();
               }}
             >
               <input type="hidden" name="accountType" value={mode} />
@@ -216,8 +247,8 @@ export function RegisterForm() {
                 </p>
               ) : null}
 
-              <button type="submit" className={styles.btnCyberPrimary}>
-                <span className={styles.btnCyberPrimaryContent}>Create account</span>
+              <button type="submit" className={styles.btnCyberPrimary} disabled={submitting}>
+                <span className={styles.btnCyberPrimaryContent}>{submitting ? "Creating account…" : "Create account"}</span>
               </button>
             </form>
 

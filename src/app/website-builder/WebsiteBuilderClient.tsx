@@ -42,7 +42,12 @@ function formatApiError(err: unknown): string {
   return "Something went wrong.";
 }
 
-export default function WebsiteBuilderClient() {
+type WebsiteBuilderClientProps = Readonly<{
+  /** From server: dashboard websites hub when signed in, otherwise public builder entry. */
+  hubBackHref: string;
+}>;
+
+export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClientProps) {
   const [websiteName, setWebsiteName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,7 +114,7 @@ export default function WebsiteBuilderClient() {
 
   return (
     <div className={wb.page}>
-      <Link href="/dashboard" className={wb.backNav} aria-label="Back to dashboard">
+      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
         <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
       </Link>
       <main className={wb.main}>

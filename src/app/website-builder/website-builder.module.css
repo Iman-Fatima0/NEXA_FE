@@ -3,6 +3,91 @@
   background: #000;
   color: #e7e5e4;
   position: relative;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/**
+ * Chatbot trained / review — same voice as NEXA (Monof55) on labels, titles, and chat copy.
+ * Scoped so other builder screens keep UI sans until we unify globally.
+ */
+.botReviewPage .panelTitle {
+  font-family: "Monof55", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-weight: 700;
+  color: #fafaf9;
+}
+
+.botReviewPage .label {
+  font-family: "Monof55", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a8a29e;
+}
+
+.botReviewPage .input,
+.botReviewPage .textarea {
+  font-family: "Monof55", monospace;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
+}
+
+.botReviewPage .hintTight,
+.botReviewPage .kbHint {
+  font-family: "Monof55", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  color: #78716c;
+}
+
+.botReviewPage .btnGhost {
+  font-family: "Monof55", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.botReviewPage .ctaBannerTitle {
+  font-family: "Monof55", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+}
+
+.botReviewPage .ctaBannerText {
+  font-family: "Monof55", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+  color: rgba(250, 250, 249, 0.9);
+}
+
+.botReviewPage .chatDarkHeader {
+  font-family: "Monof55", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d6d3d1;
+}
+
+.botReviewPage .chatDarkBubble {
+  font-family: "Monof55", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+.botReviewPage .chatDarkBubbleUser {
+  letter-spacing: 0.03em;
+}
+
+.botReviewPage .topExtraGhost,
+.botReviewPage .topExtraPrimary {
+  font-family: "Monof55", monospace;
+  letter-spacing: 0.06em;
 }
 
 .backNav {
@@ -581,6 +666,36 @@
   background: #121212;
 }
 
+/* Full-size overlay `<input type="file">` — reliable click + drag-drop (avoids broken label + clip-hidden input). */
+.dropZoneInteractive {
+  position: relative;
+}
+
+.dropZoneNativeFile {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0.001;
+  cursor: pointer;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.dropZoneVisual {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Children default to `pointer:auto` and would sit above the transparent input in hit-testing */
+.dropZoneVisual * {
+  pointer-events: none;
+}
+
 .visuallyHidden {
   position: absolute;
   width: 1px;
@@ -709,4 +824,41 @@
   color: #e7e5e4;
   font-size: 0.82rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Chatbot testing — composer under dark chat */
+.chatDarkBodyTall {
+  min-height: min(44vh, 480px);
+}
+
+.chatComposeBar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  background: #141414;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.chatComposeBar .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatComposeSend {
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  background: #0a0a0a;
+  color: #fafaf9;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0 0.85rem;
+  cursor: pointer;
+  transition: filter 140ms ease, border-color 140ms ease;
+}
+
+.chatComposeSend:hover {
+  filter: brightness(1.12);
+  border-color: rgba(255, 255, 255, 0.32);
 }

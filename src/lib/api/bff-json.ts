@@ -1,0 +1,28 @@
+/** Default fetch options for same-origin BFF calls. */
+const defaultInit: Pick<RequestInit, "credentials" | "cache"> = {
+  credentials: "same-origin",
+  cache: "no-store",
+};
+
+export async function parseBffErrorMessage(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = (await res.json()) as { message?: string; error?: string };
+    if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
+    if (typeof data.error === "string" && data.error.trim()) return data.error.trim();
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
+/**
+ * JSON `fetch` to a Next `/api/*` route. Throws `Error` with a readable message when `!res.ok`.
+ */
+export async function bffJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, { ...defaultInit, ...init });
+  if (!res.ok) {
+    const msg = await parseBffErrorMessage(res, `Request failed (${res.status}).`);
+    throw new Error(msg);
+  }
+  return (await res.json()) as T;
+}

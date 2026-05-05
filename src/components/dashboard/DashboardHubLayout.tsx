@@ -4,17 +4,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import styles from "../../app/nexa-ss.module.css";
+import { logoutAndRedirectHome } from "../../lib/auth-api";
 
 type DashboardHubLayoutProps = Readonly<{
-  title: string;
+  title?: string;
   lead?: string;
   children: ReactNode;
 }>;
 
 export function DashboardHubLayout({ title, lead, children }: DashboardHubLayoutProps) {
   const signOut = useCallback(async () => {
-    await fetch("/api/auth/session", { method: "DELETE", credentials: "same-origin" });
-    globalThis.location.href = "/";
+    await logoutAndRedirectHome();
   }, []);
 
   return (
@@ -40,7 +40,7 @@ export function DashboardHubLayout({ title, lead, children }: DashboardHubLayout
       </header>
 
       <main className={styles.container}>
-        <h1 className={styles.dashboardTitle}>{title}</h1>
+        {title ? <h1 className={styles.dashboardTitle}>{title}</h1> : null}
         {lead ? <p className={styles.dashboardSub}>{lead}</p> : null}
         {children}
       </main>

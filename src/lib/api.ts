@@ -54,8 +54,7 @@ export async function apiRequest<TResponse>(
     throw new Error("API base URL is not configured. Set NEXT_PUBLIC_BACKEND_API_BASE_URL or a feature-specific API URL.");
   }
 
-  const hasBody = options.body === undefined;
-  const serializedBody = hasBody ? undefined : JSON.stringify(options.body);
+  const serializedBody = options.body === undefined ? undefined : JSON.stringify(options.body);
 
   const response = await fetch(toUrl(baseUrl, path), {
     method: options.method ?? "GET",

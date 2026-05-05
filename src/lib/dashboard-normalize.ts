@@ -138,12 +138,19 @@ function pickUser(root: Record<string, unknown>): DashboardUser | undefined {
     return undefined;
   }
   const o = u as Record<string, unknown>;
+  const id =
+    str(o.id ?? o.user_id ?? o.userId ?? o.uuid ?? o.sub ?? o.uid ?? o.external_id)
+      .trim() || undefined;
   const displayName = str(o.displayName ?? o.display_name ?? o.name ?? o.fullName ?? o.full_name ?? o.username).trim() || undefined;
-  const email = str(o.email).trim() || undefined;
-  if (!displayName && !email) {
+  const email = str(o.email ?? o.email_address ?? o.mail).trim() || undefined;
+  if (!id && !displayName && !email) {
     return undefined;
   }
-  return { displayName, email };
+  const out: DashboardUser = {};
+  if (id) out.id = id;
+  if (displayName) out.displayName = displayName;
+  if (email) out.email = email;
+  return out;
 }
 
 /**

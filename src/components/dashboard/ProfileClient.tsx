@@ -1,15 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  dashboardBotHub,
+  dashboardIntegrationHub,
+  dashboardWebsiteHub,
+} from "../../lib/dashboard-app-hubs";
+import { logoutAndRedirectHome } from "../../lib/auth-api";
 import { fetchDashboardPayload } from "../../lib/fetch-dashboard";
 import type { DashboardUser } from "../../lib/dashboard-types";
-import styles from "../../app/nexa-ss.module.css";
-import { DashboardHubLayout } from "./DashboardHubLayout";
+import {
+  NEXA_PROFILE_ICON_SEED_EMAIL_KEY,
+  profileIconSeedFromUser,
+  userProfileIconPathForSeed,
+} from "../../lib/user-profile-icon";
+import css from "./profile-dashboard.module.css";
+
+function profileUsername(u: DashboardUser | null): string {
+  const dn = u?.displayName?.trim();
+  if (dn) return dn;
+  const em = u?.email?.trim();
+  if (em) {
+    const local = em.split("@")[0]?.trim();
+    return local || em;
+  }
+  return "User";
+}
+
+function displayHeadingName(u: DashboardUser | null): string {
+  return u?.displayName?.trim() || profileUsername(u);
+}
+
+function ArrowNE({ className, stroke }: { className?: string; stroke: string }) {
+  return (
+    <svg className={className} width="14" height="14" viewBox="0 0 24 24" aria-hidden={true}>
+      <path
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinecap="round"
+        d="M7 17L17 7M9 7h8v8"
+      />
+    </svg>
+  );
+}
 
 export function ProfileClient() {
   const [user, setUser] = useState<DashboardUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  /** Read after mount so SSR + hydration match (localStorage is not on the server). */
+  const [lastLoginEmail, setLastLoginEmail] = useState<string | null>(null);
+
+  const signOut = useCallback(async () => {
+    await logoutAndRedirectHome();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = globalThis.localStorage?.getItem(NEXA_PROFILE_ICON_SEED_EMAIL_KEY)?.trim();
+      setLastLoginEmail(raw ? raw.toLowerCase() : null);
+    } catch {
+      setLastLoginEmail(null);
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,54 +91,124 @@ export function ProfileClient() {
     };
   }, []);
 
-  const initial = (user?.displayName?.trim()?.[0] ?? user?.email?.trim()?.[0] ?? "?").toUpperCase();
+  const headingName = useMemo(() => displayHeadingName(user), [user]);
+
+  const profileIconSrc = useMemo(() => {
+    const seed = profileIconSeedFromUser(user, lastLoginEmail);
+    return userProfileIconPathForSeed(seed);
+  }, [user, lastLoginEmail]);
 
   return (
-    <DashboardHubLayout
-      title="My profile"
-      lead="Personal and account details from your dashboard API. Extra fields appear here when your backend provides them."
-    >
-      {loading ? <p className={styles.dashboardSub}>Loading…</p> : null}
+    <div className={css.page}>
+      <div className={css.topChrome}>
+        <Link href="/dashboard" prefetch={false}>
+          Dashboard
+        </Link>
+        <button type="button" onClick={signOut}>
+          Sign out
+        </button>
+      </div>
+
+      {loading ? <p className={css.status}>Loading…</p> : null}
       {error ? (
-        <p className={styles.hubError} role="alert">
+        <p className={`${css.status} ${css.error}`} role="alert">
           {error}
         </p>
       ) : null}
 
       {!loading && !error ? (
-        <div className={styles.profileGrid}>
-          <section className={styles.profileHeroCard}>
-            <div className={styles.profileAvatar} aria-hidden>
-              {initial}
-            </div>
-            <div>
-              <h2 className={styles.profileName}>{user?.displayName?.trim() || "Your name"}</h2>
-              <p className={styles.profileEmail}>{user?.email?.trim() || "—"}</p>
-            </div>
-          </section>
-
-          <section className={styles.profileCard}>
-            <h3 className={styles.profileCardTitle}>Contact</h3>
-            <dl className={styles.profileDl}>
-              <div>
-                <dt>Phone</dt>
-                <dd>—</dd>
+        <>
+          <h1 className={css.srOnly}>Profile</h1>
+          <div className={css.stageArea}>
+            <div className={css.stage}>
+              <div className={css.centralWrap}>
+                <div className={css.heroShell} aria-label={`Profile: ${headingName}`}>
+                  <div className={css.profileHeroAvatar}>
+                    <img
+                      key={profileIconSrc}
+                      src={profileIconSrc}
+                      alt=""
+                      className={css.profileHeroImg}
+                      width={172}
+                      height={172}
+                      decoding="async"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <dt>Organization</dt>
-                <dd>—</dd>
-              </div>
-            </dl>
-          </section>
 
-          <section className={styles.profileCard}>
-            <h3 className={styles.profileCardTitle}>Workspace</h3>
-            <p className={styles.profileHint}>
-              Company, billing, and security preferences will map from your API when those endpoints are connected.
-            </p>
-          </section>
-        </div>
+              <Link
+                href={dashboardWebsiteHub}
+                className={`${css.card} ${css.cardWebsites}`}
+                prefetch={false}
+                aria-label="Open websites — Web Verse"
+              >
+                <div className={css.cardWebsitesHero}>
+                  <h2 className={css.webVerseBigName}>WEB VERSE</h2>
+                </div>
+              </Link>
+
+              <Link
+                href={dashboardBotHub}
+                className={`${css.card} ${css.cardBots}`}
+                prefetch={false}
+                aria-label="Open bots — Bot Vault"
+              >
+                <div className={`${css.cardHeader} ${css.cardBotsHeader}`}>
+                  <ArrowNE className={css.cardArrow} stroke="rgba(248,250,252,0.9)" />
+                </div>
+                <div className={css.cardBotsHero}>
+                  <h2 className={css.botVaultBigName}>BOT VAULT</h2>
+                </div>
+                <div className={css.cardFooter}>
+                  <span className={css.miniAvatar} aria-hidden>
+                    <img
+                      key={profileIconSrc}
+                      src={profileIconSrc}
+                      alt=""
+                      className={css.miniAvatarImg}
+                      width={24}
+                      height={24}
+                      decoding="async"
+                    />
+                  </span>
+                  <span className={css.footerName}>{headingName}</span>
+                  <span className={css.footerPct}>76%</span>
+                </div>
+              </Link>
+
+              <Link
+                href={dashboardIntegrationHub}
+                className={`${css.card} ${css.cardIntegrations}`}
+                prefetch={false}
+                aria-label="Open integrations — Integration Vault"
+              >
+                <div className={`${css.cardHeader} ${css.cardIntegrationsHeader}`}>
+                  <ArrowNE className={css.cardArrow} stroke="#0f172a" />
+                </div>
+                <div className={css.cardIntegrationsHero}>
+                  <h2 className={css.integrationVaultBigName}>INTEGRATION VAULT</h2>
+                </div>
+                <div className={css.cardFooter}>
+                  <span className={css.miniAvatar} aria-hidden>
+                    <img
+                      key={profileIconSrc}
+                      src={profileIconSrc}
+                      alt=""
+                      className={css.miniAvatarImg}
+                      width={24}
+                      height={24}
+                      decoding="async"
+                    />
+                  </span>
+                  <span className={css.footerName}>{headingName}</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+          <div className={css.brandFooter}>NEXA</div>
+        </>
       ) : null}
-    </DashboardHubLayout>
+    </div>
   );
 }

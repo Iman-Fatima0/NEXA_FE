@@ -216,6 +216,484 @@
   object-fit: contain;
 }
 
+/* Bottom-right greeting — Monof55 like home bubbles, no panel */
+@keyframes dashboardWelcomeType {
+  0% {
+    width: 0;
+  }
+
+  50% {
+    width: calc(var(--welcome-ch, 28) * 1ch);
+  }
+
+  70% {
+    width: calc(var(--welcome-ch, 28) * 1ch);
+  }
+
+  100% {
+    width: 0;
+  }
+}
+
+.dashboardWelcomeCorner {
+  position: fixed;
+  right: 0.5rem;
+  bottom: clamp(1.35rem, 4.5vh, 2.75rem);
+  left: auto;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  max-width: min(calc(100vw - 1rem), min(92vw, 42rem));
+  box-sizing: border-box;
+}
+
+.dashboardWelcomeBubble {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #f8fafc;
+  font-family: "Monof55", monospace;
+  font-size: clamp(0.88rem, 2.15vw, 1.12rem);
+  line-height: 1.35;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.dashboardWelcomeTyping {
+  --welcome-ch: 28;
+  --welcome-steps: 28;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
+  width: 0;
+  max-width: min(85vw, calc(var(--welcome-ch, 28) * 1ch + 0.5rem));
+  border-right: 2px solid rgba(255, 255, 255, 0.85);
+  box-sizing: content-box;
+  animation-name: dashboardWelcomeType, caretBlink;
+  animation-duration: calc(var(--welcome-ch, 28) * 0.1s + 1.6s), 700ms;
+  animation-timing-function: steps(var(--welcome-steps, 28), end), steps(1, end);
+  animation-iteration-count: infinite, infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboardWelcomeTyping {
+    animation: none;
+    width: auto;
+    max-width: none;
+    border-right: none;
+    overflow: visible;
+  }
+}
+
+.dashboardWelcomeHeart {
+  display: block;
+  width: clamp(22px, 3.2vw, 30px);
+  height: auto;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Dashboard — upper-left app library (dark / minimal, matches loop GIF on black) */
+@keyframes dashboardAppLibraryBeep {
+  from {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 0 0 0 rgba(180, 200, 255, 0);
+  }
+  to {
+    border-color: rgba(255, 255, 255, 0.48);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 20px 4px rgba(190, 205, 255, 0.48);
+  }
+}
+
+@keyframes dashboardAppLibraryRippleExpand {
+  0% {
+    transform: scale(1, 1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.35, 2.15);
+    opacity: 0;
+  }
+}
+
+.dashboardAppLibraryCorner {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  right: auto;
+  z-index: 10;
+}
+
+/* Hub pages (/dashboard/websites|bots|integrations) — same pill + ripple + pulse as app library over the loop GIF */
+.dashboardHubBackNav {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 20;
+}
+
+.dashboardHubBackLink {
+  display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+.dashboardHubBackLink:focus-visible .dashboardAppLibraryShell {
+  outline: 2px solid rgba(190, 205, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.dashboardHubBackGlyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: rgba(248, 250, 252, 0.9);
+}
+
+.dashboardHubBackNav .dashboardAppLibraryPulseWrap:hover .dashboardAppLibraryShell,
+.dashboardHubBackNav .dashboardAppLibraryPulseWrap:focus-within .dashboardAppLibraryShell {
+  animation: none;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dashboardHubBackNav .dashboardAppLibraryPulseWrap:hover .dashboardAppLibraryRipple,
+.dashboardHubBackNav .dashboardAppLibraryPulseWrap:focus-within .dashboardAppLibraryRipple {
+  animation: none;
+  opacity: 0;
+}
+
+.dashboardAppLibraryPulseWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.dashboardAppLibraryRipple {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(198, 210, 255, 0.42);
+  pointer-events: none;
+  z-index: 0;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  animation: dashboardAppLibraryRippleExpand 1.25s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+
+.dashboardAppLibraryRippleDelay {
+  animation-delay: 0.625s;
+}
+
+.dashboardAppLibraryShell {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 8, 10, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  box-sizing: border-box;
+  animation: dashboardAppLibraryBeep 0.42s ease-in-out infinite alternate;
+}
+
+.dashboardAppLibraryCorner:hover .dashboardAppLibraryShell,
+.dashboardAppLibraryCorner:focus-within .dashboardAppLibraryShell {
+  animation: none;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dashboardAppLibraryCorner:hover .dashboardAppLibraryRipple,
+.dashboardAppLibraryCorner:focus-within .dashboardAppLibraryRipple {
+  animation: none;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboardAppLibraryShell {
+    animation: none;
+  }
+
+  .dashboardAppLibraryRipple {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+.dashboardAppLibraryGrid2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dashboardAppLibraryCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: rgba(248, 250, 252, 0.88);
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.dashboardAppLibraryCell:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.dashboardAppLibraryCell:focus-visible {
+  outline: 2px solid rgba(200, 210, 230, 0.55);
+  outline-offset: 1px;
+}
+
+.dashboardAppLibraryCellSvg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+/* Dashboard — hover name popups (same treatment as home `pixelHoverBubble`) */
+.dashboardIconHoverWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.dashboardIconHoverWrap:hover,
+.dashboardIconHoverWrap:focus-within {
+  z-index: 25;
+}
+
+.dashboardIconHoverBubble {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(4, 6, 12, 0.9);
+  color: #f8fafc;
+  font-family: "Monof55", monospace;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  padding: 0.38rem 0.52rem;
+  z-index: 40;
+}
+
+.dashboardIconHoverBubbleEast {
+  left: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-3px);
+}
+
+.dashboardIconHoverBubbleWest {
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%) translateX(3px);
+}
+
+.dashboardIconHoverWrap:hover .dashboardIconHoverBubble,
+.dashboardIconHoverWrap:focus-within .dashboardIconHoverBubble {
+  opacity: 1;
+}
+
+.dashboardIconHoverWrap:hover .dashboardIconHoverBubbleEast,
+.dashboardIconHoverWrap:focus-within .dashboardIconHoverBubbleEast {
+  transform: translateY(-50%) translateX(0);
+}
+
+.dashboardIconHoverWrap:hover .dashboardIconHoverBubbleWest,
+.dashboardIconHoverWrap:focus-within .dashboardIconHoverBubbleWest {
+  transform: translateY(-50%) translateX(0);
+}
+
+.dashboardProfileHoverWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+}
+
+.dashboardProfileHoverWrap:hover,
+.dashboardProfileHoverWrap:focus-within {
+  z-index: 25;
+}
+
+/* Dashboard — top-right profile icon */
+.dashboardProfileCorner {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  left: auto;
+  z-index: 10;
+}
+
+.dashboardProfileCornerLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 8, 10, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  color: rgba(248, 250, 252, 0.88);
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  overflow: hidden;
+  padding: 0;
+}
+
+.dashboardProfileCornerLink:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.dashboardProfileCornerLink:focus-visible {
+  outline: 2px solid rgba(200, 210, 230, 0.55);
+  outline-offset: 2px;
+}
+
+.dashboardProfileCornerSvg {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.dashboardProfileCornerAvatarImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dashboardProfileMenuWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.dashboardProfileCornerTrigger {
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+}
+
+.dashboardProfileMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 9.5rem;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 8, 10, 0.94);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 12px 28px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  z-index: 20;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.14s ease, visibility 0.14s ease;
+}
+
+/* Invisible hit target so the pointer can reach “Log out” without closing the menu */
+.dashboardProfileMenu::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 12px;
+}
+
+.dashboardProfileMenuWrap:hover .dashboardProfileMenu,
+.dashboardProfileMenuWrap:focus-within .dashboardProfileMenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.dashboardProfileMenuSignOut {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.92);
+  font-family: "Monof55", monospace;
+  font-size: 0.72rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  box-sizing: border-box;
+}
+
+.dashboardProfileMenuSignOut:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.dashboardProfileMenuSignOut:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.dashboardProfileMenuSignOut:focus-visible {
+  outline: 2px solid rgba(200, 210, 230, 0.55);
+  outline-offset: 0;
+}
+
 /* Dashboard: constrained shell (sidebar + main only; hero is full-bleed above) */
 .dashboardShell {
   width: min(1320px, calc(100% - 2rem));
@@ -1578,6 +2056,94 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+}
+
+/* Profile page — centered hero + three stat boxes */
+.profilePageStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.5rem;
+  margin-top: 0.5rem;
+}
+
+.profileHeroCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(1.5rem, 5vw, 3rem) 1rem;
+}
+
+.profileAvatarXL {
+  width: clamp(5.5rem, 18vw, 7.5rem);
+  height: clamp(5.5rem, 18vw, 7.5rem);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-weight: 800;
+  color: #f8fafc;
+  background: linear-gradient(145deg, #4f46e5, #7c3aed);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(79, 70, 229, 0.35);
+  flex-shrink: 0;
+}
+
+.profileDisplayName {
+  margin: 1.15rem 0 0;
+  font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.profileEmailCenter {
+  margin: 0.4rem 0 0;
+  font-size: 0.92rem;
+  color: rgba(186, 198, 220, 0.9);
+}
+
+.profileTriRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.profileStatBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 5.5rem;
+  padding: 1rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 18, 28, 0.85);
+  color: #e2e8f0;
+  font-size: clamp(0.88rem, 2vw, 1.05rem);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  box-sizing: border-box;
+}
+
+.profileStatBox:hover {
+  border-color: rgba(129, 140, 248, 0.45);
+  background: rgba(30, 34, 52, 0.92);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 720px) {
+  .profileTriRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 .profileGrid {

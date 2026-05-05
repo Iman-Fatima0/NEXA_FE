@@ -1,12 +1,17 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { dashboardPathOrLogin, hubBackHrefForSession } from "../../../lib/auth/hub-nav-for-session";
 import styles from "../../nexa-ss.module.css";
 
-export default function GeneratedWebsitePage() {
+export default async function GeneratedWebsitePage() {
+  const jar = await cookies();
+  const backHref = hubBackHrefForSession(jar, "website");
+  const saveHref = dashboardPathOrLogin(jar, "/dashboard/websites");
   return (
     <div className={styles.page}>
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
-          <Link href="/dashboard" className={styles.btnLight}>
+          <Link href={backHref} className={styles.btnLight}>
             ← Back
           </Link>
           <div className={styles.brand}>
@@ -17,7 +22,7 @@ export default function GeneratedWebsitePage() {
             <Link href="/website-preview" className={styles.btnLight}>
               Preview
             </Link>
-            <Link href="/dashboard" className={styles.btnPrimary}>
+            <Link href={saveHref} className={styles.btnPrimary}>
               Save Website
             </Link>
           </div>

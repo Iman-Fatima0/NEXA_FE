@@ -71,6 +71,96 @@ export function EyeOffIcon({ className }: IconProps) {
   );
 }
 
+/** 2×2 app tiles — “library / launcher” glyph; uses `currentColor`. */
+export function AppLibraryIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" width={22} height={22} aria-hidden fill="currentColor">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" opacity={0.95} />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" opacity={0.95} />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" opacity={0.95} />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" opacity={0.95} />
+    </svg>
+  );
+}
+
+/** Compact user silhouette; uses `currentColor` — size via `className` / CSS. */
+export function ProfileMiniIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden fill="currentColor">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+  );
+}
+
+/** Chat / AI (GPT-style); uses `currentColor`. */
+export function GptMiniIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinejoin="round"
+    >
+      <path d="M6.25 5.75h9.5a1.75 1.75 0 0 1 1.75 1.75v4.75a1.75 1.75 0 0 1-1.75 1.75h-3.9L8.25 18.25V14.5h-2a1.75 1.75 0 0 1-1.75-1.75V7.5a1.75 1.75 0 0 1 1.75-1.75z" />
+      <circle cx="9.25" cy="10.25" r="1.05" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="10.25" r="1.05" fill="currentColor" stroke="none" />
+      <circle cx="14.75" cy="10.25" r="1.05" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Small robot / bot glyph for chatbot launcher; uses `currentColor`. */
+export function BotMiniIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      aria-hidden
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2.75v2" />
+      <circle cx="12" cy="2.25" r="0.85" fill="currentColor" stroke="none" />
+      <rect x="6" y="5.25" width="12" height="9" rx="2.25" />
+      <rect x="9.15" y="8.35" width="1.85" height="1.85" rx="0.35" fill="currentColor" stroke="none" />
+      <rect x="13" y="8.35" width="1.85" height="1.85" rx="0.35" fill="currentColor" stroke="none" />
+      <path d="M9.5 12.35h5" />
+      <path d="M9 14.75h6v3.1a1.2 1.2 0 0 1-1.2 1.2h-3.6a1.2 1.2 0 0 1-1.2-1.2z" />
+      <path d="M7.75 16.25H6.25v2.4h1.5M16.25 16.25H17.75v2.4h-1.5" />
+    </svg>
+  );
+}
+
+/** Simple browser / site window; uses `currentColor`. */
+export function WebsiteMiniIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round">
+      <rect x="3.5" y="5" width="17" height="14" rx="2" />
+      <path d="M3.5 9.5h17" />
+      <circle cx="7" cy="7.25" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="9.8" cy="7.25" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Plug / integration; uses `currentColor`. */
+export function IntegrationMiniIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 11V7a1 1 0 0 1 1-1h1.5a1 1 0 0 1 1 1v4" />
+      <path d="M12.5 11V8.5A1.5 1.5 0 0 1 14 7h1a2 2 0 0 1 2 2v2" />
+      <rect x="6" y="11" width="12" height="8" rx="2" />
+      <path d="M10 19v2M14 19v2" />
+    </svg>
+  );
+}
+
 export function FacebookLogo({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" width={22} height={22} aria-hidden>

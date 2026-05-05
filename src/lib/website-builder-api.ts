@@ -1,6 +1,8 @@
 import { env } from "../config/env";
 import { apiRequest } from "./api";
 
+/** Upstream website generation contract: see `lib/api/nexa-backend-contract.ts`. */
+
 export type GenerateWebsitePayload = {
   websiteName: string;
   description: string;

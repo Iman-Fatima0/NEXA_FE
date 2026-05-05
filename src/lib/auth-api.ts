@@ -1,3 +1,6 @@
+import { BFF_PATHS } from "./api/bff-paths";
+import { clearProfileIconSeedEmail } from "./user-profile-icon";
+
 /** Read a string field from FormData (ignores File entries). */
 export function formString(fd: FormData, key: string): string {
   const v = fd.get(key);
@@ -15,7 +18,31 @@ export type LoginCredentials = {
 };
 
 export function getLoginUrl(): string {
-  return process.env.NEXT_PUBLIC_NEXA_LOGIN_URL?.trim() || "/api/auth/session";
+  return process.env.NEXT_PUBLIC_NEXA_LOGIN_URL?.trim() || BFF_PATHS.authSession;
+}
+
+export function getRegisterUrl(): string {
+  return process.env.NEXT_PUBLIC_NEXA_REGISTER_URL?.trim() || BFF_PATHS.authRegister;
+}
+
+export type RegisterAccountPayload = {
+  accountType: "personal" | "company";
+  fullName: string;
+  email: string;
+  password: string;
+  companyName?: string;
+  industry?: string;
+  companyWebsite?: string;
+  companyDetails?: string;
+};
+
+export async function registerAccount(payload: RegisterAccountPayload): Promise<Response> {
+  return fetch(getRegisterUrl(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function loginWithCredentials(credentials: LoginCredentials): Promise<Response> {
@@ -39,4 +66,19 @@ export async function readAuthErrorMessage(res: Response, fallback: string): Pro
     /* ignore */
   }
   return fallback;
+}
+
+/** Clears session cookies then sends the browser to the home page. */
+export async function logoutAndRedirectHome(): Promise<void> {
+  try {
+    await fetch(BFF_PATHS.authSession, { method: "DELETE", credentials: "same-origin" });
+  } catch {
+    /* still leave the app */
+  }
+  try {
+    clearProfileIconSeedEmail();
+  } catch {
+    /* ignore */
+  }
+  globalThis.location.assign("/");
 }

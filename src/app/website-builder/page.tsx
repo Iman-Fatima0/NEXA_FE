@@ -1,5 +1,6 @@
-import WebsiteBuilderClient from "./WebsiteBuilderClient";
+import { redirect } from "next/navigation";
 
-export default function WebsiteBuilderPage() {
-  return <WebsiteBuilderClient />;
+/** Innovate + gallery CTAs use this path; send straight into the create flow. */
+export default function WebsiteBuilderRootPage() {
+  redirect("/website-builder/create");
 }

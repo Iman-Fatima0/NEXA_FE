@@ -17,7 +17,11 @@ function fileKey(file: File): string {
   return `${file.name}-${file.size}-${file.lastModified}`;
 }
 
-export default function ChatbotBuilderClient() {
+type ChatbotBuilderClientProps = Readonly<{
+  hubBackHref: string;
+}>;
+
+export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClientProps) {
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatbotName, setChatbotName] = useState("");
@@ -47,34 +51,24 @@ export default function ChatbotBuilderClient() {
   }, []);
 
   const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      addFiles(e.target.files);
-      e.target.value = "";
+    const input = e.currentTarget;
+    const list = input.files;
+    if (list?.length) {
+      setKnowledgeMode("files");
+      addFiles(Array.from(list));
+      input.value = "";
     }
+    setDragActive(false);
   }, [addFiles]);
 
-  const onDrop = useCallback(
-    (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
-      if (e.dataTransfer.files?.length) {
-        setKnowledgeMode("files");
-        addFiles(e.dataTransfer.files);
-      }
-    },
-    [addFiles]
-  );
-
-  const onDragOver = useCallback((e: DragEvent) => {
+  const onDropZoneDragEnter = useCallback((e: DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
+    if (e.dataTransfer.types?.includes("Files")) {
+      setDragActive(true);
+    }
   }, []);
 
-  const onDragLeave = useCallback((e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onDropZoneDragLeave = useCallback((e: DragEvent) => {
     const related = e.relatedTarget as Node | null;
     if (related && e.currentTarget.contains(related)) {
       return;
@@ -84,7 +78,7 @@ export default function ChatbotBuilderClient() {
 
   return (
     <div className={wb.page}>
-      <Link href="/dashboard" className={wb.backNav} aria-label="Back to dashboard">
+      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
         <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
       </Link>
       <main className={wb.main}>
@@ -139,30 +133,33 @@ export default function ChatbotBuilderClient() {
                 </button>
               </div>
 
-              <input
-                ref={fileInputRef}
-                id={fileInputId}
-                type="file"
-                className={wb.visuallyHidden}
-                accept={ACCEPT}
-                multiple
-                onChange={onInputChange}
-              />
-
               {knowledgeMode === "files" ? (
                 <>
-                  <label
-                    htmlFor={fileInputId}
-                    className={`${wb.dropZone} ${wb.dropZoneLabel} ${dragActive ? wb.dropZoneDragging : ""}`}
-                    onDrop={onDrop}
-                    onDragOver={onDragOver}
-                    onDragLeave={onDragLeave}
+                  <div
+                    className={`${wb.dropZone} ${wb.dropZoneInteractive} ${dragActive ? wb.dropZoneDragging : ""}`}
+                    onDragEnter={onDropZoneDragEnter}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDragLeave={onDropZoneDragLeave}
                   >
-                    <div className={wb.dropZoneIcon}>⇪</div>
-                    <div className={wb.dropZoneTitle}>Upload your data files</div>
-                    <div className={wb.dropZoneHint}>Drop files here or click this area to browse. PDF, TXT, CSV, DOCX.</div>
-                    <span className={wb.dropZoneCue}>Choose files</span>
-                  </label>
+                    <div className={wb.dropZoneVisual}>
+                      <div className={wb.dropZoneIcon}>⇪</div>
+                      <div className={wb.dropZoneTitle}>Upload your data files</div>
+                      <div className={wb.dropZoneHint}>Drop files here or click this area to browse. PDF, TXT, CSV, DOCX.</div>
+                      <span className={wb.dropZoneCue}>Choose files</span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      id={fileInputId}
+                      type="file"
+                      className={wb.dropZoneNativeFile}
+                      accept={ACCEPT}
+                      multiple
+                      onChange={onInputChange}
+                      aria-label="Upload knowledge files (PDF, TXT, CSV, DOCX)"
+                    />
+                  </div>
                   {files.length > 0 ? (
                     <ul className={wb.fileList} aria-label="Selected files">
                       {files.map((file) => {

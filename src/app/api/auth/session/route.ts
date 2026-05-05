@@ -1,3 +1,4 @@
+/** Session cookie stub / future auth proxy — contract: `src/lib/api/nexa-backend-contract.ts`. */
 import { NextResponse } from "next/server";
 
 const SESSION_COOKIE = "nexa_session";

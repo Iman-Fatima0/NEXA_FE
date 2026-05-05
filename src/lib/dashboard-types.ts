@@ -4,6 +4,8 @@ export type DashboardProjectType = "website" | "chatbot" | "integration";
 
 /** Optional signed-in user block from the dashboard API (any subset). */
 export type DashboardUser = {
+  /** Stable user id from the API (preferred for avatar / icon bucketing). */
+  id?: string;
   displayName?: string;
   email?: string;
 };

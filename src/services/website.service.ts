@@ -1,3 +1,4 @@
+/** Direct-to-backend website CRUD; upstream paths documented in `lib/api/nexa-backend-contract.ts`. */
 import { env } from "../config/env";
 import { apiRequest } from "../lib/api";
 import type { GeneratedWebsite } from "../types/api.types";
