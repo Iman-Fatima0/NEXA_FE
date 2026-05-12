@@ -1,6 +1,6 @@
 /**
  * Browser-facing Next.js route handlers (“BFF”). The FE calls these with `credentials: "same-origin"`;
- * each handler should validate the session and proxy to your real backend (or return demo data).
+ * each handler should validate the session and proxy to your real backend.
  * Upstream BE matrix: `nexa-backend-contract.ts`.
  */
 export const BFF_PATHS = {

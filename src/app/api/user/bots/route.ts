@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
-import { getDemoBots } from "../../../../lib/user-bots-demo-data";
+import { bffUserResourceGet, jsonNoStore } from "../../../../lib/api/bff-upstream-proxy";
+import { pathUserBotsList } from "../../../../lib/api/upstream-paths";
 import type { UserBotsPayload } from "../../../../lib/user-bots-types";
 
-/** Replace with your backend: return each bot with optional previewUrl / previewHtml / highlight / href. */
+/** Live data: `GET {BACKEND}{BACKEND_USER_BOTS_PATH||/users/me/chatbots}`. */
 export async function GET() {
-  const payload: UserBotsPayload = { bots: getDemoBots() };
-  return NextResponse.json(payload);
+  const empty = () =>
+    jsonNoStore({ bots: [] } satisfies UserBotsPayload, { headers: { "x-nexa-data": "no-backend" } });
+  return bffUserResourceGet(pathUserBotsList(), empty);
 }

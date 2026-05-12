@@ -1,12 +1,10 @@
-import { NextResponse } from "next/server";
-import { getDemoWebsites } from "../../../../lib/user-websites-demo-data";
+import { bffUserResourceGet, jsonNoStore } from "../../../../lib/api/bff-upstream-proxy";
+import { pathUserWebsitesList } from "../../../../lib/api/upstream-paths";
 import type { UserWebsitesPayload } from "../../../../lib/user-websites-types";
 
-/**
- * Placeholder until your backend is wired: replace this handler with a proxy
- * to your API and map the payload to `UserWebsitesPayload`.
- */
+/** Live data: `GET {BACKEND}{BACKEND_USER_WEBSITES_PATH||/users/me/websites}`. No backend → empty list. */
 export async function GET() {
-  const payload: UserWebsitesPayload = { websites: getDemoWebsites() };
-  return NextResponse.json(payload);
+  const empty = (): ReturnType<typeof jsonNoStore> =>
+    jsonNoStore({ websites: [] } satisfies UserWebsitesPayload, { headers: { "x-nexa-data": "no-backend" } });
+  return bffUserResourceGet(pathUserWebsitesList(), empty);
 }

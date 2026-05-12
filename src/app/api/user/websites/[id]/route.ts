@@ -1,16 +1,11 @@
-import { NextResponse } from "next/server";
-import { getDemoWebsiteById } from "../../../../../lib/user-websites-demo-data";
+import { bffUserResourceGet, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
+import { pathUserWebsiteDetail } from "../../../../../lib/api/upstream-paths";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-/**
- * Single website for preview — swap for your backend: `GET /your-api/websites/:id`.
- */
+/** Live data: `GET {BACKEND}/users/me/websites/:id` (path overridable via env). */
 export async function GET(_req: Request, context: RouteContext) {
   const { id } = await context.params;
-  const website = getDemoWebsiteById(id);
-  if (!website) {
-    return NextResponse.json({ message: "Website not found." }, { status: 404 });
-  }
-  return NextResponse.json({ website });
+  const empty = () => jsonNoStore({ message: "Website not found." }, { status: 404 });
+  return bffUserResourceGet(pathUserWebsiteDetail(id), empty);
 }

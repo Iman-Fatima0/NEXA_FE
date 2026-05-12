@@ -1,9 +1,9 @@
 /**
  * # NEXA — backend API surface (for your BE team)
  *
- * The Next.js app is a **BFF**: the browser calls `/api/*` (see `bff-paths.ts`). Each route handler
- * should forward to your API with the user’s bearer cookie / session, or you can expose the same
- * JSON from a monolith. Below is the **recommended upstream** contract so the FE and BE stay aligned.
+ * The Next.js app is a **BFF**: the browser calls `/api/*` (see `bff-paths.ts`). User galleries and
+ * login **proxy to `NEXT_PUBLIC_BACKEND_API_BASE_URL`** when set (no demo fixtures). If the base URL
+ * is unset, list endpoints return **empty arrays** and detail endpoints return **404** after session check.
  *
  * ---
  *
@@ -72,7 +72,9 @@
  * - `NEXT_PUBLIC_INTEGRATION_API_BASE_URL` — integration connect when UI uses `integrationService`.
  * - `NEXT_PUBLIC_NEXA_LOGIN_URL` — override login POST target (default `/api/auth/session`).
  * - `NEXT_PUBLIC_NEXA_REGISTER_URL` — override register POST (default `/api/auth/register`).
- * - Server-only: `BACKEND_AUTH_REGISTER_PATH` — path appended to backend base for register proxy (default `/auth/register`).
+ * - Server-only: `BACKEND_AUTH_REGISTER_PATH` — register proxy path (default `/auth/register`).
+ * - Server-only: `BACKEND_AUTH_LOGIN_PATH` — login proxy path (default `/auth/login`).
+ * - Server-only: `BACKEND_USER_WEBSITES_PATH`, `BACKEND_USER_WEBSITE_DETAIL_PATH` (use `:id` token), same pattern for `BACKEND_USER_BOTS_PATH`, `BACKEND_USER_BOT_DETAIL_PATH`, `BACKEND_USER_INTEGRATIONS_PATH`, `BACKEND_USER_INTEGRATION_DETAIL_PATH`.
  */
 
 /** Marker export so tooling keeps this module; documentation lives in the JSDoc above. */

@@ -9,7 +9,7 @@ export function formString(fd: FormData, key: string): string {
 
 /**
  * Login HTTP helper. Override with NEXT_PUBLIC_NEXA_LOGIN_URL when your auth API exists.
- * Default hits the local session cookie stub only.
+ * Default `POST /api/auth/session` — proxies to `{NEXT_PUBLIC_BACKEND_API_BASE_URL}{BACKEND_AUTH_LOGIN_PATH||/auth/login}` when the base URL is set; otherwise sets a local dev session cookie only.
  */
 
 export type LoginCredentials = {
