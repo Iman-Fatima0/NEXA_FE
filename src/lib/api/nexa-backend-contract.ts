@@ -31,8 +31,10 @@
  *
  * | BFF | Suggested upstream | Response |
  * |-----|-------------------|----------|
- * | `GET /api/user/websites` | `GET /users/me/websites` | `{ websites: UserWebsite[] }` (`user-websites-types.ts`) |
- * | `GET /api/user/websites/:id` | `GET /users/me/websites/:id` | `{ website: UserWebsite }` |
+ * | `GET /api/user/websites` | `GET /websites` (override: `BACKEND_USER_WEBSITES_PATH`) | `{ websites: UserWebsite[] }` |
+ * | `POST /api/user/websites` | `POST /websites` | body `{ name, templateId?, description?, domain? }` → site row |
+ * | `GET /api/user/websites/:id` | `GET /websites/:id` | `{ website: UserWebsite }` |
+ * | `GET /api/user/websites/templates` | `GET /websites/templates` | `{ templates: WebsiteTemplate[] }` |
  *
  * **Website generation (builder):** browser calls **direct BE** via `website-builder-api.ts` when
  * `NEXT_PUBLIC_WEBSITE_API_BASE_URL` (or `NEXT_PUBLIC_BACKEND_API_BASE_URL`) is set:

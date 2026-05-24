@@ -5,23 +5,41 @@ import type { GeneratedWebsite } from "../types/api.types";
 
 type CreateWebsitePayload = {
   name: string;
-  prompt: string;
+  templateId?: string;
+  description?: string;
+  domain?: string | null;
 };
+
+function websiteApiBase(): string {
+  return env.websiteApiBaseUrl.trim() || env.backendApiBaseUrl.trim();
+}
 
 export const websiteService = {
   createWebsite(payload: CreateWebsitePayload) {
-    return apiRequest<GeneratedWebsite>("/websites", { method: "POST", body: payload }, env.websiteApiBaseUrl);
+    return apiRequest<GeneratedWebsite>(
+      "/websites",
+      {
+        method: "POST",
+        body: {
+          name: payload.name,
+          templateId: payload.templateId ?? "business",
+          description: payload.description,
+          domain: payload.domain,
+        },
+      },
+      websiteApiBase(),
+    );
   },
 
   listWebsites() {
-    return apiRequest<GeneratedWebsite[]>("/websites", { method: "GET" }, env.websiteApiBaseUrl);
+    return apiRequest<GeneratedWebsite[]>("/websites", { method: "GET" }, websiteApiBase());
   },
 
   getWebsiteById(websiteId: string) {
-    return apiRequest<GeneratedWebsite>(`/websites/${websiteId}`, { method: "GET" }, env.websiteApiBaseUrl);
+    return apiRequest<GeneratedWebsite>(`/websites/${websiteId}`, { method: "GET" }, websiteApiBase());
   },
 
-  saveWebsite(websiteId: string) {
-    return apiRequest<GeneratedWebsite>(`/websites/${websiteId}/save`, { method: "POST" }, env.websiteApiBaseUrl);
+  listTemplates() {
+    return apiRequest<unknown>("/websites/templates", { method: "GET" }, websiteApiBase());
   },
 };

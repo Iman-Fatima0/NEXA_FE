@@ -9,6 +9,7 @@ export const BFF_PATHS = {
   authRegister: "/api/auth/register",
   userWebsites: "/api/user/websites",
   userWebsite: (id: string) => `/api/user/websites/${encodeURIComponent(id)}`,
+  userWebsiteTemplates: "/api/user/websites/templates",
   userBots: "/api/user/bots",
   userBot: (id: string) => `/api/user/bots/${encodeURIComponent(id)}`,
   userIntegrations: "/api/user/integrations",

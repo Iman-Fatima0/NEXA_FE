@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError } from "../../lib/api";
+import { createUserWebsite } from "../../lib/create-user-website";
+import { fetchWebsiteTemplates } from "../../lib/fetch-website-templates";
+import {
+  readStoredTemplateId,
+  readTemplateIdFromSearch,
+  storeTemplateId,
+} from "../../lib/website-template-storage";
 import {
   generateWebsite,
   getWebsiteBuilderApiBaseUrl,
@@ -62,6 +69,16 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   const apiBaseConfigured = useMemo(() => getWebsiteBuilderApiBaseUrl().length > 0, []);
 
+  useEffect(() => {
+    const fromQuery = readTemplateIdFromSearch(globalThis.window?.location.search ?? "");
+    if (fromQuery) {
+      storeTemplateId(fromQuery);
+    }
+    void fetchWebsiteTemplates().catch(() => {
+      /* templates optional until user is signed in */
+    });
+  }, []);
+
   const applyResponse = useCallback((res: GenerateWebsiteResponse) => {
     setApiMessage(res.message ?? null);
     const base = getWebsiteBuilderApiBaseUrl();
@@ -102,6 +119,14 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     }
     setLoading(true);
     try {
+      const templateId = readStoredTemplateId();
+      try {
+        await createUserWebsite({ name, templateId, description: desc });
+      } catch (createErr) {
+        if (!(createErr instanceof Error) || !/401|unauthorized/i.test(createErr.message)) {
+          /* logged-out users can still try generation; signed-in users get a persisted site */
+        }
+      }
       const res = await generateWebsite({ websiteName: name, description: desc });
       applyResponse(res);
     } catch (e) {

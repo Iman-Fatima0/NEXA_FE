@@ -15,7 +15,11 @@ const cookieBase = {
  * Authenticated GET to the real backend. If `NEXT_PUBLIC_BACKEND_API_BASE_URL` is unset,
  * returns `emptyResponse()` (no demo fixtures).
  */
-export async function bffUserResourceGet(upstreamPath: string, emptyResponse: () => NextResponse): Promise<NextResponse> {
+export async function bffUserResourceGet(
+  upstreamPath: string,
+  emptyResponse: () => NextResponse,
+  transform?: (parsed: unknown) => unknown,
+): Promise<NextResponse> {
   const jar = await cookies();
   if (!jar.get(SESSION_COOKIE)?.value) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,13 +40,84 @@ export async function bffUserResourceGet(upstreamPath: string, emptyResponse: ()
       cache: "no-store",
     });
     const text = await res.text();
-    return new NextResponse(text, {
-      status: res.status,
+    if (!transform || res.status < 200 || res.status >= 300) {
+      return new NextResponse(text, {
+        status: res.status,
+        headers: {
+          "content-type": res.headers.get("content-type") || "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return new NextResponse(text, {
+        status: res.status,
+        headers: {
+          "content-type": res.headers.get("content-type") || "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    return jsonNoStore(transform(parsed), { status: res.status });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error";
+    return NextResponse.json({ message: msg }, { status: 502 });
+  }
+}
+
+export async function bffUserResourcePost(
+  upstreamPath: string,
+  body: unknown,
+  emptyResponse: () => NextResponse,
+  transform?: (parsed: unknown) => unknown,
+): Promise<NextResponse> {
+  const jar = await cookies();
+  if (!jar.get(SESSION_COOKIE)?.value) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const base = env.backendApiBaseUrl.trim();
+  if (!base) {
+    return emptyResponse();
+  }
+  const token = jar.get(ACCESS_COOKIE)?.value;
+  const url = `${base.replace(/\/+$/, "")}${upstreamPath.startsWith("/") ? upstreamPath : `/${upstreamPath}`}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
       headers: {
-        "content-type": res.headers.get("content-type") || "application/json",
-        "Cache-Control": "no-store",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      body: JSON.stringify(body),
+      cache: "no-store",
     });
+    const text = await res.text();
+    if (!transform || res.status < 200 || res.status >= 300) {
+      return new NextResponse(text, {
+        status: res.status,
+        headers: {
+          "content-type": res.headers.get("content-type") || "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return new NextResponse(text, {
+        status: res.status,
+        headers: {
+          "content-type": res.headers.get("content-type") || "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Network error";
     return NextResponse.json({ message: msg }, { status: 502 });

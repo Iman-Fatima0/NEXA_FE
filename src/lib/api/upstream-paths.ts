@@ -3,13 +3,17 @@
  * Override with server env vars if your API uses different routes.
  */
 export function pathUserWebsitesList(): string {
-  return process.env.BACKEND_USER_WEBSITES_PATH?.trim() || "/users/me/websites";
+  return process.env.BACKEND_USER_WEBSITES_PATH?.trim() || "/websites";
 }
 
 export function pathUserWebsiteDetail(id: string): string {
   const t = process.env.BACKEND_USER_WEBSITE_DETAIL_PATH?.trim();
   if (t) return t.replace(":id", encodeURIComponent(id));
-  return `/users/me/websites/${encodeURIComponent(id)}`;
+  return `/websites/${encodeURIComponent(id)}`;
+}
+
+export function pathWebsiteTemplatesList(): string {
+  return process.env.BACKEND_WEBSITE_TEMPLATES_PATH?.trim() || "/websites/templates";
 }
 
 export function pathUserBotsList(): string {
