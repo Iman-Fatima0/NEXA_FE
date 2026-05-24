@@ -47,7 +47,20 @@ export type PublicWebsitePayload = {
   logo: string | null;
   sections: unknown;
   publishedAt: string | null;
+  publicUrl: string;
 };
+
+export async function generateUserWebsiteContent(
+  id: string,
+  payload: { prompt: string },
+): Promise<UserWebsite> {
+  const row = await bffJson<BackendWebsiteRow>(BFF_PATHS.userWebsiteGenerateContent(id), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return mapBackendWebsiteToGalleryItem(row, { includeBuilder: true });
+}
 
 export async function fetchPublicWebsiteBySlug(slug: string): Promise<PublicWebsitePayload> {
   return bffJson<PublicWebsitePayload>(BFF_PATHS.publicSite(slug));

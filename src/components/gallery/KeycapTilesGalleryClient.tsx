@@ -155,6 +155,17 @@ export default function KeycapTilesGalleryClient({
                   <div className={tiles.keycapTop}>
                     <KeyEntityIcon entity={entity} className={tiles.keycapIcon} />
                     <p className={tiles.keycapLabel}>{w.name}</p>
+                    {entity === "website" && w.publicUrl ? (
+                      <a
+                        href={w.publicUrl}
+                        style={{ fontSize: "0.62rem", letterSpacing: "0.04em", opacity: 0.9, marginTop: 2 }}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Live →
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               </Link>

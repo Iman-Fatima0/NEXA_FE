@@ -14,4 +14,6 @@ export const env = {
   chatbotApiBaseUrl: process.env.NEXT_PUBLIC_CHATBOT_API_BASE_URL ?? "",
   /** Integration connect/list when UI uses `services/integration.service.ts`. */
   integrationApiBaseUrl: process.env.NEXT_PUBLIC_INTEGRATION_API_BASE_URL ?? "",
+  /** Canonical live site base (Next app). Used when API omits `publicUrl`. */
+  appPublicUrl: process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.AUTH_URL?.trim() || "",
 };

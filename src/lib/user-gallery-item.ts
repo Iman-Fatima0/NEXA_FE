@@ -18,4 +18,6 @@ export type UserGalleryItem = {
   status?: "DRAFT" | "PUBLISHED";
   slug?: string | null;
   publishedAt?: string | null;
+  /** Canonical live URL from API when published (Phase 5). */
+  publicUrl?: string | null;
 };

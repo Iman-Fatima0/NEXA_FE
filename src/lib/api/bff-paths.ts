@@ -10,6 +10,7 @@ export const BFF_PATHS = {
   userWebsites: "/api/user/websites",
   userWebsite: (id: string) => `/api/user/websites/${encodeURIComponent(id)}`,
   userWebsitePublish: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/publish`,
+  userWebsiteGenerateContent: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/generate-content`,
   publicSite: (slug: string) => `/api/public/sites/${encodeURIComponent(slug)}`,
   userWebsiteTemplates: "/api/user/websites/templates",
   userBots: "/api/user/bots",

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
 import { WebsiteSectionsView } from "../../lib/website-sections";
+import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import type { UserWebsite } from "../../lib/user-websites-types";
 import styles from "../nexa-ss.module.css";
 
@@ -41,8 +42,9 @@ export default function WebsitePreviewClient({ backHref }: WebsitePreviewClientP
   }, [websiteId]);
 
   const editHref = websiteId ? `/website-builder/create?id=${encodeURIComponent(websiteId)}` : "/website-builder/create";
-  const publicHref =
-    site?.status === "PUBLISHED" && site.slug ? `/s/${encodeURIComponent(site.slug)}` : null;
+  const publicHref = site
+    ? resolveWebsitePublicUrl({ publicUrl: site.publicUrl, slug: site.slug, status: site.status })
+    : null;
 
   return (
     <div className={styles.page}>

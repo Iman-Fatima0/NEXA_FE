@@ -1,6 +1,7 @@
 import type { UserGalleryItem } from "../user-gallery-item";
 import type { UserWebsite } from "../user-websites-types";
 import type { UserWebsitesPayload } from "../user-websites-types";
+import { resolveWebsitePublicUrl } from "../website-public-url";
 
 /** Raw website row from Nest `GET /websites` or `GET /websites/:id`. */
 export type BackendWebsiteRow = {
@@ -14,6 +15,7 @@ export type BackendWebsiteRow = {
   status?: "DRAFT" | "PUBLISHED";
   slug?: string | null;
   publishedAt?: string | null;
+  publicUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -30,8 +32,13 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
   if (row.domain?.trim()) {
     description = description ? `${description} · ${row.domain.trim()}` : row.domain.trim();
   }
-  if (row.status === "PUBLISHED" && row.slug) {
-    description = description ? `${description} · /s/${row.slug}` : `/s/${row.slug}`;
+  const publicUrl = resolveWebsitePublicUrl({
+    publicUrl: row.publicUrl,
+    slug: row.slug,
+    status: row.status,
+  });
+  if (publicUrl) {
+    description = description ? `${description} · Live` : "Live";
   }
   const item: UserWebsite = {
     id: row.id,
@@ -44,6 +51,7 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
     slug: row.slug,
     publishedAt:
       typeof row.publishedAt === "string" ? row.publishedAt : row.publishedAt != null ? String(row.publishedAt) : null,
+    publicUrl,
   };
   if (opts?.includeBuilder) {
     item.themeColor = row.themeColor;

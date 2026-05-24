@@ -7,6 +7,7 @@ import { fetchUserIntegrationById } from "../../lib/fetch-user-integrations";
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
 import type { UserGalleryItem } from "../../lib/user-gallery-item";
 import { WebsiteSectionsView } from "../../lib/website-sections";
+import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import full from "./keycap-preview-full.module.css";
 
 export type KeycapPreviewEntity = "website" | "bot" | "integration";
@@ -57,8 +58,12 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
   const editHref =
     entity === "website" && item?.id ? `/website-builder/create?id=${encodeURIComponent(item.id)}` : null;
   const publicHref =
-    entity === "website" && item?.status === "PUBLISHED" && item.slug
-      ? `/s/${encodeURIComponent(item.slug)}`
+    entity === "website" && item
+      ? resolveWebsitePublicUrl({
+          publicUrl: item.publicUrl,
+          slug: item.slug,
+          status: item.status,
+        })
       : null;
 
   return (

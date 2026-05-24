@@ -6,9 +6,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createUserWebsite } from "../../lib/create-user-website";
 import {
   fetchUserWebsiteById,
+  generateUserWebsiteContent,
   publishUserWebsite,
   updateUserWebsiteBuilder,
 } from "../../lib/fetch-user-websites";
+import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import { fetchWebsiteTemplates } from "../../lib/fetch-website-templates";
 import {
   readStoredTemplateId,
@@ -55,6 +57,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [loadingSite, setLoadingSite] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -66,24 +69,31 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     void fetchWebsiteTemplates().catch(() => undefined);
   }, []);
 
-  const loadSite = useCallback(async (id: string) => {
-    setLoadingSite(true);
-    setError(null);
-    try {
-      const site = await fetchUserWebsiteById(id);
-      setSiteMeta(site);
-      setWebsiteName(site.name);
-      setThemeColor(site.themeColor?.trim() || "#2563eb");
-      setLogo(site.logo?.trim() || "");
-      const parsed = parseWebsiteSections(site.sections);
-      setSectionBlocks(parsed.blocks);
-      setDescription(parsed.metaDescription || "");
-    } catch (e) {
-      setError(formatErr(e));
-    } finally {
-      setLoadingSite(false);
-    }
+  const applySiteToEditor = useCallback((site: UserWebsite) => {
+    setSiteMeta(site);
+    setWebsiteName(site.name);
+    setThemeColor(site.themeColor?.trim() || "#2563eb");
+    setLogo(site.logo?.trim() || "");
+    const parsed = parseWebsiteSections(site.sections);
+    setSectionBlocks(parsed.blocks);
+    setDescription(parsed.metaDescription || "");
   }, []);
+
+  const loadSite = useCallback(
+    async (id: string) => {
+      setLoadingSite(true);
+      setError(null);
+      try {
+        const site = await fetchUserWebsiteById(id);
+        applySiteToEditor(site);
+      } catch (e) {
+        setError(formatErr(e));
+      } finally {
+        setLoadingSite(false);
+      }
+    },
+    [applySiteToEditor],
+  );
 
   useEffect(() => {
     if (!websiteId) {
@@ -99,12 +109,15 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     [sectionBlocks, description],
   );
 
-  const publicUrl = useMemo(() => {
-    const slug = siteMeta?.slug?.trim();
-    if (!slug || siteMeta?.status !== "PUBLISHED") return null;
-    const origin = globalThis.window?.location.origin || "";
-    return `${origin}/s/${encodeURIComponent(slug)}`;
-  }, [siteMeta?.slug, siteMeta?.status]);
+  const publicUrl = useMemo(
+    () =>
+      resolveWebsitePublicUrl({
+        publicUrl: siteMeta?.publicUrl,
+        slug: siteMeta?.slug,
+        status: siteMeta?.status,
+      }),
+    [siteMeta?.publicUrl, siteMeta?.slug, siteMeta?.status],
+  );
 
   const handleCreate = async () => {
     setError(null);
@@ -119,6 +132,9 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       const templateId = readStoredTemplateId();
       const created = await createUserWebsite({ name, templateId, description: desc || undefined });
+      if (desc) {
+        await generateUserWebsiteContent(created.id, { prompt: desc });
+      }
       router.replace(`/website-builder/create?id=${encodeURIComponent(created.id)}`);
     } catch (e) {
       setError(formatErr(e));
@@ -152,6 +168,27 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       setError(formatErr(e));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGenerateAi = async () => {
+    if (!websiteId) return;
+    const prompt = description.trim();
+    if (!prompt) {
+      setError("Enter a description of what you want before generating.");
+      return;
+    }
+    setError(null);
+    setStatusMessage(null);
+    setGenerating(true);
+    try {
+      const updated = await generateUserWebsiteContent(websiteId, { prompt });
+      applySiteToEditor(updated);
+      setStatusMessage("AI content applied. Review and save.");
+    } catch (e) {
+      setError(formatErr(e));
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -203,6 +240,28 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
             {isEditMode ? (
               <>
+                <div className={wb.field}>
+                  <label className={wb.label} htmlFor="wb-desc-edit">
+                    Site description (for AI)
+                  </label>
+                  <textarea
+                    id="wb-desc-edit"
+                    className={wb.textarea}
+                    placeholder={PLACEHOLDER_PROMPT}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={4}
+                  />
+                  <button
+                    type="button"
+                    className={wb.btn}
+                    style={{ marginTop: "0.5rem", width: "100%" }}
+                    onClick={handleGenerateAi}
+                    disabled={generating || loadingSite}
+                  >
+                    {generating ? "GENERATING…" : "GENERATE WITH AI"}
+                  </button>
+                </div>
                 <div className={wb.field}>
                   <label className={wb.label} htmlFor="wb-theme">
                     Theme color
@@ -272,7 +331,10 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
             )}
 
             {!isEditMode ? (
-              <p className={wb.hint}>Be as detailed as possible. Mention colors, sections, features, and style preferences.</p>
+              <>
+                <p className={wb.hint}>Be as detailed as possible. Mention colors, sections, features, and style preferences.</p>
+                <p className={wb.hint}>After create, AI will fill your sections when a description is provided.</p>
+              </>
             ) : null}
             {error ? <p className={wb.error}>{error}</p> : null}
             {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
@@ -282,6 +344,15 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 <a href={publicUrl} target="_blank" rel="noreferrer">
                   {publicUrl}
                 </a>
+                {" · "}
+                <button
+                  type="button"
+                  className={wb.btn}
+                  style={{ display: "inline", padding: "0.15rem 0.5rem", fontSize: "0.75rem" }}
+                  onClick={() => void navigator.clipboard?.writeText(publicUrl)}
+                >
+                  Copy link
+                </button>
               </p>
             ) : null}
 

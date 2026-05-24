@@ -1,35 +1,28 @@
-import { env } from "../config/env";
-import { apiRequest } from "./api";
+import type { UserWebsite } from "./user-websites-types";
+import { generateUserWebsiteContent } from "./fetch-user-websites";
 
-/** Upstream website generation contract: see `lib/api/nexa-backend-contract.ts`. */
+/** AI website content — proxied to Nest `POST /websites/:id/generate-content`. */
 
 export type GenerateWebsitePayload = {
   websiteName: string;
   description: string;
 };
 
-/** Normalized API response — align your backend to this shape or extend as needed. */
 export type GenerateWebsiteResponse = {
-  previewUrl?: string;
-  html?: string;
+  website?: UserWebsite;
   message?: string;
 };
 
-const DEFAULT_GENERATE_PATH = "/website-builder/generate";
-
-export function getWebsiteBuilderApiBaseUrl(): string {
-  return env.websiteApiBaseUrl.trim() || env.backendApiBaseUrl.trim();
+/** @deprecated Create a site first; use `generateWebsiteContent`. */
+export async function generateWebsite(_payload: GenerateWebsitePayload): Promise<GenerateWebsiteResponse> {
+  return {
+    message: "Create a site first, then use generateWebsiteContent(websiteId, { prompt }).",
+  };
 }
 
-export async function generateWebsite(
-  payload: GenerateWebsitePayload,
-  path: string = DEFAULT_GENERATE_PATH
-): Promise<GenerateWebsiteResponse> {
-  const base = getWebsiteBuilderApiBaseUrl();
-  if (!base) {
-    throw new Error(
-      "Set NEXT_PUBLIC_WEBSITE_API_BASE_URL or NEXT_PUBLIC_BACKEND_API_BASE_URL in your environment."
-    );
-  }
-  return apiRequest<GenerateWebsiteResponse>(path, { method: "POST", body: payload }, base);
+export async function generateWebsiteContent(
+  websiteId: string,
+  payload: { prompt: string },
+): Promise<UserWebsite> {
+  return generateUserWebsiteContent(websiteId, payload);
 }

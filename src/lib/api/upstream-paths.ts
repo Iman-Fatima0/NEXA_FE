@@ -24,6 +24,10 @@ export function pathUserWebsitePublish(id: string): string {
   return `/websites/${encodeURIComponent(id)}/publish`;
 }
 
+export function pathUserWebsiteGenerateContent(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/generate-content`;
+}
+
 export function pathPublicSite(slug: string): string {
   return `/public/sites/${encodeURIComponent(slug)}`;
 }
