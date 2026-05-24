@@ -11,12 +11,18 @@ export type BackendWebsiteRow = {
   themeColor?: string | null;
   logo?: string | null;
   sections?: unknown;
+  status?: "DRAFT" | "PUBLISHED";
+  slug?: string | null;
+  publishedAt?: string | null;
   createdAt?: string;
+  updatedAt?: string;
 };
 
-export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow): UserWebsite {
+export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { includeBuilder?: boolean }): UserWebsite {
   const createdAt =
     typeof row.createdAt === "string" ? row.createdAt : row.createdAt != null ? String(row.createdAt) : undefined;
+  const updatedAt =
+    typeof row.updatedAt === "string" ? row.updatedAt : row.updatedAt != null ? String(row.updatedAt) : createdAt;
   let description: string | undefined;
   if (row.templateId) {
     description = `Template: ${row.templateId}`;
@@ -24,13 +30,27 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow): UserWebs
   if (row.domain?.trim()) {
     description = description ? `${description} · ${row.domain.trim()}` : row.domain.trim();
   }
-  return {
+  if (row.status === "PUBLISHED" && row.slug) {
+    description = description ? `${description} · /s/${row.slug}` : `/s/${row.slug}`;
+  }
+  const item: UserWebsite = {
     id: row.id,
     name: row.name,
     description,
     createdAt,
-    updatedAt: createdAt,
+    updatedAt,
+    templateId: row.templateId,
+    status: row.status,
+    slug: row.slug,
+    publishedAt:
+      typeof row.publishedAt === "string" ? row.publishedAt : row.publishedAt != null ? String(row.publishedAt) : null,
   };
+  if (opts?.includeBuilder) {
+    item.themeColor = row.themeColor;
+    item.logo = row.logo;
+    item.sections = row.sections;
+  }
+  return item;
 }
 
 export function normalizeWebsitesListPayload(raw: unknown): UserWebsitesPayload {
@@ -54,10 +74,10 @@ export function normalizeWebsiteDetailPayload(raw: unknown): { website: UserWebs
   const o = raw as Record<string, unknown>;
   const nested = o.website;
   if (nested && typeof nested === "object") {
-    return { website: mapBackendWebsiteToGalleryItem(nested as BackendWebsiteRow) };
+    return { website: mapBackendWebsiteToGalleryItem(nested as BackendWebsiteRow, { includeBuilder: true }) };
   }
   if (typeof o.id === "string" && typeof o.name === "string") {
-    return { website: mapBackendWebsiteToGalleryItem(o as BackendWebsiteRow) };
+    return { website: mapBackendWebsiteToGalleryItem(o as BackendWebsiteRow, { includeBuilder: true }) };
   }
   return null;
 }

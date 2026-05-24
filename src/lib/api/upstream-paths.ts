@@ -16,6 +16,18 @@ export function pathWebsiteTemplatesList(): string {
   return process.env.BACKEND_WEBSITE_TEMPLATES_PATH?.trim() || "/websites/templates";
 }
 
+export function pathUserWebsiteBuilder(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/builder`;
+}
+
+export function pathUserWebsitePublish(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/publish`;
+}
+
+export function pathPublicSite(slug: string): string {
+  return `/public/sites/${encodeURIComponent(slug)}`;
+}
+
 export function pathUserBotsList(): string {
   return process.env.BACKEND_USER_BOTS_PATH?.trim() || "/users/me/chatbots";
 }

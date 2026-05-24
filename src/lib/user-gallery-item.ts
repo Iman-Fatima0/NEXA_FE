@@ -11,4 +11,11 @@ export type UserGalleryItem = {
   /** ISO 8601 — shown as “created” when set; otherwise `updatedAt` is used. */
   createdAt?: string;
   href?: string;
+  templateId?: string | null;
+  themeColor?: string | null;
+  logo?: string | null;
+  sections?: unknown;
+  status?: "DRAFT" | "PUBLISHED";
+  slug?: string | null;
+  publishedAt?: string | null;
 };

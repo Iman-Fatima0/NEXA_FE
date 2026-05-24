@@ -68,9 +68,10 @@ export async function bffUserResourceGet(
   }
 }
 
-export async function bffUserResourcePost(
+async function bffUserResourceWrite(
+  method: "POST" | "PUT" | "PATCH",
   upstreamPath: string,
-  body: unknown,
+  body: unknown | undefined,
   emptyResponse: () => NextResponse,
   transform?: (parsed: unknown) => unknown,
 ): Promise<NextResponse> {
@@ -86,13 +87,13 @@ export async function bffUserResourcePost(
   const url = `${base.replace(/\/+$/, "")}${upstreamPath.startsWith("/") ? upstreamPath : `/${upstreamPath}`}`;
   try {
     const res = await fetch(url, {
-      method: "POST",
+      method,
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify(body),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
       cache: "no-store",
     });
     const text = await res.text();
@@ -122,6 +123,24 @@ export async function bffUserResourcePost(
     const msg = e instanceof Error ? e.message : "Network error";
     return NextResponse.json({ message: msg }, { status: 502 });
   }
+}
+
+export async function bffUserResourcePost(
+  upstreamPath: string,
+  body: unknown,
+  emptyResponse: () => NextResponse,
+  transform?: (parsed: unknown) => unknown,
+): Promise<NextResponse> {
+  return bffUserResourceWrite("POST", upstreamPath, body, emptyResponse, transform);
+}
+
+export async function bffUserResourcePut(
+  upstreamPath: string,
+  body: unknown,
+  emptyResponse: () => NextResponse,
+  transform?: (parsed: unknown) => unknown,
+): Promise<NextResponse> {
+  return bffUserResourceWrite("PUT", upstreamPath, body, emptyResponse, transform);
 }
 
 export function jsonNoStore(data: unknown, init?: { status?: number; headers?: Record<string, string> }): NextResponse {

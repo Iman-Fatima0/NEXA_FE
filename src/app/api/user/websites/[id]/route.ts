@@ -1,6 +1,6 @@
 import { normalizeWebsiteDetailPayload } from "../../../../../lib/api/bff-website-normalize";
-import { bffUserResourceGet, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
-import { pathUserWebsiteDetail } from "../../../../../lib/api/upstream-paths";
+import { bffUserResourceGet, bffUserResourcePut, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
+import { pathUserWebsiteBuilder, pathUserWebsiteDetail } from "../../../../../lib/api/upstream-paths";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -14,5 +14,21 @@ export async function GET(_req: Request, context: RouteContext) {
       return detail;
     }
     return { message: "Website not found." };
+  });
+}
+
+/** `PUT {BACKEND}/websites/:id/builder` — title, theme, logo, sections. */
+export async function PUT(request: Request, context: RouteContext) {
+  const { id } = await context.params;
+  const empty = () => jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonNoStore({ message: "Invalid JSON body." }, { status: 400 });
+  }
+  return bffUserResourcePut(pathUserWebsiteBuilder(id), body, empty, (parsed) => {
+    const detail = normalizeWebsiteDetailPayload(parsed);
+    return detail?.website ?? parsed;
   });
 }

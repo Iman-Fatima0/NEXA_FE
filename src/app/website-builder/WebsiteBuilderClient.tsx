@@ -1,9 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ApiError } from "../../lib/api";
 import { createUserWebsite } from "../../lib/create-user-website";
+import {
+  fetchUserWebsiteById,
+  publishUserWebsite,
+  updateUserWebsiteBuilder,
+} from "../../lib/fetch-user-websites";
 import { fetchWebsiteTemplates } from "../../lib/fetch-website-templates";
 import {
   readStoredTemplateId,
@@ -11,10 +16,12 @@ import {
   storeTemplateId,
 } from "../../lib/website-template-storage";
 import {
-  generateWebsite,
-  getWebsiteBuilderApiBaseUrl,
-  type GenerateWebsiteResponse,
-} from "../../lib/website-builder-api";
+  parseWebsiteSections,
+  sectionsToRecord,
+  WebsiteSectionsView,
+  type WebsiteSectionBlock,
+} from "../../lib/website-sections";
+import type { UserWebsite } from "../../lib/user-websites-types";
 import wb from "./website-builder.module.css";
 
 const PLACEHOLDER_NAME = "My Awesome Website";
@@ -23,119 +30,153 @@ const PLACEHOLDER_PROMPT =
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 
-function resolvePreviewUrl(previewUrl: string, apiBase: string): string {
-  const trimmed = previewUrl.trim();
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  try {
-    return new URL(trimmed.startsWith("/") ? trimmed : `/${trimmed}`, apiBase.replace(/\/+$/, "") + "/").href;
-  } catch {
-    return trimmed;
-  }
-}
-
-function formatApiError(err: unknown): string {
-  if (err instanceof ApiError) {
-    const p = err.payload;
-    if (typeof p === "object" && p !== null && "message" in p && typeof (p as { message: unknown }).message === "string") {
-      return (p as { message: string }).message;
-    }
-    return err.message;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
+function formatErr(err: unknown): string {
+  if (err instanceof Error) return err.message;
   return "Something went wrong.";
 }
 
 type WebsiteBuilderClientProps = Readonly<{
-  /** From server: dashboard websites hub when signed in, otherwise public builder entry. */
   hubBackHref: string;
 }>;
 
 export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const websiteId = searchParams.get("id")?.trim() || "";
+
   const [websiteName, setWebsiteName] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [apiMessage, setApiMessage] = useState<string | null>(null);
-  const [preview, setPreview] = useState<
-    | { mode: "iframe-url"; src: string }
-    | { mode: "srcdoc"; html: string }
-    | { mode: "empty-message"; text: string }
-    | null
-  >(null);
+  const [themeColor, setThemeColor] = useState("#2563eb");
+  const [logo, setLogo] = useState("");
+  const [sectionBlocks, setSectionBlocks] = useState<WebsiteSectionBlock[]>([]);
+  const [siteMeta, setSiteMeta] = useState<UserWebsite | null>(null);
 
-  const apiBaseConfigured = useMemo(() => getWebsiteBuilderApiBaseUrl().length > 0, []);
+  const [loading, setLoading] = useState(false);
+  const [loadingSite, setLoadingSite] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const isEditMode = websiteId.length > 0;
 
   useEffect(() => {
     const fromQuery = readTemplateIdFromSearch(globalThis.window?.location.search ?? "");
-    if (fromQuery) {
-      storeTemplateId(fromQuery);
-    }
-    void fetchWebsiteTemplates().catch(() => {
-      /* templates optional until user is signed in */
-    });
+    if (fromQuery) storeTemplateId(fromQuery);
+    void fetchWebsiteTemplates().catch(() => undefined);
   }, []);
 
-  const applyResponse = useCallback((res: GenerateWebsiteResponse) => {
-    setApiMessage(res.message ?? null);
-    const base = getWebsiteBuilderApiBaseUrl();
-    const rawUrl = res.previewUrl?.trim();
-    if (rawUrl) {
-      if (/^https?:\/\//i.test(rawUrl)) {
-        setPreview({ mode: "iframe-url", src: rawUrl });
-        return;
-      }
-      const origin = base || globalThis.window?.location.origin || "";
-      setPreview({ mode: "iframe-url", src: resolvePreviewUrl(rawUrl, origin) });
-      return;
-    }
-    if (res.html && res.html.trim().length > 0) {
-      setPreview({ mode: "srcdoc", html: res.html });
-      return;
-    }
-    setPreview({
-      mode: "empty-message",
-      text: res.message?.trim() || "The server responded but did not include preview HTML or a preview URL.",
-    });
-  }, []);
-
-  const handleGenerate = async () => {
+  const loadSite = useCallback(async (id: string) => {
+    setLoadingSite(true);
     setError(null);
-    setApiMessage(null);
+    try {
+      const site = await fetchUserWebsiteById(id);
+      setSiteMeta(site);
+      setWebsiteName(site.name);
+      setThemeColor(site.themeColor?.trim() || "#2563eb");
+      setLogo(site.logo?.trim() || "");
+      const parsed = parseWebsiteSections(site.sections);
+      setSectionBlocks(parsed.blocks);
+      setDescription(parsed.metaDescription || "");
+    } catch (e) {
+      setError(formatErr(e));
+    } finally {
+      setLoadingSite(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!websiteId) {
+      setSiteMeta(null);
+      setSectionBlocks([]);
+      return;
+    }
+    void loadSite(websiteId);
+  }, [websiteId, loadSite]);
+
+  const previewSections = useMemo(
+    () => sectionsToRecord(sectionBlocks, description.trim() || undefined),
+    [sectionBlocks, description],
+  );
+
+  const publicUrl = useMemo(() => {
+    const slug = siteMeta?.slug?.trim();
+    if (!slug || siteMeta?.status !== "PUBLISHED") return null;
+    const origin = globalThis.window?.location.origin || "";
+    return `${origin}/s/${encodeURIComponent(slug)}`;
+  }, [siteMeta?.slug, siteMeta?.status]);
+
+  const handleCreate = async () => {
+    setError(null);
+    setStatusMessage(null);
     const name = websiteName.trim();
     const desc = description.trim();
-    if (!name || !desc) {
-      setError("Please enter a website name and a description of what you want.");
-      return;
-    }
-    if (!apiBaseConfigured) {
-      setError(
-        "API base URL is not set. Add NEXT_PUBLIC_WEBSITE_API_BASE_URL (or NEXT_PUBLIC_BACKEND_API_BASE_URL) to your .env file, then restart the dev server."
-      );
+    if (!name) {
+      setError("Please enter a website name.");
       return;
     }
     setLoading(true);
     try {
       const templateId = readStoredTemplateId();
-      try {
-        await createUserWebsite({ name, templateId, description: desc });
-      } catch (createErr) {
-        if (!(createErr instanceof Error) || !/401|unauthorized/i.test(createErr.message)) {
-          /* logged-out users can still try generation; signed-in users get a persisted site */
-        }
-      }
-      const res = await generateWebsite({ websiteName: name, description: desc });
-      applyResponse(res);
+      const created = await createUserWebsite({ name, templateId, description: desc || undefined });
+      router.replace(`/website-builder/create?id=${encodeURIComponent(created.id)}`);
     } catch (e) {
-      setPreview(null);
-      setError(formatApiError(e));
+      setError(formatErr(e));
     } finally {
       setLoading(false);
     }
   };
+
+  const persistBuilder = async () => {
+    if (!websiteId) return null;
+    return updateUserWebsiteBuilder(websiteId, {
+      title: websiteName.trim() || undefined,
+      themeColor: themeColor.trim() || null,
+      logo: logo.trim() || null,
+      sections: sectionsToRecord(sectionBlocks, description.trim() || undefined),
+    });
+  };
+
+  const handleSave = async () => {
+    if (!websiteId) return;
+    setError(null);
+    setStatusMessage(null);
+    setSaving(true);
+    try {
+      const updated = await persistBuilder();
+      if (updated) {
+        setSiteMeta(updated);
+        setStatusMessage("Saved.");
+      }
+    } catch (e) {
+      setError(formatErr(e));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!websiteId) return;
+    setError(null);
+    setStatusMessage(null);
+    setPublishing(true);
+    try {
+      await persistBuilder();
+      const published = await publishUserWebsite(websiteId);
+      setSiteMeta(published);
+      setStatusMessage("Published.");
+    } catch (e) {
+      setError(formatErr(e));
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const updateBlock = (key: string, field: keyof Pick<WebsiteSectionBlock, "headline" | "body" | "cta">, value: string) => {
+    setSectionBlocks((prev) => prev.map((b) => (b.key === key ? { ...b, [field]: value } : b)));
+  };
+
+  const showPreview = isEditMode && sectionBlocks.length > 0;
 
   return (
     <div className={wb.page}>
@@ -145,7 +186,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       <main className={wb.main}>
         <section className={wb.split}>
           <article className={wb.panel}>
-            <h2 className={wb.panelTitle}>Describe Your Website</h2>
+            <h2 className={wb.panelTitle}>{isEditMode ? "Edit Your Website" : "Describe Your Website"}</h2>
             <div className={wb.field}>
               <label className={wb.label} htmlFor="wb-name">
                 Website Name
@@ -159,50 +200,126 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 autoComplete="off"
               />
             </div>
-            <div className={wb.field}>
-              <label className={wb.label} htmlFor="wb-desc">
-                What kind of website do you want?
-              </label>
-              <textarea
-                id="wb-desc"
-                className={wb.textarea}
-                placeholder={PLACEHOLDER_PROMPT}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={6}
-              />
-            </div>
-            <p className={wb.hint}>Be as detailed as possible. Mention colors, sections, features, and style preferences.</p>
+
+            {isEditMode ? (
+              <>
+                <div className={wb.field}>
+                  <label className={wb.label} htmlFor="wb-theme">
+                    Theme color
+                  </label>
+                  <input
+                    id="wb-theme"
+                    className={wb.input}
+                    type="color"
+                    value={themeColor}
+                    onChange={(e) => setThemeColor(e.target.value)}
+                  />
+                </div>
+                <div className={wb.field}>
+                  <label className={wb.label} htmlFor="wb-logo">
+                    Logo URL
+                  </label>
+                  <input
+                    id="wb-logo"
+                    className={wb.input}
+                    placeholder="https://…"
+                    value={logo}
+                    onChange={(e) => setLogo(e.target.value)}
+                  />
+                </div>
+                {loadingSite ? <p className={wb.hint}>Loading site…</p> : null}
+                {sectionBlocks.map((block) => (
+                  <div key={block.key} className={wb.field}>
+                    <label className={wb.label}>{block.name}</label>
+                    <input
+                      className={wb.input}
+                      placeholder="Headline"
+                      value={block.headline}
+                      onChange={(e) => updateBlock(block.key, "headline", e.target.value)}
+                    />
+                    <textarea
+                      className={wb.textarea}
+                      placeholder="Body text"
+                      rows={3}
+                      value={block.body}
+                      onChange={(e) => updateBlock(block.key, "body", e.target.value)}
+                      style={{ marginTop: "0.5rem" }}
+                    />
+                    <input
+                      className={wb.input}
+                      placeholder="Call to action"
+                      value={block.cta}
+                      onChange={(e) => updateBlock(block.key, "cta", e.target.value)}
+                      style={{ marginTop: "0.5rem" }}
+                    />
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="wb-desc">
+                  What kind of website do you want?
+                </label>
+                <textarea
+                  id="wb-desc"
+                  className={wb.textarea}
+                  placeholder={PLACEHOLDER_PROMPT}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={6}
+                />
+              </div>
+            )}
+
+            {!isEditMode ? (
+              <p className={wb.hint}>Be as detailed as possible. Mention colors, sections, features, and style preferences.</p>
+            ) : null}
             {error ? <p className={wb.error}>{error}</p> : null}
-            <button type="button" className={wb.btn} onClick={handleGenerate} disabled={loading}>
-              {loading ? "GENERATING…" : "GENERATE WEBSITE"}
-            </button>
+            {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
+            {publicUrl ? (
+              <p className={wb.hint}>
+                Live at{" "}
+                <a href={publicUrl} target="_blank" rel="noreferrer">
+                  {publicUrl}
+                </a>
+              </p>
+            ) : null}
+
+            {!isEditMode ? (
+              <button type="button" className={wb.btn} onClick={handleCreate} disabled={loading}>
+                {loading ? "CREATING…" : "CREATE WEBSITE"}
+              </button>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <button type="button" className={wb.btn} onClick={handleSave} disabled={saving || loadingSite}>
+                  {saving ? "SAVING…" : "SAVE"}
+                </button>
+                <button type="button" className={wb.btn} onClick={handlePublish} disabled={publishing || saving || loadingSite}>
+                  {publishing ? "PUBLISHING…" : "PUBLISH"}
+                </button>
+                {websiteId ? (
+                  <Link href={`/dashboard/websites/${encodeURIComponent(websiteId)}/preview`} className={wb.btn} style={{ textAlign: "center", textDecoration: "none" }}>
+                    FULL PREVIEW
+                  </Link>
+                ) : null}
+              </div>
+            )}
           </article>
 
-          <article className={preview ? wb.previewPanel : wb.previewShell}>
-            {preview ? (
+          <article className={showPreview ? wb.previewPanel : wb.previewShell}>
+            {showPreview ? (
               <>
                 <div className={wb.previewHeader}>
                   <span>Website preview</span>
-                  {apiMessage ? <span className={wb.previewMeta}>{apiMessage}</span> : null}
                 </div>
-                {preview.mode === "iframe-url" ? (
-                  <iframe
-                    title="Generated website preview"
-                    className={wb.previewFrame}
-                    src={preview.src}
-                    sandbox="allow-scripts allow-forms allow-popups allow-modals"
+                <div className={wb.previewFrame} style={{ background: "#fff", overflow: "auto" }}>
+                  <WebsiteSectionsView
+                    name={websiteName.trim() || "Website"}
+                    themeColor={themeColor}
+                    logo={logo}
+                    sections={previewSections}
                   />
-                ) : null}
-                {preview.mode === "srcdoc" ? (
-                  <iframe
-                    title="Generated website preview"
-                    className={wb.previewFrame}
-                    srcDoc={preview.html}
-                    sandbox="allow-scripts allow-forms allow-popups allow-modals"
-                  />
-                ) : null}
-                {preview.mode === "empty-message" ? <div className={wb.emptyMessage}>{preview.text}</div> : null}
+                </div>
               </>
             ) : (
               <>
@@ -216,7 +333,9 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 />
                 <div className={wb.previewScrim} aria-hidden />
                 <div className={wb.previewMessage}>
-                  <h3 className={wb.previewHeading}>Your website will appear here</h3>
+                  <h3 className={wb.previewHeading}>
+                    {isEditMode ? "Add content in the editor" : "Your website will appear here"}
+                  </h3>
                 </div>
               </>
             )}

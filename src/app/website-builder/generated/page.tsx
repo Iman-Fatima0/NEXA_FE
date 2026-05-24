@@ -19,7 +19,7 @@ export default async function GeneratedWebsitePage() {
             <span>Website Builder</span>
           </div>
           <div className={styles.topActions}>
-            <Link href="/website-preview" className={styles.btnLight}>
+            <Link href="/website-preview" className={styles.btnLight} prefetch={false}>
               Preview
             </Link>
             <Link href={saveHref} className={styles.btnPrimary}>

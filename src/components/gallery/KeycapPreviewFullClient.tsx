@@ -6,6 +6,7 @@ import { fetchUserBotById } from "../../lib/fetch-user-bots";
 import { fetchUserIntegrationById } from "../../lib/fetch-user-integrations";
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
 import type { UserGalleryItem } from "../../lib/user-gallery-item";
+import { WebsiteSectionsView } from "../../lib/website-sections";
 import full from "./keycap-preview-full.module.css";
 
 export type KeycapPreviewEntity = "website" | "bot" | "integration";
@@ -51,6 +52,14 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
 
   const previewUrl = item?.previewUrl?.trim();
   const previewHtml = item?.previewHtml?.trim();
+  const hasSections = entity === "website" && item?.sections != null;
+
+  const editHref =
+    entity === "website" && item?.id ? `/website-builder/create?id=${encodeURIComponent(item.id)}` : null;
+  const publicHref =
+    entity === "website" && item?.status === "PUBLISHED" && item.slug
+      ? `/s/${encodeURIComponent(item.slug)}`
+      : null;
 
   return (
     <div className={full.root}>
@@ -60,6 +69,11 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
         </Link>
         <h1 className={full.title}>{item?.name ?? "Preview"}</h1>
         <span className={full.spacer} aria-hidden />
+        {editHref ? (
+          <Link href={editHref} className={full.back} prefetch={false}>
+            Edit
+          </Link>
+        ) : null}
       </header>
       <div className={full.frame}>
         {error ? <div className={full.error}>{error}</div> : null}
@@ -75,11 +89,20 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           />
         ) : null}
-        {!error && item && !previewUrl && !previewHtml ? (
-          <div className={full.fallback}>
-            No preview URL or HTML from the API yet. When your backend returns <code>previewUrl</code> or <code>previewHtml</code>, this {entityNoun}{" "}
-            will render here full screen.
+        {!error && item && !previewUrl && !previewHtml && hasSections ? (
+          <div className={full.iframe} style={{ overflow: "auto", background: "#fff" }}>
+            <WebsiteSectionsView name={item.name} themeColor={item.themeColor} logo={item.logo} sections={item.sections} />
           </div>
+        ) : null}
+        {!error && item && !previewUrl && !previewHtml && !hasSections ? (
+          <div className={full.fallback}>No preview content for this {entityNoun} yet.</div>
+        ) : null}
+        {publicHref ? (
+          <p style={{ padding: "0.5rem 1rem", margin: 0, fontSize: "0.85rem" }}>
+            <a href={publicHref} target="_blank" rel="noreferrer">
+              View public site
+            </a>
+          </p>
         ) : null}
       </div>
     </div>
