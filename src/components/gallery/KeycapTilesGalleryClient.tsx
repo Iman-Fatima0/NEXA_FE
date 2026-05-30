@@ -136,12 +136,20 @@ export default function KeycapTilesGalleryClient({
             {subtitle.trim() ? <p className={tiles.sub}>{subtitle}</p> : null}
           </>
         )}
-        {error ? <p className={tiles.error}>{error}</p> : null}
+        {error ? (
+          <div className={tiles.errorBlock}>
+            <p className={tiles.error}>{error}</p>
+            <button type="button" className={tiles.retryBtn} onClick={() => void load()}>
+              Retry
+            </button>
+          </div>
+        ) : null}
         {items === null ? (
           <p className={tiles.sub}>Loading…</p>
-        ) : tilesWithVariants.length === 0 ? (
+        ) : tilesWithVariants.length === 0 && !error ? (
           <p className={tiles.empty}>{emptyMessage}</p>
-        ) : (
+        ) : null}
+        {items !== null && tilesWithVariants.length > 0 ? (
           <div className={tiles.grid}>
             {tilesWithVariants.map(({ site: w, variant }) => (
               <Link
@@ -171,7 +179,7 @@ export default function KeycapTilesGalleryClient({
               </Link>
             ))}
           </div>
-        )}
+        ) : null}
         <section className={tiles.ctaSection} aria-label={ctaSectionAriaLabel ?? ctaButtonText}>
           <p className={tiles.ctaLabel}>Ready for something new?</p>
           <Link href={ctaHref} className={tiles.ctaButton} prefetch={false}>

@@ -6,4 +6,6 @@ export type UserWebsite = UserGalleryItem;
 
 export type UserWebsitesPayload = {
   websites: UserWebsite[];
+  /** Set when `NEXT_PUBLIC_BACKEND_API_BASE_URL` is unset (BFF cannot reach Nest). */
+  hint?: string;
 };

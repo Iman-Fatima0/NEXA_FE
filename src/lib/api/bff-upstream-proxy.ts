@@ -1,7 +1,16 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { env } from "../../config/env";
+import { messageFromUpstreamText } from "./bff-error-message";
 import { ACCESS_COOKIE, AUTH_COOKIE_MAX_AGE_SEC, SESSION_COOKIE } from "../auth/session-cookie-names";
+
+function jsonErrorFromUpstream(text: string, status: number): NextResponse {
+  const message = messageFromUpstreamText(text, status);
+  return NextResponse.json({ message }, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
 
 const cookieBase = {
   httpOnly: true,
@@ -40,7 +49,10 @@ export async function bffUserResourceGet(
       cache: "no-store",
     });
     const text = await res.text();
-    if (!transform || res.status < 200 || res.status >= 300) {
+    if (res.status < 200 || res.status >= 300) {
+      return jsonErrorFromUpstream(text, res.status);
+    }
+    if (!transform) {
       return new NextResponse(text, {
         status: res.status,
         headers: {
@@ -53,13 +65,7 @@ export async function bffUserResourceGet(
     try {
       parsed = JSON.parse(text);
     } catch {
-      return new NextResponse(text, {
-        status: res.status,
-        headers: {
-          "content-type": res.headers.get("content-type") || "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
+      return jsonErrorFromUpstream(text, res.status);
     }
     return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {
@@ -97,7 +103,10 @@ async function bffUserResourceWrite(
       cache: "no-store",
     });
     const text = await res.text();
-    if (!transform || res.status < 200 || res.status >= 300) {
+    if (res.status < 200 || res.status >= 300) {
+      return jsonErrorFromUpstream(text, res.status);
+    }
+    if (!transform) {
       return new NextResponse(text, {
         status: res.status,
         headers: {
@@ -110,13 +119,7 @@ async function bffUserResourceWrite(
     try {
       parsed = JSON.parse(text);
     } catch {
-      return new NextResponse(text, {
-        status: res.status,
-        headers: {
-          "content-type": res.headers.get("content-type") || "application/json",
-          "Cache-Control": "no-store",
-        },
-      });
+      return jsonErrorFromUpstream(text, res.status);
     }
     return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {

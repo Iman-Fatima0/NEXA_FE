@@ -1,4 +1,7 @@
-/** Direct-to-backend website CRUD; upstream paths documented in `lib/api/nexa-backend-contract.ts`. */
+/**
+ * @deprecated Use BFF helpers in `lib/fetch-user-websites.ts` (same-origin cookies + normalized errors).
+ * Kept for optional direct Nest calls during development.
+ */
 import { env } from "../config/env";
 import { apiRequest } from "../lib/api";
 import type { GeneratedWebsite } from "../types/api.types";

@@ -27,20 +27,20 @@
  *
  * ---
  *
- * ## 3) User websites (gallery + detail)
+ * ## 3) User websites (gallery, builder, publish)
  *
- * | BFF | Suggested upstream | Response |
- * |-----|-------------------|----------|
- * | `GET /api/user/websites` | `GET /websites` (override: `BACKEND_USER_WEBSITES_PATH`) | `{ websites: UserWebsite[] }` |
- * | `POST /api/user/websites` | `POST /websites` | body `{ name, templateId?, description?, domain? }` → site row |
- * | `GET /api/user/websites/:id` | `GET /websites/:id` | `{ website: UserWebsite }` |
- * | `GET /api/user/websites/templates` | `GET /websites/templates` | `{ templates: WebsiteTemplate[] }` |
+ * | BFF | Upstream | Response |
+ * |-----|----------|----------|
+ * | `GET /api/user/websites` | `GET /websites` | `{ websites[], hint? }` — `hint` when backend env unset |
+ * | `POST /api/user/websites` | `POST /websites` | site row (template bootstrap) |
+ * | `GET /api/user/websites/:id` | `GET /websites/:id` | `{ website }` incl. `sections`, `publicUrl?` |
+ * | `PUT /api/user/websites/:id` | `PUT /websites/:id/builder` | updated site |
+ * | `POST /api/user/websites/:id/publish` | `POST /websites/:id/publish` | published site + `publicUrl` |
+ * | `POST /api/user/websites/:id/generate-content` | `POST /websites/:id/generate-content` | AI-filled sections |
+ * | `GET /api/user/websites/templates` | `GET /websites/templates` | `{ templates[] }` |
+ * | `GET /api/public/sites/:slug` | `GET /public/sites/:slug` | public site (no auth) |
  *
- * **Website generation (builder):** browser calls **direct BE** via `website-builder-api.ts` when
- * `NEXT_PUBLIC_WEBSITE_API_BASE_URL` (or `NEXT_PUBLIC_BACKEND_API_BASE_URL`) is set:
- * - `POST /website-builder/generate` — body `{ websiteName, description }` → `GenerateWebsiteResponse`
- *
- * **Alternate upstream** (already sketched in `services/website.service.ts`): `POST /websites`, `GET /websites`, `GET /websites/:id`, `POST /websites/:id/save` — pick one style and align `website-builder-api` + BFF list routes.
+ * UI uses `fetch-user-websites.ts` + `website-builder-api.ts` (BFF only). Nest returns `{ message }` on 4xx.
  *
  * ---
  *
@@ -68,8 +68,8 @@
  *
  * ## Environment variables (FE)
  *
- * - `NEXT_PUBLIC_BACKEND_API_BASE_URL` — primary API; dashboard BFF proxies here today.
- * - `NEXT_PUBLIC_WEBSITE_API_BASE_URL` — website generation + optional list if you split services.
+ * - `NEXT_PUBLIC_BACKEND_API_BASE_URL` — Nest API; required for website gallery and builder.
+ * - `NEXT_PUBLIC_APP_URL` — Next app URL for live `/s/{slug}` links (matches Nest `FRONTEND_PUBLIC_URL`).
  * - `NEXT_PUBLIC_CHATBOT_API_BASE_URL` — chatbot train/create when UI is wired to `chatbotService`.
  * - `NEXT_PUBLIC_INTEGRATION_API_BASE_URL` — integration connect when UI uses `integrationService`.
  * - `NEXT_PUBLIC_NEXA_LOGIN_URL` — override login POST target (default `/api/auth/session`).

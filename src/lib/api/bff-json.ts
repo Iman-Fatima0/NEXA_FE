@@ -1,3 +1,5 @@
+import { messageFromErrorBody } from "./bff-error-message";
+
 /** Default fetch options for same-origin BFF calls. */
 const defaultInit: Pick<RequestInit, "credentials" | "cache"> = {
   credentials: "same-origin",
@@ -6,9 +8,8 @@ const defaultInit: Pick<RequestInit, "credentials" | "cache"> = {
 
 export async function parseBffErrorMessage(res: Response, fallback: string): Promise<string> {
   try {
-    const data = (await res.json()) as { message?: string; error?: string };
-    if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
-    if (typeof data.error === "string" && data.error.trim()) return data.error.trim();
+    const data = (await res.json()) as unknown;
+    return messageFromErrorBody(data, fallback);
   } catch {
     /* ignore */
   }

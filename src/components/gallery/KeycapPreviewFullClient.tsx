@@ -81,7 +81,31 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
         ) : null}
       </header>
       <div className={full.frame}>
-        {error ? <div className={full.error}>{error}</div> : null}
+        {error ? (
+          <div className={full.error}>
+            {error}
+            {entity === "website" ? (
+              <button
+                type="button"
+                style={{ display: "block", marginTop: "0.5rem", fontSize: "0.85rem" }}
+                onClick={() => {
+                  setError(null);
+                  setItem(null);
+                  void (async () => {
+                    try {
+                      const w = await fetchGalleryItem(entity, itemId);
+                      setItem(w);
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : "Could not load preview.");
+                    }
+                  })();
+                }}
+              >
+                Retry
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {!error && item === null ? <div className={full.fallback}>Loading preview…</div> : null}
         {!error && item && previewUrl ? (
           <iframe title={item.name} className={full.iframe} src={previewUrl} sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />

@@ -9,7 +9,7 @@ export const DASHBOARD_MOCK: DashboardPayload = {
       name: "My Business Website",
       status: "Published",
       updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      href: "/website-builder/generated",
+      href: "/website-builder/create",
     },
     {
       id: "p-web-2",
@@ -17,7 +17,7 @@ export const DASHBOARD_MOCK: DashboardPayload = {
       name: "Portfolio Site",
       status: "Draft",
       updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      href: "/website-builder/generated",
+      href: "/website-builder/create",
     },
     {
       id: "p-bot-1",

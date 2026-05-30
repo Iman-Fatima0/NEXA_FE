@@ -9,7 +9,13 @@ import type { UserWebsitesPayload } from "../../../../lib/user-websites-types";
 /** Live data: `GET {BACKEND}{BACKEND_USER_WEBSITES_PATH||/websites}`. No backend → empty list. */
 export async function GET() {
   const empty = (): ReturnType<typeof jsonNoStore> =>
-    jsonNoStore({ websites: [] } satisfies UserWebsitesPayload, { headers: { "x-nexa-data": "no-backend" } });
+    jsonNoStore(
+      {
+        websites: [],
+        hint: "Backend not configured. Set NEXT_PUBLIC_BACKEND_API_BASE_URL in .env and restart the dev server.",
+      } satisfies UserWebsitesPayload,
+      { headers: { "x-nexa-data": "no-backend" } },
+    );
   return bffUserResourceGet(pathUserWebsitesList(), empty, (parsed) => normalizeWebsitesListPayload(parsed));
 }
 

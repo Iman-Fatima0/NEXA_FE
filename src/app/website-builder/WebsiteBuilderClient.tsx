@@ -59,14 +59,18 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [publishing, setPublishing] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [templatesUnavailable, setTemplatesUnavailable] = useState(false);
 
   const isEditMode = websiteId.length > 0;
 
   useEffect(() => {
     const fromQuery = readTemplateIdFromSearch(globalThis.window?.location.search ?? "");
     if (fromQuery) storeTemplateId(fromQuery);
-    void fetchWebsiteTemplates().catch(() => undefined);
+    void fetchWebsiteTemplates()
+      .then(() => setTemplatesUnavailable(false))
+      .catch(() => setTemplatesUnavailable(true));
   }, []);
 
   const applySiteToEditor = useCallback((site: UserWebsite) => {
@@ -83,10 +87,12 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     async (id: string) => {
       setLoadingSite(true);
       setError(null);
+      setLoadFailed(false);
       try {
         const site = await fetchUserWebsiteById(id);
         applySiteToEditor(site);
       } catch (e) {
+        setLoadFailed(true);
         setError(formatErr(e));
       } finally {
         setLoadingSite(false);
@@ -155,6 +161,10 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   const handleSave = async () => {
     if (!websiteId) return;
+    if (!websiteName.trim()) {
+      setError("Website name cannot be empty.");
+      return;
+    }
     setError(null);
     setStatusMessage(null);
     setSaving(true);
@@ -214,9 +224,25 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   };
 
   const showPreview = isEditMode && sectionBlocks.length > 0;
+  const busyLabel = publishing
+    ? "Publishing…"
+    : saving
+      ? "Saving…"
+      : generating
+        ? "Generating content…"
+        : loading
+          ? "Creating…"
+          : loadingSite
+            ? "Loading site…"
+            : null;
 
   return (
     <div className={wb.page}>
+      {busyLabel ? (
+        <div className={wb.busyBar} role="status" aria-live="polite">
+          {busyLabel}
+        </div>
+      ) : null}
       <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
         <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
       </Link>
@@ -336,7 +362,19 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 <p className={wb.hint}>After create, AI will fill your sections when a description is provided.</p>
               </>
             ) : null}
-            {error ? <p className={wb.error}>{error}</p> : null}
+            {templatesUnavailable ? (
+              <p className={wb.hint}>Templates could not be loaded. You can still create and edit sites.</p>
+            ) : null}
+            {error ? (
+              <div className={wb.errorBlock}>
+                <p className={wb.error}>{error}</p>
+                {loadFailed && websiteId ? (
+                  <button type="button" className={wb.retryBtn} onClick={() => void loadSite(websiteId)}>
+                    Retry load
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
             {publicUrl ? (
               <p className={wb.hint}>

@@ -359,14 +359,39 @@
   font-size: 0.9rem;
 }
 
-.error {
+.errorBlock {
   margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.error {
+  margin: 0;
   padding: 0.8rem 1rem;
   border-radius: 12px;
   background: rgba(50, 16, 24, 0.5);
   border: 1px solid rgba(248, 113, 113, 0.32);
   color: #fecaca;
   font-size: 0.86rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.retryBtn {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(30, 10, 14, 0.6);
+  color: #fecaca;
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  background: rgba(50, 16, 24, 0.75);
 }
 
 .ctaSection {

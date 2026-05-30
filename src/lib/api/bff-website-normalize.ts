@@ -68,8 +68,15 @@ export function normalizeWebsitesListPayload(raw: unknown): UserWebsitesPayload 
   if (raw && typeof raw === "object") {
     const o = raw as Record<string, unknown>;
     const list = o.websites ?? o.data ?? o.items;
+    const hint = typeof o.hint === "string" ? o.hint : undefined;
     if (Array.isArray(list)) {
-      return { websites: list.map((row) => mapBackendWebsiteToGalleryItem(row as BackendWebsiteRow)) };
+      return {
+        websites: list.map((row) => mapBackendWebsiteToGalleryItem(row as BackendWebsiteRow)),
+        hint,
+      };
+    }
+    if (hint) {
+      return { websites: [], hint };
     }
   }
   return { websites: [] };
