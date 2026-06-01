@@ -20,4 +20,8 @@ export type UserGalleryItem = {
   publishedAt?: string | null;
   /** Canonical live URL from API when published (Phase 5). */
   publicUrl?: string | null;
+  /** Custom hostname when set (e.g. shop.example.com). */
+  domain?: string | null;
+  /** https://{domain} when published with a custom domain. */
+  customDomainUrl?: string | null;
 };

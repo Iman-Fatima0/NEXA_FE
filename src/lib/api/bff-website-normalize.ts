@@ -16,6 +16,7 @@ export type BackendWebsiteRow = {
   slug?: string | null;
   publishedAt?: string | null;
   publicUrl?: string | null;
+  customDomainUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -52,11 +53,14 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
     publishedAt:
       typeof row.publishedAt === "string" ? row.publishedAt : row.publishedAt != null ? String(row.publishedAt) : null,
     publicUrl,
+    domain: row.domain ?? null,
+    customDomainUrl: row.customDomainUrl ?? null,
   };
   if (opts?.includeBuilder) {
     item.themeColor = row.themeColor;
     item.logo = row.logo;
     item.sections = row.sections;
+    item.domain = row.domain ?? null;
   }
   return item;
 }

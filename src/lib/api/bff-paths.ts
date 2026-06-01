@@ -11,7 +11,11 @@ export const BFF_PATHS = {
   userWebsite: (id: string) => `/api/user/websites/${encodeURIComponent(id)}`,
   userWebsitePublish: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/publish`,
   userWebsiteGenerateContent: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/generate-content`,
+  userWebsiteExport: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/export`,
+  userWebsiteExportZip: (id: string) => `/api/user/websites/${encodeURIComponent(id)}/export-zip`,
   publicSite: (slug: string) => `/api/public/sites/${encodeURIComponent(slug)}`,
+  publicSiteResolveHost: (host: string) =>
+    `/api/public/sites/resolve-host?host=${encodeURIComponent(host)}`,
   userWebsiteTemplates: "/api/user/websites/templates",
   userBots: "/api/user/bots",
   userBot: (id: string) => `/api/user/bots/${encodeURIComponent(id)}`,

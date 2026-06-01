@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createUserWebsite } from "../../lib/create-user-website";
 import {
+  downloadWebsiteExportZip,
   fetchUserWebsiteById,
   generateUserWebsiteContent,
   publishUserWebsite,
@@ -50,6 +51,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [description, setDescription] = useState("");
   const [themeColor, setThemeColor] = useState("#2563eb");
   const [logo, setLogo] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
   const [sectionBlocks, setSectionBlocks] = useState<WebsiteSectionBlock[]>([]);
   const [siteMeta, setSiteMeta] = useState<UserWebsite | null>(null);
 
@@ -57,6 +59,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [loadingSite, setLoadingSite] = useState(false);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -78,6 +81,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     setWebsiteName(site.name);
     setThemeColor(site.themeColor?.trim() || "#2563eb");
     setLogo(site.logo?.trim() || "");
+    setCustomDomain(site.domain?.trim() || "");
     const parsed = parseWebsiteSections(site.sections);
     setSectionBlocks(parsed.blocks);
     setDescription(parsed.metaDescription || "");
@@ -153,6 +157,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     if (!websiteId) return null;
     return updateUserWebsiteBuilder(websiteId, {
       title: websiteName.trim() || undefined,
+      domain: customDomain.trim() || null,
       themeColor: themeColor.trim() || null,
       logo: logo.trim() || null,
       sections: sectionsToRecord(sectionBlocks, description.trim() || undefined),
@@ -202,6 +207,21 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     }
   };
 
+  const handleExportZip = async () => {
+    if (!websiteId) return;
+    setError(null);
+    setExporting(true);
+    try {
+      await persistBuilder();
+      await downloadWebsiteExportZip(websiteId);
+      setStatusMessage("Export downloaded. Upload the ZIP to Vercel or S3 (see DEPLOY.md inside).");
+    } catch (e) {
+      setError(formatErr(e));
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handlePublish = async () => {
     if (!websiteId) return;
     setError(null);
@@ -224,17 +244,19 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   };
 
   const showPreview = isEditMode && sectionBlocks.length > 0;
-  const busyLabel = publishing
-    ? "Publishing…"
-    : saving
-      ? "Saving…"
-      : generating
-        ? "Generating content…"
-        : loading
-          ? "Creating…"
-          : loadingSite
-            ? "Loading site…"
-            : null;
+  const busyLabel = exporting
+    ? "Exporting…"
+    : publishing
+      ? "Publishing…"
+      : saving
+        ? "Saving…"
+        : generating
+          ? "Generating content…"
+          : loading
+            ? "Creating…"
+            : loadingSite
+              ? "Loading site…"
+              : null;
 
   return (
     <div className={wb.page}>
@@ -299,6 +321,22 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                     value={themeColor}
                     onChange={(e) => setThemeColor(e.target.value)}
                   />
+                </div>
+                <div className={wb.field}>
+                  <label className={wb.label} htmlFor="wb-domain">
+                    Custom domain
+                  </label>
+                  <input
+                    id="wb-domain"
+                    className={wb.input}
+                    placeholder="shop.example.com"
+                    value={customDomain}
+                    onChange={(e) => setCustomDomain(e.target.value)}
+                  />
+                  <p className={wb.hint}>
+                    Point your DNS A/CNAME to this app, then publish. Visitors can use https://your-domain (local dev:
+                    add host to hosts file).
+                  </p>
                 </div>
                 <div className={wb.field}>
                   <label className={wb.label} htmlFor="wb-logo">
@@ -376,6 +414,14 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
               </div>
             ) : null}
             {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
+            {siteMeta?.customDomainUrl ? (
+              <p className={wb.hint}>
+                Custom domain:{" "}
+                <a href={siteMeta.customDomainUrl} target="_blank" rel="noreferrer">
+                  {siteMeta.customDomainUrl}
+                </a>
+              </p>
+            ) : null}
             {publicUrl ? (
               <p className={wb.hint}>
                 Live at{" "}
@@ -403,9 +449,19 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 <button type="button" className={wb.btn} onClick={handleSave} disabled={saving || loadingSite}>
                   {saving ? "SAVING…" : "SAVE"}
                 </button>
-                <button type="button" className={wb.btn} onClick={handlePublish} disabled={publishing || saving || loadingSite}>
+                <button type="button" className={wb.btn} onClick={handlePublish} disabled={publishing || saving || loadingSite || exporting}>
                   {publishing ? "PUBLISHING…" : "PUBLISH"}
                 </button>
+                {siteMeta?.status === "PUBLISHED" ? (
+                  <button
+                    type="button"
+                    className={wb.btn}
+                    onClick={() => void handleExportZip()}
+                    disabled={exporting || saving || loadingSite}
+                  >
+                    {exporting ? "EXPORTING…" : "EXPORT ZIP (VERCEL/S3)"}
+                  </button>
+                ) : null}
                 {websiteId ? (
                   <Link href={`/dashboard/websites/${encodeURIComponent(websiteId)}/preview`} className={wb.btn} style={{ textAlign: "center", textDecoration: "none" }}>
                     FULL PREVIEW

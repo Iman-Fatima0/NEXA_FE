@@ -6,11 +6,11 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "\"%npm_node_execpath%\" scripts/run-cli.cjs next dev",
-    "build": "\"%npm_node_execpath%\" scripts/run-cli.cjs next build",
-    "start": "\"%npm_node_execpath%\" scripts/run-cli.cjs next start",
-    "lint": "\"%npm_node_execpath%\" scripts/run-cli.cjs next lint",
-    "typecheck": "\"%npm_node_execpath%\" scripts/run-cli.cjs tsc --noEmit"
+    "dev": "node scripts/run-cli.cjs next dev",
+    "build": "node scripts/run-cli.cjs next build",
+    "start": "node scripts/run-cli.cjs next start",
+    "lint": "node scripts/run-cli.cjs next lint",
+    "typecheck": "node scripts/run-cli.cjs tsc --noEmit"
   },
   "dependencies": {
     "next": "latest",

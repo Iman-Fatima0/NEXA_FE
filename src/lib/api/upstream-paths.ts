@@ -32,6 +32,22 @@ export function pathPublicSite(slug: string): string {
   return `/public/sites/${encodeURIComponent(slug)}`;
 }
 
+export function pathPublicSitePage(slug: string, pageKey: string): string {
+  return `/public/sites/${encodeURIComponent(slug)}/pages/${encodeURIComponent(pageKey)}`;
+}
+
+export function pathPublicSiteResolveHost(host: string): string {
+  return `/public/sites/resolve-host?host=${encodeURIComponent(host)}`;
+}
+
+export function pathUserWebsiteExport(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/export`;
+}
+
+export function pathUserWebsiteExportZip(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/export-zip`;
+}
+
 export function pathUserBotsList(): string {
   return process.env.BACKEND_USER_BOTS_PATH?.trim() || "/users/me/chatbots";
 }

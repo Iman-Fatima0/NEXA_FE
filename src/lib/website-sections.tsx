@@ -57,17 +57,38 @@ export function sectionsToRecord(blocks: WebsiteSectionBlock[], metaDescription?
   return out;
 }
 
+export type PublicSitePageLink = {
+  key: string;
+  name: string;
+  href: string;
+};
+
 export type WebsiteSectionsViewProps = Readonly<{
   name: string;
   themeColor?: string | null;
   logo?: string | null;
   sections: unknown;
   className?: string;
+  /** When set, only this section key is rendered (multi-page public view). */
+  activePageKey?: string | null;
+  /** Nav links for public multi-page sites. */
+  pageLinks?: PublicSitePageLink[];
 }>;
 
-export function WebsiteSectionsView({ name, themeColor, logo, sections, className }: WebsiteSectionsViewProps) {
+export function WebsiteSectionsView({
+  name,
+  themeColor,
+  logo,
+  sections,
+  className,
+  activePageKey,
+  pageLinks,
+}: WebsiteSectionsViewProps) {
   const accent = themeColor?.trim() || "#2563eb";
-  const { blocks } = parseWebsiteSections(sections);
+  const parsed = parseWebsiteSections(sections);
+  const blocks = activePageKey
+    ? parsed.blocks.filter((b) => b.key.toLowerCase() === activePageKey.toLowerCase())
+    : parsed.blocks;
   const hero = blocks[0];
 
   return (
@@ -88,6 +109,15 @@ export function WebsiteSectionsView({ name, themeColor, logo, sections, classNam
           <img src={logo.trim()} alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover" }} />
         ) : null}
         <strong style={{ fontSize: "1.1rem" }}>{name}</strong>
+        {pageLinks && pageLinks.length > 1 ? (
+          <nav style={{ marginLeft: "auto", display: "flex", flexWrap: "wrap", gap: "0.5rem", fontSize: "0.85rem" }}>
+            {pageLinks.map((link) => (
+              <a key={link.key} href={link.href} style={{ color: "#fff", textDecoration: "underline" }}>
+                {link.name}
+              </a>
+            ))}
+          </nav>
+        ) : null}
       </header>
 
       {hero ? (

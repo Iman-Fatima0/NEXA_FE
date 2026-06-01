@@ -19,6 +19,7 @@ export async function fetchUserWebsiteById(id: string): Promise<UserWebsite> {
 
 export type UpdateWebsiteBuilderPayload = {
   title?: string;
+  domain?: string | null;
   themeColor?: string | null;
   logo?: string | null;
   sections?: Record<string, unknown> | null;
@@ -40,14 +41,30 @@ export async function publishUserWebsite(id: string): Promise<UserWebsite> {
   return mapBackendWebsiteToGalleryItem(row, { includeBuilder: true });
 }
 
+export type PublicWebsitePageRef = {
+  key: string;
+  name: string;
+  path: string;
+};
+
 export type PublicWebsitePayload = {
   slug: string;
   name: string;
+  domain?: string | null;
   themeColor: string | null;
   logo: string | null;
   sections: unknown;
+  pages?: PublicWebsitePageRef[];
   publishedAt: string | null;
   publicUrl: string;
+  customDomainUrl?: string | null;
+};
+
+export type WebsiteStaticExportPayload = {
+  slug: string;
+  name: string;
+  files: Array<{ path: string; content: string }>;
+  deploy: { vercel: string; s3: string; note: string };
 };
 
 export async function generateUserWebsiteContent(
@@ -80,4 +97,45 @@ export async function fetchPublicWebsiteBySlugFromBackend(slug: string): Promise
     throw new Error("Site not found.");
   }
   return (await res.json()) as PublicWebsitePayload;
+}
+
+export async function fetchPublicWebsitePageFromBackend(
+  slug: string,
+  pageKey: string,
+): Promise<PublicWebsitePayload> {
+  const base = env.backendApiBaseUrl.trim();
+  if (!base) {
+    throw new Error("Backend not configured.");
+  }
+  const path = `/public/sites/${encodeURIComponent(slug)}/pages/${encodeURIComponent(pageKey)}`;
+  const res = await fetch(`${base.replace(/\/+$/, "")}${path}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error("Page not found.");
+  }
+  return (await res.json()) as PublicWebsitePayload;
+}
+
+/** Download static ZIP for Vercel/S3 (requires session cookies in browser). */
+export async function downloadWebsiteExportZip(websiteId: string): Promise<void> {
+  const res = await fetch(BFF_PATHS.userWebsiteExportZip(websiteId), {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Export failed");
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("content-disposition");
+  const match = disposition?.match(/filename="?([^";]+)"?/);
+  const filename = match?.[1] ?? "nexa-site.zip";
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
