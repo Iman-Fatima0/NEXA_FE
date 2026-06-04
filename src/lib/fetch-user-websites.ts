@@ -71,6 +71,13 @@ export async function generateUserWebsiteContent(
   id: string,
   payload: { prompt: string },
 ): Promise<UserWebsite> {
+  if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console -- dev RPM debugging (1 BFF → 1 Nest → 1 Gemini)
+    console.log(
+      `[NEXA] generateUserWebsiteContent: 1 fetch to /api/.../generate-content (not per-page; Strict Mode does not double onClick)`,
+      { websiteId: id },
+    );
+  }
   const row = await bffJson<BackendWebsiteRow>(BFF_PATHS.userWebsiteGenerateContent(id), {
     method: "POST",
     headers: { "Content-Type": "application/json" },

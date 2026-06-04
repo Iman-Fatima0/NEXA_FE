@@ -142,9 +142,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       const templateId = readStoredTemplateId();
       const created = await createUserWebsite({ name, templateId, description: desc || undefined });
-      if (desc) {
-        await generateUserWebsiteContent(created.id, { prompt: desc });
-      }
+      // AI runs only when user clicks GENERATE WITH AI (avoids 2× Gemini on create + generate).
       router.replace(`/website-builder/create?id=${encodeURIComponent(created.id)}`);
     } catch (e) {
       setError(formatErr(e));
@@ -187,7 +185,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   };
 
   const handleGenerateAi = async () => {
-    if (!websiteId) return;
+    if (!websiteId || generating) return;
     const prompt = description.trim();
     if (!prompt) {
       setError("Enter a description of what you want before generating.");
