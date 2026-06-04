@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import wb from "../../app/website-builder/website-builder.module.css";
+import plat from "./chatbot-platform.module.css";
 import {
   fetchChatHistory,
   sendChatMessage,
@@ -42,6 +43,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFailedText, setLastFailedText] = useState<string | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -73,7 +75,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Could not start chat.");
+          setError(e instanceof Error ? e.message : "Chat is unavailable. Please try again.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -93,6 +95,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
     if (!text || !sessionId || sending) return;
     setSending(true);
     setError(null);
+    setLastFailedText(null);
     setInput("");
     const optimisticId = `user-${Date.now()}`;
     setMessages((prev) => [...prev, { id: optimisticId, role: "user", content: text }]);
@@ -106,7 +109,8 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
     } catch (e) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       setInput(text);
-      setError(e instanceof Error ? e.message : "Send failed.");
+      setLastFailedText(text);
+      setError(e instanceof Error ? e.message : "Message could not be sent. Please try again.");
     } finally {
       setSending(false);
     }
@@ -142,15 +146,38 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
           className={wb.chatRestartBtn}
           onClick={restartSession}
           disabled={loading || sending}
-          title="Start a new chat session"
+          title="Start a new conversation"
         >
-          New session
+          New chat
         </button>
       </div>
       {error ? (
-        <p className={wb.chatError} role="alert">
-          {error}
-        </p>
+        <div className={wb.chatError} role="alert">
+          <p style={{ margin: 0 }}>{error}</p>
+          {lastFailedText ? (
+            <button
+              type="button"
+              className={plat.btnSecondary}
+              style={{ marginTop: "0.5rem" }}
+              onClick={() => {
+                setInput(lastFailedText);
+                setLastFailedText(null);
+                setError(null);
+              }}
+            >
+              Retry message
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={plat.btnSecondary}
+              style={{ marginTop: "0.5rem" }}
+              onClick={restartSession}
+            >
+              Try again
+            </button>
+          )}
+        </div>
       ) : null}
       <div
         ref={bodyRef}
@@ -158,16 +185,25 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
         aria-live="polite"
       >
         {loading ? (
-          <div className={wb.chatDarkBubble}>Starting chat session…</div>
+          <div className={wb.chatDarkBubble}>Connecting…</div>
         ) : (
-          messages.map((m) => (
-            <div
-              key={m.id}
-              className={`${wb.chatDarkBubble} ${m.role === "user" ? wb.chatDarkBubbleUser : ""}`}
-            >
-              {m.content}
-            </div>
-          ))
+          <>
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`${wb.chatDarkBubble} ${m.role === "user" ? wb.chatDarkBubbleUser : ""}`}
+              >
+                {m.content}
+              </div>
+            ))}
+            {sending ? (
+              <div className={plat.typingDots} aria-label="Assistant is typing">
+                <span />
+                <span />
+                <span />
+              </div>
+            ) : null}
+          </>
         )}
       </div>
       <div className={wb.chatComposeBar}>

@@ -20,6 +20,16 @@ export const BFF_PATHS = {
   userBot: (id: string) => `/api/user/bots/${encodeURIComponent(id)}`,
   documents: (botId: string) => `/api/documents?botId=${encodeURIComponent(botId)}`,
   documentsIngest: "/api/documents/ingest",
+  documentsIngestUrl: "/api/documents/ingest-url",
+  userBotPublish: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/publish`,
+  userBotAnalyticsSummary: (id: string) =>
+    `/api/user/bots/${encodeURIComponent(id)}/analytics/summary`,
+  userBotAnalyticsUnanswered: (id: string) =>
+    `/api/user/bots/${encodeURIComponent(id)}/analytics/unanswered`,
+  userBotRefreshConfig: (id: string) =>
+    `/api/user/bots/${encodeURIComponent(id)}/refresh-config-snapshot`,
+  userBotRegenerateApiKey: (id: string) =>
+    `/api/user/bots/${encodeURIComponent(id)}/regenerate-api-key`,
   chatStart: "/api/chat/start",
   chatMessage: "/api/chat/message",
   chatHistory: (sessionId: string) => `/api/chat/history/${encodeURIComponent(sessionId)}`,

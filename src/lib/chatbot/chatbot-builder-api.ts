@@ -1,5 +1,5 @@
 import { BFF_PATHS } from "../api/bff-paths";
-import { parseBffErrorMessage } from "../api/bff-json";
+import { parseFriendlyBffError } from "./bff-user-errors";
 
 export type NexaBotRecord = {
   id: string;
@@ -33,9 +33,13 @@ function pickBotId(raw: unknown): string | null {
   return typeof id === "string" && id.trim() ? id.trim() : null;
 }
 
-async function ensureOk(res: Response, fallback: string): Promise<void> {
+async function ensureOk(
+  res: Response,
+  fallback: string,
+  context?: "upload" | "url" | "chat" | "train",
+): Promise<void> {
   if (!res.ok) {
-    throw new Error(await parseBffErrorMessage(res, fallback));
+    throw new Error(await parseFriendlyBffError(res, fallback, context ?? "chat"));
   }
 }
 
@@ -46,7 +50,7 @@ export async function createBot(name: string): Promise<NexaBotRecord> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: name.trim() || "My First Bot" }),
   });
-  await ensureOk(res, "Could not create chatbot.");
+  await ensureOk(res, "Could not create chatbot.", "train");
   const data = (await res.json()) as unknown;
   const id = pickBotId(data);
   if (!id) throw new Error("Create bot response missing id.");
@@ -61,15 +65,24 @@ export async function createBot(name: string): Promise<NexaBotRecord> {
 
 export async function updateBot(
   botId: string,
-  patch: { name?: string; description?: string | null },
+  patch: { name?: string; description?: string | null; config?: { welcomeMessage?: string; primaryColor?: string } },
 ): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (patch.name !== undefined) body.name = patch.name;
+  if (patch.description !== undefined) body.description = patch.description;
+  if (patch.config?.welcomeMessage !== undefined) {
+    body.welcomeMessage = patch.config.welcomeMessage;
+  }
+  if (patch.config?.primaryColor !== undefined) {
+    body.primaryColor = patch.config.primaryColor;
+  }
   const res = await fetch(BFF_PATHS.userBot(botId), {
     method: "PATCH",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
+    body: JSON.stringify(body),
   });
-  await ensureOk(res, "Could not update chatbot.");
+  await ensureOk(res, "Could not update chatbot.", "train");
 }
 
 export async function ingestDocument(botId: string, file: File): Promise<void> {
@@ -81,7 +94,7 @@ export async function ingestDocument(botId: string, file: File): Promise<void> {
     credentials: "same-origin",
     body: form,
   });
-  await ensureOk(res, `Could not ingest ${file.name}.`);
+  await ensureOk(res, "Document upload failed.", "upload");
 }
 
 export async function startChatSession(botId: string): Promise<ChatStartResponse> {

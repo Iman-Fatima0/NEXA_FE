@@ -1,0 +1,63 @@
+import type { PersonalityPresetId } from "./personality-presets";
+
+export type BotConfig = {
+  welcomeMessage?: string;
+  primaryColor?: string;
+  personalityPreset?: PersonalityPresetId;
+};
+
+export type BotStatus = "draft" | "published";
+
+export type PlatformBot = {
+  id: string;
+  name: string;
+  description?: string | null;
+  status: BotStatus;
+  createdAt?: string;
+  updatedAt?: string;
+  documentCount?: number;
+  config?: BotConfig;
+  /** Set after publish — never shown as raw IDs in UI except copy fields user expects */
+  publicChatUrl?: string;
+  widgetScript?: string;
+  widgetStatus?: string;
+  widgetVersion?: string;
+  embedMode?: string;
+  allowedDomains?: string[];
+};
+
+export type BotTrainSummary = {
+  name: string;
+  personalityLabel: string;
+  purpose: string;
+  fileCount: number;
+  urlCount: number;
+  createdAt: string;
+};
+
+export type PublishBotResult = {
+  publicChatUrl?: string;
+  widgetScript?: string;
+  widgetUrl?: string;
+  widgetStatus?: string;
+  widgetVersion?: string;
+  embedMode?: string;
+  allowedDomains?: string[];
+};
+
+export type AnalyticsSummary = {
+  totalConversations?: number;
+  totalMessages?: number;
+  successRate?: number;
+  averageConfidence?: number;
+  unansweredCount?: number;
+  dailyConversations?: { date: string; count: number }[];
+  dailyMessages?: { date: string; count: number }[];
+};
+
+export type UnansweredQuestion = {
+  id?: string;
+  question: string;
+  date?: string;
+  confidence?: number;
+};

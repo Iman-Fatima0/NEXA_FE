@@ -57,6 +57,40 @@ export function pathDocumentsIngest(): string {
   return process.env.BACKEND_DOCUMENTS_INGEST_PATH?.trim() || "/documents/ingest";
 }
 
+export function pathDocumentsIngestUrl(): string {
+  return process.env.BACKEND_DOCUMENTS_INGEST_URL_PATH?.trim() || "/documents/ingest-url";
+}
+
+export function pathBotPublish(id: string): string {
+  const t = process.env.BACKEND_BOT_PUBLISH_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/publish`;
+}
+
+export function pathBotAnalyticsSummary(id: string): string {
+  const t = process.env.BACKEND_BOT_ANALYTICS_SUMMARY_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/analytics/summary`;
+}
+
+export function pathBotAnalyticsUnanswered(id: string): string {
+  const t = process.env.BACKEND_BOT_ANALYTICS_UNANSWERED_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/analytics/unanswered`;
+}
+
+export function pathBotRefreshConfigSnapshot(id: string): string {
+  const t = process.env.BACKEND_BOT_REFRESH_CONFIG_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/refresh-config-snapshot`;
+}
+
+export function pathBotRegenerateApiKey(id: string): string {
+  const t = process.env.BACKEND_BOT_REGENERATE_API_KEY_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/regenerate-api-key`;
+}
+
 export function pathChatStart(): string {
   return process.env.BACKEND_CHAT_START_PATH?.trim() || "/chat/start";
 }

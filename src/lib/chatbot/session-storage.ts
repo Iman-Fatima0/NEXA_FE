@@ -1,8 +1,11 @@
 /** Browser session keys for the active chatbot builder / test flow. */
 
+import type { BotTrainSummary } from "./bot-types";
+
 export const NEXA_ACTIVE_BOT_ID_KEY = "nexa_active_bot_id";
 export const NEXA_ACTIVE_BOT_NAME_KEY = "nexa_active_bot_name";
 export const NEXA_CHAT_SESSION_ID_KEY = "nexa_chat_session_id";
+export const NEXA_BOT_TRAIN_SUMMARY_KEY = "nexa_bot_train_summary";
 
 export function setActiveBot(botId: string, name?: string): void {
   try {
@@ -50,5 +53,23 @@ export function clearChatSessionId(): void {
     globalThis.sessionStorage?.removeItem(NEXA_CHAT_SESSION_ID_KEY);
   } catch {
     /* ignore */
+  }
+}
+
+export function setBotTrainSummary(summary: BotTrainSummary): void {
+  try {
+    globalThis.sessionStorage?.setItem(NEXA_BOT_TRAIN_SUMMARY_KEY, JSON.stringify(summary));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getBotTrainSummary(): BotTrainSummary | null {
+  try {
+    const raw = globalThis.sessionStorage?.getItem(NEXA_BOT_TRAIN_SUMMARY_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as BotTrainSummary;
+  } catch {
+    return null;
   }
 }

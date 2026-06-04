@@ -1,22 +1,48 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import wb from "../website-builder/website-builder.module.css";
-import { createBot, ingestDocument, updateBot } from "../../lib/chatbot/chatbot-builder-api";
+import {
+  createPlatformBot,
+  ingestPlatformDocument,
+  ingestPlatformUrl,
+  updatePlatformBot,
+} from "../../lib/chatbot/chatbot-platform-api";
 import { INGEST_ACCEPT, INGEST_HINT, isIngestableFile, textFileFromString } from "../../lib/chatbot/ingest-files";
-import { setActiveBot } from "../../lib/chatbot/session-storage";
+import {
+  buildBotDescription,
+  PERSONALITY_PRESETS,
+  presetById,
+  type PersonalityPresetId,
+} from "../../lib/chatbot/personality-presets";
+import { setActiveBot, setBotTrainSummary } from "../../lib/chatbot/session-storage";
+import { TRAIN_STEPS, type TrainStepId } from "../../lib/chatbot/train-steps";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 
 const PLACEHOLDER_NAME = "e.g. Customer Support Assistant";
-const PLACEHOLDER_PERSONALITY =
-  "Example: Friendly and professional, helpful but concise, uses emojis occasionally";
+const PLACEHOLDER_PURPOSE =
+  "Example: Answer product questions, help with bookings, and explain your return policy.";
+const DEFAULT_WELCOME = "Hi! How can I help you today?";
+const DEFAULT_COLOR = "#6366f1";
 
 function fileKey(file: File): string {
   return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+function isValidUrl(s: string): boolean {
+  try {
+    const u = new URL(s.trim());
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function statusLabel(step: TrainStepId): string {
+  return TRAIN_STEPS.find((s) => s.id === step)?.label ?? "Working…";
 }
 
 type ChatbotBuilderClientProps = Readonly<{
@@ -27,11 +53,18 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
   const router = useRouter();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [chatbotName, setChatbotName] = useState("");
-  const [personality, setPersonality] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [welcomeMessage, setWelcomeMessage] = useState(DEFAULT_WELCOME);
+  const [primaryColor, setPrimaryColor] = useState(DEFAULT_COLOR);
+  const [presetId, setPresetId] = useState<PersonalityPresetId>("friendly");
+
   const [knowledgeMode, setKnowledgeMode] = useState<"files" | "text">("files");
   const [files, setFiles] = useState<File[]>([]);
   const [knowledgeText, setKnowledgeText] = useState("");
+  const [urls, setUrls] = useState<string[]>([""]);
+
   const [dragActive, setDragActive] = useState(false);
   const [training, setTraining] = useState(false);
   const [trainStatus, setTrainStatus] = useState<string | null>(null);
@@ -59,12 +92,11 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
 
   const onInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const input = e.currentTarget;
-      const list = input.files;
+      const list = e.currentTarget.files;
       if (list?.length) {
         setKnowledgeMode("files");
         addFiles(Array.from(list));
-        input.value = "";
+        e.currentTarget.value = "";
       }
       setDragActive(false);
     },
@@ -73,18 +105,16 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
 
   const onDropZoneDragEnter = useCallback((e: DragEvent) => {
     e.preventDefault();
-    if (e.dataTransfer.types?.includes("Files")) {
-      setDragActive(true);
-    }
+    if (e.dataTransfer.types?.includes("Files")) setDragActive(true);
   }, []);
 
   const onDropZoneDragLeave = useCallback((e: DragEvent) => {
     const related = e.relatedTarget as Node | null;
-    if (related && e.currentTarget.contains(related)) {
-      return;
-    }
+    if (related && e.currentTarget.contains(related)) return;
     setDragActive(false);
   }, []);
+
+  const validUrls = urls.map((u) => u.trim()).filter(isValidUrl);
 
   const onTrain = async () => {
     const name = chatbotName.trim();
@@ -92,36 +122,74 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
       setTrainError("Enter a chatbot name.");
       return;
     }
-    const hasFiles = knowledgeMode === "files" && files.length > 0;
+    if (!purpose.trim()) {
+      setTrainError("Tell us what your chatbot should help users with.");
+      return;
+    }
+
+    const hasFiles = files.length > 0;
     const hasText = knowledgeMode === "text" && knowledgeText.trim().length > 0;
-    if (!hasFiles && !hasText) {
-      setTrainError("Add at least one PDF/TXT file or knowledge text to ingest.");
+    const hasUrls = validUrls.length > 0;
+    if (!hasFiles && !hasText && !hasUrls) {
+      setTrainError("Add at least one document, website URL, or knowledge text.");
       return;
     }
 
     setTraining(true);
     setTrainError(null);
-    setTrainStatus("Creating bot…");
+    setTrainStatus(statusLabel("creating"));
 
     try {
-      const bot = await createBot(name);
-      if (personality.trim()) {
-        setTrainStatus("Saving personality…");
-        await updateBot(bot.id, { description: personality.trim() });
+      const bot = await createPlatformBot(name);
+
+      setTrainStatus(statusLabel("saving_settings"));
+      await updatePlatformBot(bot.id, {
+        description: buildBotDescription(purpose, presetId),
+        config: {
+          welcomeMessage: welcomeMessage.trim() || DEFAULT_WELCOME,
+          primaryColor,
+          personalityPreset: presetId,
+        },
+      });
+
+      const docFiles = files.filter(isIngestableFile);
+      if (docFiles.length > 0) {
+        setTrainStatus(statusLabel("uploading_documents"));
+        for (let i = 0; i < docFiles.length; i++) {
+          setTrainStatus(`${statusLabel("uploading_documents")} (${i + 1}/${docFiles.length})…`);
+          await ingestPlatformDocument(bot.id, docFiles[i]!);
+        }
       }
 
-      const toIngest: File[] =
-        knowledgeMode === "files" ? files.filter(isIngestableFile) : [textFileFromString(knowledgeText.trim())];
-
-      for (let i = 0; i < toIngest.length; i++) {
-        setTrainStatus(`Ingesting ${i + 1} of ${toIngest.length}: ${toIngest[i].name}…`);
-        await ingestDocument(bot.id, toIngest[i]);
+      if (validUrls.length > 0) {
+        setTrainStatus(statusLabel("processing_websites"));
+        for (let i = 0; i < validUrls.length; i++) {
+          setTrainStatus(`${statusLabel("processing_websites")} (${i + 1}/${validUrls.length})…`);
+          await ingestPlatformUrl(bot.id, validUrls[i]!);
+        }
       }
 
+      if (hasText) {
+        setTrainStatus(statusLabel("training_knowledge"));
+        await ingestPlatformDocument(bot.id, textFileFromString(knowledgeText.trim()));
+      }
+
+      setTrainStatus(statusLabel("finalizing"));
+
+      const preset = presetById(presetId);
       setActiveBot(bot.id, bot.name);
-      router.push(`/chatbot-builder/trained?botId=${encodeURIComponent(bot.id)}`);
+      setBotTrainSummary({
+        name: bot.name,
+        personalityLabel: preset.label,
+        purpose: purpose.trim(),
+        fileCount: docFiles.length + (hasText ? 1 : 0),
+        urlCount: validUrls.length,
+        createdAt: new Date().toISOString(),
+      });
+
+      router.push("/chatbot-builder/trained");
     } catch (e) {
-      setTrainError(e instanceof Error ? e.message : "Training failed.");
+      setTrainError(e instanceof Error ? e.message : "Training could not be completed. Please try again.");
       setTraining(false);
       setTrainStatus(null);
     }
@@ -150,19 +218,69 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                 />
               </div>
               <div className={wb.field}>
-                <label className={wb.label} htmlFor="cb-tone">
-                  Personality &amp; Tone
+                <label className={wb.label} htmlFor="cb-purpose">
+                  What should your chatbot help users with?
                 </label>
-                <input
-                  id="cb-tone"
-                  className={wb.input}
-                  value={personality}
-                  onChange={(e) => setPersonality(e.target.value)}
-                  placeholder={PLACEHOLDER_PERSONALITY}
-                  autoComplete="off"
+                <textarea
+                  id="cb-purpose"
+                  className={wb.textarea}
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  placeholder={PLACEHOLDER_PURPOSE}
+                  rows={3}
                   disabled={training}
                 />
-                <p className={wb.kbHint}>Stored as bot description (PATCH /bots/:id).</p>
+              </div>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="cb-welcome">
+                  Welcome Message
+                </label>
+                <input
+                  id="cb-welcome"
+                  className={wb.input}
+                  value={welcomeMessage}
+                  onChange={(e) => setWelcomeMessage(e.target.value)}
+                  disabled={training}
+                />
+              </div>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="cb-color">
+                  Brand Color
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                  <input
+                    id="cb-color"
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    disabled={training}
+                    style={{ width: 44, height: 36, border: "none", cursor: "pointer" }}
+                    aria-label="Brand color"
+                  />
+                  <input
+                    className={wb.input}
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    disabled={training}
+                    aria-label="Brand color hex"
+                  />
+                </div>
+              </div>
+              <div className={wb.field}>
+                <span className={wb.label}>Personality</span>
+                <div className={wb.btnRow2} style={{ flexWrap: "wrap" }}>
+                  {PERSONALITY_PRESETS.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`${wb.btnGhost} ${presetId === p.id ? wb.btnGhostActive : ""}`}
+                      onClick={() => setPresetId(p.id)}
+                      disabled={training}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </article>
 
@@ -192,9 +310,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                   <div
                     className={`${wb.dropZone} ${wb.dropZoneInteractive} ${dragActive ? wb.dropZoneDragging : ""}`}
                     onDragEnter={onDropZoneDragEnter}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                    }}
+                    onDragOver={(e) => e.preventDefault()}
                     onDragLeave={onDropZoneDragLeave}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -220,7 +336,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                       multiple
                       onChange={onInputChange}
                       disabled={training}
-                      aria-label="Upload knowledge files (PDF, TXT)"
+                      aria-label="Upload knowledge files"
                     />
                   </div>
                   {files.length > 0 ? (
@@ -253,20 +369,59 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
               ) : (
                 <div className={wb.field}>
                   <label className={wb.label} htmlFor="cb-knowledge-text">
-                    Knowledge text
+                    Custom knowledge
                   </label>
                   <textarea
                     id="cb-knowledge-text"
                     className={wb.textarea}
                     value={knowledgeText}
                     onChange={(e) => setKnowledgeText(e.target.value)}
-                    placeholder="Paste or type product info, FAQs, policies, etc. Saved as knowledge.txt for ingest."
+                    placeholder="Paste or type product info, FAQs, policies, etc."
                     rows={8}
                     disabled={training}
                   />
-                  <p className={wb.kbHint}>{knowledgeText.length} characters — uploaded as TXT on train.</p>
+                  <p className={wb.kbHint}>{knowledgeText.length} characters — added when you train.</p>
                 </div>
               )}
+
+              <div className={wb.field} style={{ marginTop: "1rem" }}>
+                <span className={wb.label}>Website URLs</span>
+                {urls.map((url, i) => (
+                  <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                    <input
+                      className={wb.input}
+                      type="url"
+                      placeholder="https://yoursite.com/help"
+                      value={url}
+                      onChange={(e) => {
+                        const next = [...urls];
+                        next[i] = e.target.value;
+                        setUrls(next);
+                      }}
+                      disabled={training}
+                    />
+                    {urls.length > 1 ? (
+                      <button
+                        type="button"
+                        className={wb.fileRemove}
+                        disabled={training}
+                        onClick={() => setUrls((prev) => prev.filter((_, j) => j !== i))}
+                        aria-label="Remove URL"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className={wb.btnGhost}
+                  disabled={training}
+                  onClick={() => setUrls((prev) => [...prev, ""])}
+                >
+                  Add URL
+                </button>
+              </div>
 
               {trainError ? (
                 <p className={wb.trainError} role="alert">
@@ -281,7 +436,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                 disabled={training}
                 onClick={() => void onTrain()}
               >
-                {training ? "Training…" : "Train Chatbot"}
+                {training ? "Training…" : "Create My Chatbot"}
               </button>
             </article>
           </div>
@@ -291,7 +446,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
             <div className={wb.previewScrim} aria-hidden />
             <div className={wb.previewMessage}>
               <h3 className={wb.previewHeading}>
-                {training ? "Ingesting knowledge…" : "Your chatbot will appear here after training"}
+                {training ? "Training your chatbot…" : "Your chatbot will appear here after training"}
               </h3>
             </div>
           </article>

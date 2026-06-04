@@ -59,11 +59,13 @@
  *
  * **Chat:** `POST /chat/start`, `POST /chat/message`, `GET /chat/history/:sessionId`
  *
- * **Chatbot builder BFF (wired in UI):**
- * - `POST /api/user/bots` → create bot
- * - `PATCH /api/user/bots/:id` → personality as `description`
- * - `POST /api/documents/ingest` → multipart `file` + `botId` (PDF/TXT)
+ * **Chatbot platform BFF (wired in UI):**
+ * - `POST /api/user/bots`, `PATCH/DELETE /api/user/bots/:id`, `POST …/publish`
+ * - `POST /api/documents/ingest`, `POST /api/documents/ingest-url`
+ * - `GET /api/documents?botId=`
  * - `POST /api/chat/start`, `POST /api/chat/message`, `GET /api/chat/history/:sessionId`
+ * - `GET …/analytics/summary`, `GET …/analytics/unanswered`
+ * - `POST …/refresh-config-snapshot`, `POST …/regenerate-api-key`
  *
  * **Internal AI (port 8000):** not called from this frontend.
  *

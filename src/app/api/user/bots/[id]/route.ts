@@ -1,5 +1,4 @@
 import { bffAuthenticated, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
-import { wrapBotDetail } from "../../../../../lib/api/nestjs-normalize";
 import { pathUserBotDetail } from "../../../../../lib/api/upstream-paths";
 
 type Params = { params: Promise<{ id: string }> };
@@ -10,11 +9,15 @@ export async function GET(_request: Request, { params }: Params) {
   if (!upstream.ok) return upstream;
   try {
     const raw = await upstream.json();
-    const wrapped = wrapBotDetail(raw);
-    if (!wrapped) {
+    if (!raw || typeof raw !== "object") {
       return jsonNoStore({ error: "not_found" }, { status: 404 });
     }
-    return jsonNoStore(wrapped);
+    const o = raw as Record<string, unknown>;
+    const bot = o.bot && typeof o.bot === "object" ? o.bot : raw;
+    if (!bot || typeof bot !== "object" || !(bot as Record<string, unknown>).id) {
+      return jsonNoStore({ error: "not_found" }, { status: 404 });
+    }
+    return jsonNoStore({ bot });
   } catch {
     return jsonNoStore({ error: "invalid_json" }, { status: 502 });
   }

@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
-import { getActiveBotId, getActiveBotName } from "../../lib/chatbot/session-storage";
+import { fetchPlatformBot } from "../../lib/chatbot/chatbot-platform-api";
+import { getActiveBotId, getActiveBotName, getBotTrainSummary } from "../../lib/chatbot/session-storage";
 
 type ChatbotTrainedClientProps = {
   backHref: string;
@@ -14,56 +15,83 @@ type ChatbotTrainedClientProps = {
 };
 
 export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrainedClientProps) {
-  const searchParams = useSearchParams();
+  const router = useRouter();
+  const summary = getBotTrainSummary();
   const [botId, setBotId] = useState<string | null>(null);
   const [botName, setBotName] = useState("Chatbot");
+  const [greeting, setGreeting] = useState("Hi! I'm your AI assistant. How can I help you today?");
 
   useEffect(() => {
-    const fromUrl = searchParams.get("botId")?.trim();
-    setBotId(fromUrl || getActiveBotId());
-    setBotName(getActiveBotName() ?? "Chatbot");
-  }, [searchParams]);
+    const id = getActiveBotId();
+    setBotId(id);
+    setBotName(summary?.name ?? getActiveBotName() ?? "Chatbot");
+    if (!id) return;
+    void (async () => {
+      try {
+        const bot = await fetchPlatformBot(id);
+        setBotName(bot.name);
+        if (bot.config?.welcomeMessage) setGreeting(bot.config.welcomeMessage);
+      } catch {
+        /* keep defaults */
+      }
+    })();
+  }, [summary?.name]);
+
+  const publishHref = botId ? `/dashboard/bots/${encodeURIComponent(botId)}/publish` : saveHref;
 
   return (
     <div className={`${wb.page} ${wb.botReviewPage}`}>
       <DashboardStyleBackNav href={backHref} ariaLabel="Back" />
       <div className={wb.topExtras}>
-        <Link href={botId ? `/chatbot-testing` : "/chatbot-builder/create"} className={wb.topExtraGhost}>
-          Test Bot
+        <Link href={botId ? "/chatbot-testing" : "/chatbot-builder/create"} className={wb.topExtraGhost}>
+          Test Chatbot
         </Link>
+        <button type="button" className={wb.topExtraGhost} onClick={() => router.push(publishHref)}>
+          Publish Chatbot
+        </button>
         <Link href={saveHref} className={wb.topExtraPrimary}>
-          Save Chatbot
+          Back to Dashboard
         </Link>
       </div>
       <main className={`${wb.main} ${wb.mainToolbarSpace}`}>
         <section className={wb.split}>
           <article className={wb.panel}>
-            <h2 className={wb.panelTitle}>Training complete</h2>
+            <h2 className={wb.panelTitle}>Chatbot ready</h2>
             <div className={wb.ctaBanner}>
-              <h3 className={wb.ctaBannerTitle}>Chatbot ready</h3>
+              <h3 className={wb.ctaBannerTitle}>Training complete</h3>
               <p className={wb.ctaBannerText}>
-                Documents were ingested into the vector store. Try the preview chat or open full testing.
+                {botName} is ready. Try the preview chat, run a full test, or publish when you are happy.
               </p>
             </div>
-            {botId ? (
-              <p className={wb.hintTight}>
-                Bot ID: <code>{botId}</code>
+            <ul className={wb.kbHint} style={{ listStyle: "none", padding: 0, margin: "0.75rem 0 0" }}>
+              <li>
+                <strong>Personality:</strong> {summary?.personalityLabel ?? "—"}
+              </li>
+              <li>
+                <strong>Documents:</strong> {summary?.fileCount ?? 0}
+              </li>
+              <li>
+                <strong>Websites:</strong> {summary?.urlCount ?? 0}
+              </li>
+              {summary?.purpose ? (
+                <li style={{ marginTop: "0.35rem" }}>
+                  <strong>Helps with:</strong> {summary.purpose}
+                </li>
+              ) : null}
+            </ul>
+            {!botId ? (
+              <p className={wb.trainError} style={{ marginTop: "0.75rem" }}>
+                Something went wrong — please train again from the builder.
               </p>
-            ) : (
-              <p className={wb.trainError}>Missing bot id — train again from the builder.</p>
-            )}
+            ) : null}
           </article>
 
           <article className={wb.panel}>
             <h2 className={wb.panelTitle}>Chatbot Preview</h2>
             {botId ? (
-              <ChatPanel
-                botId={botId}
-                botName={botName}
-                greeting="Hi! I'm your AI assistant. How can I help you today?"
-              />
+              <ChatPanel botId={botId} botName={botName} greeting={greeting} />
             ) : (
-              <p className={wb.kbHint}>Preview unavailable without a trained bot.</p>
+              <p className={wb.kbHint}>Preview unavailable — train your chatbot again to continue.</p>
             )}
           </article>
         </section>
