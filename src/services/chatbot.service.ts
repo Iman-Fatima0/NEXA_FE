@@ -1,4 +1,7 @@
-/** Direct-to-backend chatbot APIs; see `lib/api/nexa-backend-contract.ts`. */
+/**
+ * @deprecated Use `lib/chatbot/chatbot-builder-api.ts` + BFF routes (`/api/user/bots`, `/api/chat/*`).
+ * Legacy direct-to-backend helpers; kept for reference only.
+ */
 import { env } from "../config/env";
 import { apiRequest } from "../lib/api";
 import type { Chatbot } from "../types/api.types";
@@ -29,7 +32,7 @@ export const chatbotService = {
     return apiRequest<{ response: string }>(
       `/chatbots/${chatbotId}/test`,
       { method: "POST", body: { message } },
-      env.chatbotApiBaseUrl
+      env.chatbotApiBaseUrl,
     );
   },
 };

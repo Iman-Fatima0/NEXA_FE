@@ -1,81 +1,81 @@
 /**
- * # NEXA — backend API surface (for your BE team)
+ * # NEXA — NestJS backend ↔ Next.js BFF contract
  *
- * The Next.js app is a **BFF**: the browser calls `/api/*` (see `bff-paths.ts`). User galleries and
- * login **proxy to `NEXT_PUBLIC_BACKEND_API_BASE_URL`** when set (no demo fixtures). If the base URL
- * is unset, list endpoints return **empty arrays** and detail endpoints return **404** after session check.
+ * Backend base: `http://localhost:3000` (set `NEXT_PUBLIC_BACKEND_API_BASE_URL`).
+ * Swagger: `GET http://localhost:3000/api`
+ * Auth header: `Authorization: Bearer <accessToken>` (15 min TTL by default).
+ * Roles: `USER` (default), `ADMIN` (`GET /users` requires ADMIN).
  *
- * ---
- *
- * ## 1) Auth — sign-in / sign-up / session
- *
- * | Flow | BFF (browser) | Suggested upstream | Body / notes |
- * |------|---------------|-------------------|--------------|
- * | Login | `POST /api/auth/session` | `POST /auth/login` or OAuth token exchange | `{ email, password }` → set `httpOnly` cookies: session + optional `access_token` |
- * | Logout | `DELETE /api/auth/session` | Revoke refresh / clear server session | Clear cookies in BFF |
- * | Register | `POST /api/auth/register` | `POST /auth/register` | See `RegisterAccountPayload` in `auth-api.ts` |
- *
- * **Cookies (names in `session-cookie-names.ts`):** `nexa_session`, optional `nexa_access_token` for BE calls.
+ * The browser calls Next `/api/*` routes (`bff-paths.ts`); handlers proxy to NestJS with
+ * cookies `nexa_session`, `nexa_access_token`, `nexa_refresh_token`, `nexa_user_role`.
  *
  * ---
  *
- * ## 2) Dashboard aggregate
+ * ## BFF → NestJS map
  *
- * | BFF | Suggested upstream | Response |
- * |-----|-------------------|----------|
- * | `GET /api/dashboard` | `GET /dashboard` or `/users/me/dashboard` | JSON matching `DashboardPayload` (`dashboard-types.ts`) — projects, activity, optional `user` |
+ * | BFF | NestJS | Notes |
+ * |-----|--------|--------|
+ * | `POST /api/auth/session` | `POST /auth/login` | Sets httpOnly cookies from tokens + user |
+ * | `DELETE /api/auth/session` | `POST /auth/logout` | Sends refreshToken, clears cookies |
+ * | `POST /api/auth/register` | `POST /auth/register` | Same cookie behavior as login |
+ * | `GET /api/auth/me` | `GET /auth/me` | `{ user }` |
+ * | `POST /api/auth/refresh` | `POST /auth/refresh` | `{ refreshToken }` from cookie |
+ * | `GET /api/dashboard` | `GET /auth/me` + `GET /bots` + `GET /websites` | Composed payload |
+ * | `GET /api/user/bots` | `GET /bots` | Normalized to `{ bots: [] }` |
+ * | `GET /api/user/bots/:id` | `GET /bots/:id` | `{ bot }` |
+ * | `GET /api/user/websites` | `GET /websites` | Normalized to `{ websites: [] }` |
+ * | `GET /api/user/websites/:id` | `GET /websites/:id` | `{ website }` |
+ * | `GET /api/user/integrations` | — | Not on NestJS; empty list |
+ * | `GET /api/superadmin/check` | — | `{ isSuperAdmin }` from role ADMIN |
+ * | `GET /api/superadmin/users` | `GET /users` | ADMIN; read-only list |
+ * | `GET /api/superadmin/websites` | `GET /websites` | ADMIN’s own sites until global admin API |
+ * | `POST/PATCH/DELETE …/websites` | `POST/PATCH/DELETE /websites` | Owner-scoped |
+ * | `GET /api/superadmin/chatbots` | `GET /bots` | `{ chatbots, bots }` |
+ * | `POST/PATCH/DELETE …/chatbots` | `POST/PATCH/DELETE /bots` | Owner-scoped |
+ * | `GET /api/superadmin/integrations` | — | Empty until API exists |
+ * | `POST /api/auth/forgot-password` | `POST /auth/forgot-password` | `{ email }` → reset email |
+ * | `POST /api/auth/reset-password` | `POST /auth/reset-password` | `{ token, newPassword }` |
  *
- * ---
+ * **Forgot password (email link only):** User requests reset at `/forgot-password`. NestJS emails a link
+ * pointing at `{NEXT_PUBLIC_APP_URL or AUTH_URL}/forgot-password/reset?token=...` (not the OTP screen).
  *
- * ## 3) User websites (gallery + detail)
- *
- * | BFF | Suggested upstream | Response |
- * |-----|-------------------|----------|
- * | `GET /api/user/websites` | `GET /users/me/websites` | `{ websites: UserWebsite[] }` (`user-websites-types.ts`) |
- * | `GET /api/user/websites/:id` | `GET /users/me/websites/:id` | `{ website: UserWebsite }` |
- *
- * **Website generation (builder):** browser calls **direct BE** via `website-builder-api.ts` when
- * `NEXT_PUBLIC_WEBSITE_API_BASE_URL` (or `NEXT_PUBLIC_BACKEND_API_BASE_URL`) is set:
- * - `POST /website-builder/generate` — body `{ websiteName, description }` → `GenerateWebsiteResponse`
- *
- * **Alternate upstream** (already sketched in `services/website.service.ts`): `POST /websites`, `GET /websites`, `GET /websites/:id`, `POST /websites/:id/save` — pick one style and align `website-builder-api` + BFF list routes.
- *
- * ---
- *
- * ## 4) User chatbots
- *
- * | BFF | Suggested upstream | Response |
- * |-----|-------------------|----------|
- * | `GET /api/user/bots` | `GET /users/me/chatbots` | `{ bots: UserBot[] }` |
- * | `GET /api/user/bots/:id` | `GET /users/me/chatbots/:id` | `{ bot: UserBot }` |
- *
- * **Direct BE** (`services/chatbot.service.ts` pattern): `POST /chatbots`, `GET /chatbots`, `POST /chatbots/:id/train`, `POST /chatbots/:id/test` with base `NEXT_PUBLIC_CHATBOT_API_BASE_URL`.
- *
- * ---
- *
- * ## 5) Integrations
- *
- * | BFF | Suggested upstream | Response |
- * |-----|-------------------|----------|
- * | `GET /api/user/integrations` | `GET /users/me/integrations` | `{ integrations: UserIntegration[] }` |
- * | `GET /api/user/integrations/:id` | `GET /users/me/integrations/:id` | `{ integration: UserIntegration }` |
- *
- * **Direct BE** (`services/integration.service.ts`): `POST /integrations`, `GET /integrations`, `GET /integrations/:id` with base `NEXT_PUBLIC_INTEGRATION_API_BASE_URL`.
+ * **Email verification:** Link in register email should use the **frontend** (e.g. port 3001), not the API port alone:
+ * `{NEXT_PUBLIC_APP_URL}/auth/verify-email/confirm?token=...` → page calls NestJS `POST /auth/verify-email`.
  *
  * ---
  *
- * ## Environment variables (FE)
+ * ## NestJS routes (frontend-relevant)
  *
- * - `NEXT_PUBLIC_BACKEND_API_BASE_URL` — primary API; dashboard BFF proxies here today.
- * - `NEXT_PUBLIC_WEBSITE_API_BASE_URL` — website generation + optional list if you split services.
- * - `NEXT_PUBLIC_CHATBOT_API_BASE_URL` — chatbot train/create when UI is wired to `chatbotService`.
- * - `NEXT_PUBLIC_INTEGRATION_API_BASE_URL` — integration connect when UI uses `integrationService`.
- * - `NEXT_PUBLIC_NEXA_LOGIN_URL` — override login POST target (default `/api/auth/session`).
- * - `NEXT_PUBLIC_NEXA_REGISTER_URL` — override register POST (default `/api/auth/register`).
- * - Server-only: `BACKEND_AUTH_REGISTER_PATH` — register proxy path (default `/auth/register`).
- * - Server-only: `BACKEND_AUTH_LOGIN_PATH` — login proxy path (default `/auth/login`).
- * - Server-only: `BACKEND_USER_WEBSITES_PATH`, `BACKEND_USER_WEBSITE_DETAIL_PATH` (use `:id` token), same pattern for `BACKEND_USER_BOTS_PATH`, `BACKEND_USER_BOT_DETAIL_PATH`, `BACKEND_USER_INTEGRATIONS_PATH`, `BACKEND_USER_INTEGRATION_DETAIL_PATH`.
+ * **Auth:** `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`,
+ * `/auth/forgot-password`, `/auth/reset-password`, `/auth/verify-email`, `GET /auth/me`
+ *
+ * **Users (ADMIN):** `GET /users`
+ *
+ * **Bots:** `GET/POST /bots`, `GET/PATCH/DELETE /bots/:id`
+ *
+ * **Websites:** `GET/POST /websites`, `GET/PATCH/DELETE /websites/:id`
+ *
+ * **Documents:** `GET /documents?botId=`, ingest, query, delete (RAG)
+ *
+ * **Chat:** `POST /chat/start`, `POST /chat/message`, `GET /chat/history/:sessionId`
+ *
+ * **Chatbot builder BFF (wired in UI):**
+ * - `POST /api/user/bots` → create bot
+ * - `PATCH /api/user/bots/:id` → personality as `description`
+ * - `POST /api/documents/ingest` → multipart `file` + `botId` (PDF/TXT)
+ * - `POST /api/chat/start`, `POST /api/chat/message`, `GET /api/chat/history/:sessionId`
+ *
+ * **Internal AI (port 8000):** not called from this frontend.
+ *
+ * ---
+ *
+ * ## Environment
+ *
+ * - `NEXT_PUBLIC_BACKEND_API_BASE_URL=http://localhost:3000`
+ * - Optional path overrides: `BACKEND_AUTH_*`, `BACKEND_USER_*`, `BACKEND_USERS_PATH`
+ *
+ * Login/register response shape: `{ accessToken, refreshToken, user: { id, email, role, … } }`
+ * After login, `role: "ADMIN"` → redirect to `/superadmin`.
  */
 
-/** Marker export so tooling keeps this module; documentation lives in the JSDoc above. */
-export const NEXA_BACKEND_CONTRACT_VERSION = "1.0.0" as const;
+export const NEXA_BACKEND_CONTRACT_VERSION = "2.0.0" as const;

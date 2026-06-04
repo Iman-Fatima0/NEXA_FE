@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import wb from "../website-builder/website-builder.module.css";
+import { createBot, ingestDocument, updateBot } from "../../lib/chatbot/chatbot-builder-api";
+import { INGEST_ACCEPT, INGEST_HINT, isIngestableFile, textFileFromString } from "../../lib/chatbot/ingest-files";
+import { setActiveBot } from "../../lib/chatbot/session-storage";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
-
-const ACCEPT =
-  ".pdf,.txt,.csv,.docx,application/pdf,text/csv,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 const PLACEHOLDER_NAME = "e.g. Customer Support Assistant";
 const PLACEHOLDER_PERSONALITY =
@@ -22,6 +23,7 @@ type ChatbotBuilderClientProps = Readonly<{
 }>;
 
 export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClientProps) {
+  const router = useRouter();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatbotName, setChatbotName] = useState("");
@@ -30,12 +32,16 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
   const [files, setFiles] = useState<File[]>([]);
   const [knowledgeText, setKnowledgeText] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [training, setTraining] = useState(false);
+  const [trainStatus, setTrainStatus] = useState<string | null>(null);
+  const [trainError, setTrainError] = useState<string | null>(null);
 
   const addFiles = useCallback((list: FileList | File[]) => {
     setFiles((prev) => {
       const next = [...prev];
       const seen = new Set(next.map(fileKey));
       for (const file of Array.from(list)) {
+        if (!isIngestableFile(file)) continue;
         const key = fileKey(file);
         if (!seen.has(key)) {
           seen.add(key);
@@ -50,16 +56,19 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
     setFiles((prev) => prev.filter((f) => fileKey(f) !== key));
   }, []);
 
-  const onInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.currentTarget;
-    const list = input.files;
-    if (list?.length) {
-      setKnowledgeMode("files");
-      addFiles(Array.from(list));
-      input.value = "";
-    }
-    setDragActive(false);
-  }, [addFiles]);
+  const onInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const input = e.currentTarget;
+      const list = input.files;
+      if (list?.length) {
+        setKnowledgeMode("files");
+        addFiles(Array.from(list));
+        input.value = "";
+      }
+      setDragActive(false);
+    },
+    [addFiles],
+  );
 
   const onDropZoneDragEnter = useCallback((e: DragEvent) => {
     e.preventDefault();
@@ -75,6 +84,47 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
     }
     setDragActive(false);
   }, []);
+
+  const onTrain = async () => {
+    const name = chatbotName.trim();
+    if (!name) {
+      setTrainError("Enter a chatbot name.");
+      return;
+    }
+    const hasFiles = knowledgeMode === "files" && files.length > 0;
+    const hasText = knowledgeMode === "text" && knowledgeText.trim().length > 0;
+    if (!hasFiles && !hasText) {
+      setTrainError("Add at least one PDF/TXT file or knowledge text to ingest.");
+      return;
+    }
+
+    setTraining(true);
+    setTrainError(null);
+    setTrainStatus("Creating bot…");
+
+    try {
+      const bot = await createBot(name);
+      if (personality.trim()) {
+        setTrainStatus("Saving personality…");
+        await updateBot(bot.id, { description: personality.trim() });
+      }
+
+      const toIngest: File[] =
+        knowledgeMode === "files" ? files.filter(isIngestableFile) : [textFileFromString(knowledgeText.trim())];
+
+      for (let i = 0; i < toIngest.length; i++) {
+        setTrainStatus(`Ingesting ${i + 1} of ${toIngest.length}: ${toIngest[i].name}…`);
+        await ingestDocument(bot.id, toIngest[i]);
+      }
+
+      setActiveBot(bot.id, bot.name);
+      router.push(`/chatbot-builder/trained?botId=${encodeURIComponent(bot.id)}`);
+    } catch (e) {
+      setTrainError(e instanceof Error ? e.message : "Training failed.");
+      setTraining(false);
+      setTrainStatus(null);
+    }
+  };
 
   return (
     <div className={wb.page}>
@@ -97,6 +147,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                   onChange={(e) => setChatbotName(e.target.value)}
                   placeholder={PLACEHOLDER_NAME}
                   autoComplete="off"
+                  disabled={training}
                 />
               </div>
               <div className={wb.field}>
@@ -110,7 +161,9 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                   onChange={(e) => setPersonality(e.target.value)}
                   placeholder={PLACEHOLDER_PERSONALITY}
                   autoComplete="off"
+                  disabled={training}
                 />
+                <p className={wb.kbHint}>Stored as bot description (PATCH /bots/:id).</p>
               </div>
             </article>
 
@@ -121,6 +174,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                   type="button"
                   className={`${wb.btnGhost} ${knowledgeMode === "files" ? wb.btnGhostActive : ""}`}
                   onClick={() => setKnowledgeMode("files")}
+                  disabled={training}
                 >
                   Upload Files
                 </button>
@@ -128,6 +182,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                   type="button"
                   className={`${wb.btnGhost} ${knowledgeMode === "text" ? wb.btnGhostActive : ""}`}
                   onClick={() => setKnowledgeMode("text")}
+                  disabled={training}
                 >
                   Enter Text
                 </button>
@@ -142,11 +197,19 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                       e.preventDefault();
                     }}
                     onDragLeave={onDropZoneDragLeave}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragActive(false);
+                      if (e.dataTransfer.files?.length) {
+                        setKnowledgeMode("files");
+                        addFiles(Array.from(e.dataTransfer.files));
+                      }
+                    }}
                   >
                     <div className={wb.dropZoneVisual}>
                       <div className={wb.dropZoneIcon}>⇪</div>
                       <div className={wb.dropZoneTitle}>Upload your data files</div>
-                      <div className={wb.dropZoneHint}>Drop files here or click this area to browse. PDF, TXT, CSV, DOCX.</div>
+                      <div className={wb.dropZoneHint}>{INGEST_HINT}</div>
                       <span className={wb.dropZoneCue}>Choose files</span>
                     </div>
                     <input
@@ -154,10 +217,11 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                       id={fileInputId}
                       type="file"
                       className={wb.dropZoneNativeFile}
-                      accept={ACCEPT}
+                      accept={INGEST_ACCEPT}
                       multiple
                       onChange={onInputChange}
-                      aria-label="Upload knowledge files (PDF, TXT, CSV, DOCX)"
+                      disabled={training}
+                      aria-label="Upload knowledge files (PDF, TXT)"
                     />
                   </div>
                   {files.length > 0 ? (
@@ -170,7 +234,13 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                               {file.name}
                               <span className={wb.fileMeta}> ({(file.size / 1024).toFixed(1)} KB)</span>
                             </span>
-                            <button type="button" className={wb.fileRemove} onClick={() => removeFile(key)} aria-label={`Remove ${file.name}`}>
+                            <button
+                              type="button"
+                              className={wb.fileRemove}
+                              onClick={() => removeFile(key)}
+                              disabled={training}
+                              aria-label={`Remove ${file.name}`}
+                            >
                               Remove
                             </button>
                           </li>
@@ -191,16 +261,29 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
                     className={wb.textarea}
                     value={knowledgeText}
                     onChange={(e) => setKnowledgeText(e.target.value)}
-                    placeholder="Paste or type product info, FAQs, policies, etc. The more detail, the better answers your bot can give."
+                    placeholder="Paste or type product info, FAQs, policies, etc. Saved as knowledge.txt for ingest."
                     rows={8}
+                    disabled={training}
                   />
-                  <p className={wb.kbHint}>{knowledgeText.length} characters</p>
+                  <p className={wb.kbHint}>{knowledgeText.length} characters — uploaded as TXT on train.</p>
                 </div>
               )}
 
-              <Link href="/chatbot-builder/trained" className={`${wb.btnBlack} ${wb.linkAsBtn} ${wb.btnTop}`}>
-                Train Chatbot
-              </Link>
+              {trainError ? (
+                <p className={wb.trainError} role="alert">
+                  {trainError}
+                </p>
+              ) : null}
+              {trainStatus ? <p className={wb.trainStatus}>{trainStatus}</p> : null}
+
+              <button
+                type="button"
+                className={`${wb.btnBlack} ${wb.btnTop}`}
+                disabled={training}
+                onClick={() => void onTrain()}
+              >
+                {training ? "Training…" : "Train Chatbot"}
+              </button>
             </article>
           </div>
 
@@ -208,7 +291,9 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
             <img className={wb.previewGif} src={PREVIEW_WAIT_GIF} alt="" width={800} height={600} decoding="async" />
             <div className={wb.previewScrim} aria-hidden />
             <div className={wb.previewMessage}>
-              <h3 className={wb.previewHeading}>Your chatbot will appear here</h3>
+              <h3 className={wb.previewHeading}>
+                {training ? "Ingesting knowledge…" : "Your chatbot will appear here after training"}
+              </h3>
             </div>
           </article>
         </section>

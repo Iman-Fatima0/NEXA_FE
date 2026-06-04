@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "../auth.module.css";
-import { EyeIcon, EyeOffIcon, FacebookLogo, GitHubLogo, GoogleLogo } from "../../../components/auth/icons";
+import { EyeIcon, EyeOffIcon } from "../../../components/auth/icons";
+import { SocialAuthButtons } from "../../../components/auth/social-auth-buttons";
 import { formString, readAuthErrorMessage, registerAccount, type RegisterAccountPayload } from "../../../lib/auth-api";
 type AccountMode = "personal" | "company";
 type RegisterStep = 1 | 2;
@@ -159,7 +160,12 @@ export function RegisterForm() {
                       setSubmitting(false);
                       return;
                     }
-                    globalThis.location.assign("/login?registered=1");
+                    const q = new URLSearchParams({
+                      registered: "1",
+                      verify: "1",
+                      email: payload.email,
+                    });
+                    globalThis.location.assign(`/login?${q.toString()}`);
                   } catch (err) {
                     setSignupPendingNotice(err instanceof Error ? err.message : "Registration failed.");
                     setSubmitting(false);
@@ -254,17 +260,7 @@ export function RegisterForm() {
 
             <hr className={styles.cyberDivider} />
 
-            <div className={styles.socialRowCyberIconsOnly}>
-              <button type="button" className={styles.socialPillCyberIcon} aria-label="Sign up with Google">
-                <GoogleLogo className={styles.socialIconLg} />
-              </button>
-              <button type="button" className={styles.socialPillCyberIcon} aria-label="Sign up with GitHub">
-                <GitHubLogo className={styles.socialIconLg} />
-              </button>
-              <button type="button" className={styles.socialPillCyberIcon} aria-label="Sign up with Facebook">
-                <FacebookLogo className={styles.socialIconLg} />
-              </button>
-            </div>
+            <SocialAuthButtons mode="register" />
 
             <p className={styles.footerCyber}>
               Already have an account? <Link href="/login">Sign in</Link>

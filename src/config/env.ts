@@ -6,7 +6,7 @@
 export const env = {
   appName: "NEXA",
   appEnv: process.env.NODE_ENV ?? "development",
-  /** Primary API origin: dashboard + register BFF proxy use this when set. */
+  /** NestJS API origin (e.g. http://localhost:3000). BFF proxies auth, bots, websites, admin. */
   backendApiBaseUrl: process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ?? "",
   /** Website generation (`website-builder-api`) and optional website CRUD if you point services here. */
   websiteApiBaseUrl: process.env.NEXT_PUBLIC_WEBSITE_API_BASE_URL ?? "",

@@ -1,11 +1,21 @@
-import { bffUserResourceGet, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
+import { bffAuthenticated, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
+import { wrapWebsiteDetail } from "../../../../../lib/api/nestjs-normalize";
 import { pathUserWebsiteDetail } from "../../../../../lib/api/upstream-paths";
 
-type RouteContext = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ id: string }> };
 
-/** Live data: `GET {BACKEND}/users/me/websites/:id` (path overridable via env). */
-export async function GET(_req: Request, context: RouteContext) {
-  const { id } = await context.params;
-  const empty = () => jsonNoStore({ message: "Website not found." }, { status: 404 });
-  return bffUserResourceGet(pathUserWebsiteDetail(id), empty);
+export async function GET(_request: Request, { params }: Params) {
+  const { id } = await params;
+  const upstream = await bffAuthenticated("GET", pathUserWebsiteDetail(id));
+  if (!upstream.ok) return upstream;
+  try {
+    const raw = await upstream.json();
+    const wrapped = wrapWebsiteDetail(raw);
+    if (!wrapped) {
+      return jsonNoStore({ error: "not_found" }, { status: 404 });
+    }
+    return jsonNoStore(wrapped);
+  } catch {
+    return jsonNoStore({ error: "invalid_json" }, { status: 502 });
+  }
 }

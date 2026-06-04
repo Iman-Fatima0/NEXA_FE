@@ -628,11 +628,60 @@
 }
 
 .chatDarkHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.65rem 0.9rem;
   font-size: 0.86rem;
   font-weight: 600;
   color: #e7e5e4;
   background: #141414;
+}
+
+.chatRestartBtn {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: transparent;
+  color: #a8a29e;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.chatRestartBtn:hover:not(:disabled) {
+  color: #fafaf9;
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.chatRestartBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chatError {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.82rem;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.trainStatus {
+  margin: 0.75rem 0 0;
+  font-size: 0.86rem;
+  color: #a8a29e;
+}
+
+.trainError {
+  margin: 0.5rem 0 0;
+  font-size: 0.86rem;
+  color: #fecaca;
+}
+
+.btnBlack:disabled {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .chatDarkBody {
