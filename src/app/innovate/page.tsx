@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { InnovateGifSection } from "./innovate-gif-section";
 import { InnovateFeatureTile } from "./InnovateFeatureTile";
 import styles from "./innovate.module.css";
@@ -6,6 +7,7 @@ import styles from "./innovate.module.css";
 export default function InnovatePage() {
   return (
     <div className={styles.page}>
+      <DashboardStyleBackNav href="/" ariaLabel="Back to home" />
       <section className={styles.hero} aria-label="Innovate hero" />
       <section className={styles.cardsSection} aria-label="Build paths">
         <span className={styles.innovateDividerHoverWrap}>
@@ -56,9 +58,6 @@ export default function InnovatePage() {
       <section id="innovate-after" className={styles.afterSection} aria-label="After transition">
         <div className={styles.afterInner}>
           <p>You made it past the smile.</p>
-          <Link href="/" className={styles.backLink}>
-            Back to home
-          </Link>
         </div>
       </section>
     </div>

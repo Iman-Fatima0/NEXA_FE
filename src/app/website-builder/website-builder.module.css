@@ -90,39 +90,6 @@
   letter-spacing: 0.06em;
 }
 
-.backNav {
-  position: fixed;
-  top: clamp(0.4rem, 1.4vw, 0.75rem);
-  left: clamp(0.4rem, 1.4vw, 0.75rem);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
-  padding: 0.2rem;
-  opacity: 0.9;
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.backNav:hover {
-  opacity: 1;
-  transform: scale(1.06);
-}
-
-.backNav:focus-visible {
-  outline: 2px solid rgba(248, 113, 113, 0.75);
-  outline-offset: 4px;
-  border-radius: 6px;
-}
-
-.backNavImg {
-  display: block;
-  width: clamp(18px, 2.35vw, 24px);
-  height: auto;
-  border-radius: 3px;
-  image-rendering: auto;
-}
-
 .main {
   width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;

@@ -10,7 +10,7 @@ export default async function BotFullPreviewPage({ params }: PageProps) {
       itemId={id}
       entity="bot"
       backHref={dashboardBotHub}
-      backLabel="← Bots"
+      backAriaLabel="Back to bots"
       entityNoun="bot"
     />
   );

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import DashboardStyleBackNav from "../../../components/gallery/DashboardStyleBackNav";
 import { dashboardPathOrLogin, hubBackHrefForSession } from "../../../lib/auth/hub-nav-for-session";
 import styles from "../../nexa-ss.module.css";
 
@@ -9,11 +10,10 @@ export default async function GeneratedWebsitePage() {
   const saveHref = dashboardPathOrLogin(jar, "/dashboard/websites");
   return (
     <div className={styles.page}>
+      <DashboardStyleBackNav href={backHref} ariaLabel="Back" />
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
-          <Link href={backHref} className={styles.btnLight}>
-            ← Back
-          </Link>
+          <span className={styles.topbarBackSpacer} aria-hidden />
           <div className={styles.brand}>
             <img src="/assets/images/NEXALOGO.png" alt="" width={24} height={24} />
             <span>Website Builder</span>

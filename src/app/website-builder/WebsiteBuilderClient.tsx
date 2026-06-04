@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ApiError } from "../../lib/api";
 import {
   generateWebsite,
@@ -114,9 +115,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   return (
     <div className={wb.page}>
-      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
       <main className={wb.main}>
         <section className={wb.split}>
           <article className={wb.panel}>

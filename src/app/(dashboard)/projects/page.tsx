@@ -1,9 +1,12 @@
 import Link from "next/link";
+import DashboardStyleBackNav from "../../../components/gallery/DashboardStyleBackNav";
 import styles from "../dashboard-pages.module.css";
 
 export default function ProjectsPage() {
   return (
-    <main>
+    <>
+      <DashboardStyleBackNav href="/dashboard" ariaLabel="Back to dashboard" />
+      <main>
       <h1 className={styles.title}>Projects</h1>
       <p className={styles.subtitle}>Manage website and assistant initiatives across launch phases.</p>
       <section className={styles.grid}>
@@ -21,10 +24,10 @@ export default function ProjectsPage() {
         </article>
       </section>
       <section className={styles.links} aria-label="Projects links">
-        <Link href="/dashboard">Back to dashboard</Link>
         <Link href="/settings">Workspace settings</Link>
         <Link href="/pricing">Compare plans</Link>
       </section>
     </main>
+    </>
   );
 }

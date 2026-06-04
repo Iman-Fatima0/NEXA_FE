@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import DashboardStyleBackNav from "../../../components/gallery/DashboardStyleBackNav";
 import { hubBackHrefForSession } from "../../../lib/auth/hub-nav-for-session";
 import wb from "../../website-builder/website-builder.module.css";
 
@@ -8,9 +9,7 @@ export default async function IntegrationCompletedPage() {
   const backHref = hubBackHrefForSession(jar, "integration");
   return (
     <div className={wb.page}>
-      <Link href={backHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={backHref} ariaLabel="Back" />
       <div className={wb.topExtras}>
         <Link href="/website-preview" className={wb.topExtraPrimary}>
           View Live Website

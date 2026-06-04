@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import wb from "../website-builder/website-builder.module.css";
 import { createBot, ingestDocument, updateBot } from "../../lib/chatbot/chatbot-builder-api";
 import { INGEST_ACCEPT, INGEST_HINT, isIngestableFile, textFileFromString } from "../../lib/chatbot/ingest-files";
@@ -128,9 +129,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
 
   return (
     <div className={wb.page}>
-      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
       <main className={wb.main}>
         <section className={wb.split}>
           <div>

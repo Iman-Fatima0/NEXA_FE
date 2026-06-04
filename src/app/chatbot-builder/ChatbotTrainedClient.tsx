@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
 import { getActiveBotId, getActiveBotName } from "../../lib/chatbot/session-storage";
@@ -25,9 +26,7 @@ export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrai
 
   return (
     <div className={`${wb.page} ${wb.botReviewPage}`}>
-      <Link href={backHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={backHref} ariaLabel="Back" />
       <div className={wb.topExtras}>
         <Link href={botId ? `/chatbot-testing` : "/chatbot-builder/create"} className={wb.topExtraGhost}>
           Test Bot

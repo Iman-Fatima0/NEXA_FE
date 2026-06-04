@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import wb from "../website-builder/website-builder.module.css";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
@@ -12,9 +13,7 @@ type IntegrationManagerClientProps = Readonly<{
 export default function IntegrationManagerClient({ hubBackHref }: IntegrationManagerClientProps) {
   return (
     <div className={wb.page}>
-      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
       <main className={wb.main}>
         <section className={wb.split}>
           <div>

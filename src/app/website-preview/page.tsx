@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { hubBackHrefForSession } from "../../lib/auth/hub-nav-for-session";
 import styles from "../nexa-ss.module.css";
 
@@ -8,11 +9,10 @@ export default async function WebsitePreviewPage() {
   const backHref = hubBackHrefForSession(jar, "website");
   return (
     <div className={styles.page}>
+      <DashboardStyleBackNav href={backHref} ariaLabel="Back" />
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
-          <Link href={backHref} className={styles.btnLight}>
-            ← Back
-          </Link>
+          <span className={styles.topbarBackSpacer} aria-hidden />
           <div className={styles.brand}>
             <span>🌐</span>
             <span>Website Preview</span>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
 import { getActiveBotId, getActiveBotName } from "../../lib/chatbot/session-storage";
@@ -23,9 +24,7 @@ export default function ChatbotTestingClient({ hubBackHref, editHref }: ChatbotT
   if (!botId) {
     return (
       <div className={wb.page}>
-        <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
-          <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-        </Link>
+        <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
         <main className={`${wb.main} ${wb.mainToolbarSpace}`}>
           <article className={wb.panel}>
             <h2 className={wb.panelTitle}>Chatbot testing</h2>
@@ -41,9 +40,7 @@ export default function ChatbotTestingClient({ hubBackHref, editHref }: ChatbotT
 
   return (
     <div className={wb.page}>
-      <Link href={hubBackHref} className={wb.backNav} aria-label="Back">
-        <img src="/assets/images/redarrowithoutbg.png" alt="" width={24} height={24} className={wb.backNavImg} decoding="async" />
-      </Link>
+      <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
       <div className={wb.topExtras}>
         <Link href={editHref} className={wb.topExtraPrimary}>
           Edit Chatbot

@@ -10,7 +10,7 @@ export default async function WebsiteFullPreviewPage({ params }: PageProps) {
       itemId={id}
       entity="website"
       backHref={dashboardWebsiteHub}
-      backLabel="← Sites"
+      backAriaLabel="Back to sites"
       entityNoun="site"
     />
   );

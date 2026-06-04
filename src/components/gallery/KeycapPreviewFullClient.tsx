@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import DashboardStyleBackNav from "./DashboardStyleBackNav";
 import { fetchUserBotById } from "../../lib/fetch-user-bots";
 import { fetchUserIntegrationById } from "../../lib/fetch-user-integrations";
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
@@ -14,7 +14,7 @@ export type KeycapPreviewFullClientProps = Readonly<{
   itemId: string;
   entity: KeycapPreviewEntity;
   backHref: string;
-  backLabel: string;
+  backAriaLabel?: string;
   entityNoun: string;
 }>;
 
@@ -24,7 +24,13 @@ async function fetchGalleryItem(entity: KeycapPreviewEntity, id: string): Promis
   return fetchUserWebsiteById(id);
 }
 
-export default function KeycapPreviewFullClient({ itemId, entity, backHref, backLabel, entityNoun }: KeycapPreviewFullClientProps) {
+export default function KeycapPreviewFullClient({
+  itemId,
+  entity,
+  backHref,
+  backAriaLabel = "Back",
+  entityNoun,
+}: KeycapPreviewFullClientProps) {
   const [item, setItem] = useState<UserGalleryItem | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,10 +60,9 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
 
   return (
     <div className={full.root}>
+      <DashboardStyleBackNav href={backHref} ariaLabel={backAriaLabel} />
       <header className={full.bar}>
-        <Link href={backHref} className={full.back} prefetch={false}>
-          {backLabel}
-        </Link>
+        <span className={full.spacer} aria-hidden />
         <h1 className={full.title}>{item?.name ?? "Preview"}</h1>
         <span className={full.spacer} aria-hidden />
       </header>
