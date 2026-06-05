@@ -6,9 +6,10 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "node scripts/run-cli.cjs next dev",
+    "dev": "node scripts/run-cli.cjs next dev -H 0.0.0.0 -p 3001",
     "build": "node scripts/run-cli.cjs next build",
-    "start": "node scripts/run-cli.cjs next start",
+    "start": "node scripts/run-cli.cjs next start -H 0.0.0.0 -p 3001",
+    "share": "npm run build && npm run start",
     "lint": "node scripts/run-cli.cjs next lint",
     "typecheck": "node scripts/run-cli.cjs tsc --noEmit"
   },

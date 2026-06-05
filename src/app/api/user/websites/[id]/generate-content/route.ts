@@ -17,5 +17,16 @@ export async function POST(request: Request, context: RouteContext) {
   return bffUserResourcePost(pathUserWebsiteGenerateContent(id), body, empty, (parsed) => {
     const detail = normalizeWebsiteDetailPayload(parsed);
     return detail?.website ?? parsed;
+  }).then((res) => {
+    if (res.status === 404) {
+      return jsonNoStore(
+        {
+          message:
+            "Generate-content route not found on the backend. Start Nest from the NEXA folder (npm run start:dev on port 3000) and restart the Next dev server from NEXA_FE/NEXA_FE.",
+        },
+        { status: 404 },
+      );
+    }
+    return res;
   });
 }

@@ -1,0 +1,125 @@
+.wrap {
+  margin-top: 0.15rem;
+}
+
+.topRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.swatch {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.trackWrap {
+  padding: 0.15rem 0;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #f97316 14%,
+    #eab308 28%,
+    #22c55e 42%,
+    #06b6d4 57%,
+    #3b82f6 71%,
+    #a855f7 85%,
+    #ec4899 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -4px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+}
+
+.slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+
+.slider::-moz-range-track {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #f97316 14%,
+    #eab308 28%,
+    #22c55e 42%,
+    #06b6d4 57%,
+    #3b82f6 71%,
+    #a855f7 85%,
+    #ec4899 100%
+  );
+  border: none;
+}
+
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: grab;
+}
+
+.slider:focus-visible {
+  outline: 2px solid rgba(255, 122, 24, 0.55);
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .slider::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+    margin-top: -6px;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+}
