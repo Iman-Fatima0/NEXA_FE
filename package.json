@@ -6,7 +6,7 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "\"%npm_node_execpath%\" scripts/run-cli.cjs next dev --webpack",
+    "dev": "\"%npm_node_execpath%\" scripts/run-cli.cjs next dev --webpack -p 3001",
     "dev:turbo": "\"%npm_node_execpath%\" scripts/run-cli.cjs next dev --turbopack",
     "build": "\"%npm_node_execpath%\" scripts/run-cli.cjs next build",
     "start": "\"%npm_node_execpath%\" scripts/run-cli.cjs next start",

@@ -2,14 +2,24 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChatPanel } from "../../../../../components/chatbot/ChatPanel";
+import { CopyField } from "../../../../../components/chatbot/CopyField";
 import { PlatformToast } from "../../../../../components/chatbot/PlatformToast";
 import { usePlatformToast } from "../../../../../components/chatbot/usePlatformToast";
 import DashboardStyleBackNav from "../../../../../components/gallery/DashboardStyleBackNav";
 import wb from "../../../../website-builder/website-builder.module.css";
+import type { BotLiveLinks } from "../../../../../lib/chatbot/bot-live-links";
+import {
+  resolveBotLiveLinks,
+  resolveShareablePreviewUrl,
+  toShareableLiveLinks,
+} from "../../../../../lib/chatbot/bot-live-links";
 import type { PublishBotResult } from "../../../../../lib/chatbot/bot-types";
-import { publishPlatformBot } from "../../../../../lib/chatbot/chatbot-platform-api";
+import {
+  fetchBotLiveLinks,
+  publishPlatformBot,
+} from "../../../../../lib/chatbot/chatbot-platform-api";
 import { useActivePlatformBot } from "../../../../../lib/chatbot/use-active-platform-bot";
 import bd from "./bot-detail.module.css";
 
@@ -29,15 +39,6 @@ function formatDate(iso?: string): string {
   } catch {
     return "—";
   }
-}
-
-function resolvePublicChatUrl(botId: string, publishData?: PublishBotResult | null, botUrl?: string | null): string {
-  if (publishData?.publicChatUrl) return publishData.publicChatUrl;
-  if (botUrl) return botUrl;
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "");
-  return `${base}/chat/${botId}`;
 }
 
 function knowledgePercent(documentCount: number | null | undefined): number {
@@ -87,7 +88,15 @@ function StatusBadge({ live }: { live: boolean }) {
   return <span className={`${bd.statusBadge} ${bd.statusPaused}`}>Paused</span>;
 }
 
-function CopyUrlField({ value }: { value: string }) {
+function LiveUrlField({
+  label,
+  value,
+  showOpen,
+}: {
+  label: string;
+  value: string;
+  showOpen?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
 
   const onCopy = async () => {
@@ -102,12 +111,23 @@ function CopyUrlField({ value }: { value: string }) {
 
   return (
     <div className={bd.urlSection}>
-      <span className={bd.urlLabel}>Public chat link</span>
+      <span className={bd.urlLabel}>{label}</span>
       <div className={bd.urlRow}>
         <pre className={bd.urlValue}>{value}</pre>
         <button type="button" className={bd.copyBtn} onClick={() => void onCopy()}>
           {copied ? "Copied" : "Copy"}
         </button>
+        {showOpen ? (
+          <a
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={bd.copyBtn}
+            style={{ textDecoration: "none" }}
+          >
+            Open
+          </a>
+        ) : null}
       </div>
     </div>
   );
@@ -118,6 +138,9 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
   const { toast, showSuccess, showError } = usePlatformToast();
   const [publishing, setPublishing] = useState(false);
   const [publishData, setPublishData] = useState<PublishBotResult | null>(null);
+  const [fetchedLinks, setFetchedLinks] = useState<BotLiveLinks | null>(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [publishApiKey, setPublishApiKey] = useState<string | null>(null);
 
   const {
     bot,
@@ -132,10 +155,37 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
   } = useActivePlatformBot(botId);
 
   const isPublished = bot?.status === "published" || publishData !== null;
-  const publicChatUrl = useMemo(
-    () => resolvePublicChatUrl(botId, publishData, bot?.publicChatUrl),
-    [botId, publishData, bot?.publicChatUrl],
+
+  const liveLinks = useMemo(
+    () =>
+      toShareableLiveLinks(
+        resolveBotLiveLinks(
+          resolveBotLiveLinks(bot?.liveLinks ?? bot, fetchedLinks),
+          publishData,
+        ),
+      ),
+    [bot, fetchedLinks, publishData],
   );
+
+  const previewUrl = resolveShareablePreviewUrl(liveLinks);
+
+  useEffect(() => {
+    if (!bot || bot.status !== "published") return;
+
+    let cancelled = false;
+    void fetchBotLiveLinks(botId)
+      .then((links) => {
+        if (!cancelled) setFetchedLinks(links);
+      })
+      .catch(() => {
+        /* keep bot fields if any */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bot, botId]);
+
   const knowledgePct = knowledgePercent(documentCount);
 
   const headerMeta = useMemo(() => {
@@ -145,14 +195,27 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
       `${documentCount ?? 0} Docs`,
       personalityLabel ?? "—",
     ];
+    if (liveLinks.publicSlug) parts.push(liveLinks.publicSlug);
     return parts.join(" • ");
-  }, [loading, isPublished, documentCount, personalityLabel]);
+  }, [loading, isPublished, documentCount, personalityLabel, liveLinks.publicSlug]);
 
   const onMakeLive = useCallback(async () => {
     setPublishing(true);
     try {
       const result = await publishPlatformBot(botId);
-      setPublishData(result);
+      if (result.apiKey) {
+        setPublishApiKey(result.apiKey);
+        setShowKeyModal(true);
+      }
+
+      try {
+        const links = await fetchBotLiveLinks(botId);
+        setFetchedLinks(links);
+        setPublishData({ publicSlug: links.publicSlug ?? result.publicSlug });
+      } catch {
+        setPublishData(toShareableLiveLinks(result));
+      }
+
       showSuccess("Your chatbot is now live.");
     } catch (e) {
       showError(e instanceof Error ? e.message : "Could not publish your chatbot.");
@@ -167,6 +230,30 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
     <div className={`${wb.page} ${wb.botReviewPage}`}>
       <DashboardStyleBackNav href="/dashboard/bots" ariaLabel="Back to bots" />
       <PlatformToast toast={toast} />
+
+      {showKeyModal && publishApiKey ? (
+        <div className={bd.keyModalBackdrop}>
+          <div className={bd.keyModal}>
+            <p className={bd.keyModalTitle}>Access key (shown once)</p>
+            <p className={bd.keyModalHint}>
+              Copy this key now for server or widget integration. It is not included in your shareable
+              live link — treat it like a password and do not share it publicly.
+            </p>
+            <CopyField label="Bot API key" value={publishApiKey} />
+            <button
+              type="button"
+              className={bd.makeLiveBtn}
+              style={{ marginTop: "1rem" }}
+              onClick={() => {
+                setShowKeyModal(false);
+                setPublishApiKey(null);
+              }}
+            >
+              I&apos;ve copied it
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className={wb.topExtras}>
         <Link href={editHref} className={wb.topExtraPrimary}>
@@ -267,8 +354,10 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
                 </div>
 
                 <div className={bd.footerActions}>
-                  {isPublished ? (
-                    <CopyUrlField value={publicChatUrl} />
+                  {isPublished && previewUrl ? (
+                    <LiveUrlField label="Live preview link" value={previewUrl} showOpen />
+                  ) : isPublished ? (
+                    <p className={bd.scopeText}>Loading live link…</p>
                   ) : (
                     <button
                       type="button"

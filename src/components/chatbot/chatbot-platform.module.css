@@ -392,6 +392,12 @@
   margin-top: 0.25rem;
 }
 
+.liveLinksStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .actionsRow {
   display: flex;
   flex-wrap: wrap;

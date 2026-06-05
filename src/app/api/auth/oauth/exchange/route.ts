@@ -22,10 +22,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  const code =
-    typeof body === "object" && body !== null && typeof (body as Record<string, unknown>).code === "string"
-      ? (body as Record<string, unknown>).code
-      : "";
+  const bodyRecord =
+    typeof body === "object" && body !== null ? (body as Record<string, unknown>) : null;
+  const code = typeof bodyRecord?.code === "string" ? bodyRecord.code : "";
 
   if (!code.trim()) {
     return NextResponse.json({ error: "validation_error", message: "code is required" }, { status: 400 });

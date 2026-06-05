@@ -1,4 +1,5 @@
 import { BFF_PATHS } from "../api/bff-paths";
+import { parseBotLiveLinks } from "./bot-live-links";
 import {
   parseAnalyticsSummary,
   parsePlatformBot,
@@ -10,6 +11,7 @@ import {
 import { parseFriendlyBffError } from "./bff-user-errors";
 import { resolveBotDisplayName } from "./bot-display";
 import type { ThemeSavePayload } from "../theme/types";
+import type { BotLiveLinks } from "./bot-live-links";
 import type {
   AnalyticsSummary,
   BotConfig,
@@ -137,6 +139,24 @@ export async function publishPlatformBot(botId: string): Promise<PublishBotResul
   await ensureOk(res, "Could not publish your chatbot.");
   const data = await res.json();
   return parsePublishResult(data);
+}
+
+export async function fetchBotLiveLinks(botId: string): Promise<BotLiveLinks> {
+  const res = await fetch(BFF_PATHS.userBotLiveLinks(botId), {
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  await ensureOk(res, "Could not load live links.");
+  const data = await res.json();
+  return parseBotLiveLinks(data);
+}
+
+export async function unpublishPlatformBot(botId: string): Promise<void> {
+  const res = await fetch(BFF_PATHS.userBotUnpublish(botId), {
+    method: "POST",
+    credentials: "same-origin",
+  });
+  await ensureOk(res, "Could not unpublish your chatbot.");
 }
 
 export async function fetchBotAnalyticsSummary(botId: string): Promise<AnalyticsSummary> {

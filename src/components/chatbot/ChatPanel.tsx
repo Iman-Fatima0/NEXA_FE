@@ -9,6 +9,16 @@ import {
   type ChatHistoryMessage,
 } from "../../lib/chatbot/chatbot-builder-api";
 import {
+  fetchPublicChatHistory,
+  sendPublicChatMessage,
+  startPublicChatSession,
+} from "../../lib/chatbot/public-chat-api";
+import {
+  clearPublicChatSessionId,
+  getPublicChatSessionId,
+  setPublicChatSessionId,
+} from "../../lib/chatbot/public-session-storage";
+import {
   clearChatSessionId,
   getChatSessionBotId,
   getChatSessionId,
@@ -26,14 +36,16 @@ export type ChatUiMessage = {
 };
 
 type ChatPanelProps = {
-  botId: string;
+  /** Authenticated dashboard preview */
+  botId?: string;
+  /** Public live embed (no login) */
+  publicSlug?: string;
   botName: string;
-  /** Taller scroll area (testing page) */
   tall?: boolean;
-  /** Optional greeting when history is empty */
   greeting?: string;
-  /** Pre-loaded theme from bot fetch (skips extra request when provided) */
   savedTheme?: ThemeTokens | null;
+  /** Fill viewport on public embed page */
+  fullPage?: boolean;
 };
 
 function mapHistory(messages: ChatHistoryMessage[]): ChatUiMessage[] {
@@ -52,8 +64,18 @@ function headerThemeClass(style: ThemeTokens["headerStyle"]): string {
   return ct.headerSolid;
 }
 
-export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }: ChatPanelProps) {
-  const theme = useBotTheme(botId, savedTheme);
+export function ChatPanel({
+  botId,
+  publicSlug,
+  botName,
+  tall = false,
+  greeting,
+  savedTheme,
+  fullPage = false,
+}: ChatPanelProps) {
+  const isPublic = Boolean(publicSlug?.trim());
+  const themeKey = (publicSlug?.trim() || botId?.trim()) ?? "chat";
+  const theme = useBotTheme(themeKey, savedTheme);
   const themeStyle = themeToCssVars(theme);
   const headerClass = headerThemeClass(theme.headerStyle);
 
@@ -71,25 +93,51 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
+  const bootstrapSession = useCallback(async (): Promise<string> => {
+    if (isPublic && publicSlug) {
+      let sid = getPublicChatSessionId(publicSlug);
+      if (!sid) {
+        const started = await startPublicChatSession(publicSlug);
+        sid = started.sessionId;
+        setPublicChatSessionId(publicSlug, sid);
+      }
+      return sid;
+    }
+    if (!botId) throw new Error("Chat is unavailable.");
+    let sid = getChatSessionId();
+    const sessionBotId = getChatSessionBotId();
+    if (!sid || sessionBotId !== botId) {
+      clearChatSessionId();
+      const started = await startChatSession(botId);
+      sid = started.sessionId;
+      setChatSessionId(sid, botId);
+    }
+    return sid;
+  }, [botId, isPublic, publicSlug]);
+
+  const loadHistory = useCallback(
+    async (sid: string): Promise<ChatUiMessage[]> => {
+      if (isPublic && publicSlug) {
+        return mapHistory(await fetchPublicChatHistory(publicSlug, sid));
+      }
+      return mapHistory(await fetchChatHistory(sid));
+    },
+    [isPublic, publicSlug],
+  );
+
   useEffect(() => {
+    if (!botId && !publicSlug) return;
+
     let cancelled = false;
-    (async () => {
+    void (async () => {
       setLoading(true);
       setError(null);
       try {
-        let sid = getChatSessionId();
-        const sessionBotId = getChatSessionBotId();
-        if (!sid || sessionBotId !== botId) {
-          clearChatSessionId();
-          const started = await startChatSession(botId);
-          sid = started.sessionId;
-          setChatSessionId(sid, botId);
-        }
+        const sid = await bootstrapSession();
         if (cancelled) return;
         setSessionId(sid);
-        const history = await fetchChatHistory(sid);
+        const mapped = await loadHistory(sid);
         if (cancelled) return;
-        const mapped = mapHistory(history);
         if (mapped.length === 0 && greeting) {
           setMessages([{ id: "greeting", role: "assistant", content: greeting }]);
         } else {
@@ -103,10 +151,11 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [botId, greeting]);
+  }, [botId, publicSlug, greeting, bootstrapSession, loadHistory]);
 
   useEffect(() => {
     scrollToBottom();
@@ -122,7 +171,10 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
     const optimisticId = `user-${Date.now()}`;
     setMessages((prev) => [...prev, { id: optimisticId, role: "user", content: text }]);
     try {
-      const res = await sendChatMessage(sessionId, text, true);
+      const res =
+        isPublic && publicSlug
+          ? await sendPublicChatMessage(publicSlug, sessionId, text, true)
+          : await sendChatMessage(sessionId, text, true);
       setMessages((prev) => [
         ...prev.filter((m) => m.id !== optimisticId),
         { id: optimisticId, role: "user", content: res.userMessage.content },
@@ -139,15 +191,18 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
   };
 
   const restartSession = () => {
-    clearChatSessionId();
+    if (isPublic && publicSlug) {
+      clearPublicChatSessionId(publicSlug);
+    } else {
+      clearChatSessionId();
+    }
     setSessionId(null);
     setMessages([]);
     setLoading(true);
     void (async () => {
       try {
-        const started = await startChatSession(botId);
-        setChatSessionId(started.sessionId, botId);
-        setSessionId(started.sessionId);
+        const sid = await bootstrapSession();
+        setSessionId(sid);
         if (greeting) {
           setMessages([{ id: "greeting", role: "assistant", content: greeting }]);
         }
@@ -159,8 +214,10 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
     })();
   };
 
+  const rootClass = fullPage ? `${wb.chatDark} ${ct.themedRoot} ${ct.themedFullPage}` : `${wb.chatDark} ${ct.themedRoot}`;
+
   return (
-    <div className={`${wb.chatDark} ${ct.themedRoot}`} style={themeStyle}>
+    <div className={rootClass} style={themeStyle}>
       <div className={`${wb.chatDarkHeader} ${headerClass}`}>
         {botName} · {loading ? "connecting…" : sending ? "typing…" : "online"}
         <button
@@ -203,7 +260,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }
       ) : null}
       <div
         ref={bodyRef}
-        className={`${wb.chatDarkBody} ${tall ? wb.chatDarkBodyTall : ""}`}
+        className={`${wb.chatDarkBody} ${tall || fullPage ? wb.chatDarkBodyTall : ""}`}
         aria-live="polite"
       >
         {loading ? (

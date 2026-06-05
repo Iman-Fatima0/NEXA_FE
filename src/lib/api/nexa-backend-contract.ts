@@ -69,12 +69,24 @@
  *
  * **Internal AI (port 8000):** not called from this frontend.
  *
+ * **Public live embed (Next.js, no login):**
+ * - Page: `GET {NEXT_PUBLIC_APP_URL}/public/embed/:slug` (e.g. port 3001)
+ * - `GET /api/public/embed/:slug/config` → Nest `GET /public/embed/:slug/config`
+ * - `POST /api/public/chat/start` → Nest `POST /v1/public/chat/start` body `{ publicSlug }`
+ * - `POST /api/public/chat/message` → Nest `POST /v1/public/chat/message` body `{ publicSlug, sessionId, content, includeRag? }`
+ * - `GET /api/public/chat/history/:sessionId?publicSlug=` → Nest `GET /v1/public/chat/history/:sessionId?publicSlug=`
+ *
+ * Nest **must implement** the routes above. Resolve bot by `publicSlug` server-side; never return
+ * `apiKey` from the config endpoint. Shareable preview URLs are built on the Next app, not Nest
+ * `APP_PUBLIC_URL`.
+ *
  * ---
  *
  * ## Environment
  *
  * - `NEXT_PUBLIC_BACKEND_API_BASE_URL=http://localhost:3000`
- * - Optional path overrides: `BACKEND_AUTH_*`, `BACKEND_USER_*`, `BACKEND_USERS_PATH`
+ * - `NEXT_PUBLIC_APP_URL=http://localhost:3001` (live preview links + OAuth; not the API port)
+ * - Optional path overrides: `BACKEND_AUTH_*`, `BACKEND_USER_*`, `BACKEND_PUBLIC_*`
  *
  * Login/register response shape: `{ accessToken, refreshToken, user: { id, email, role, … } }`
  * After login, `role: "ADMIN"` → redirect to `/superadmin`.

@@ -1,4 +1,5 @@
 import type { BotConfig, BotStatus, PlatformBot, PublishBotResult, AnalyticsSummary, UnansweredQuestion } from "./bot-types";
+import { parseBotLiveLinks } from "./bot-live-links";
 import { parseBotTheme } from "../theme/parse-theme";
 import type { PersonalityPresetId } from "./personality-presets";
 
@@ -68,6 +69,7 @@ export function parsePlatformBot(raw: unknown): PlatformBot | null {
 
   const config = mergeBotConfig(inner);
   const parsedTheme = parseBotTheme(inner) ?? parseBotTheme(o);
+  const live = parseBotLiveLinks(inner);
 
   return {
     id,
@@ -80,14 +82,17 @@ export function parsePlatformBot(raw: unknown): PlatformBot | null {
     config,
     themePreset: parsedTheme?.preset,
     theme: parsedTheme?.theme,
-    publicChatUrl: str(inner.publicChatUrl) || str(inner.chatUrl) || undefined,
-    widgetScript: str(inner.widgetScript) || str(inner.embedScript) || undefined,
-    widgetStatus: str(inner.widgetStatus) || undefined,
-    widgetVersion: str(inner.widgetVersion) || undefined,
-    embedMode: str(inner.embedMode) || undefined,
-    allowedDomains: Array.isArray(inner.allowedDomains)
-      ? inner.allowedDomains.map((d) => str(d)).filter(Boolean)
-      : undefined,
+    publicSlug: live.publicSlug,
+    previewUrl: live.previewUrl,
+    embedUrl: live.embedUrl,
+    publicChatUrl: live.publicChatUrl,
+    widgetScript: live.widgetScript,
+    widgetUrl: live.widgetUrl,
+    widgetStatus: live.widgetStatus,
+    widgetVersion: live.widgetVersion,
+    embedMode: live.embedMode,
+    allowedDomains: live.allowedDomains,
+    liveLinks: live,
   };
 }
 
@@ -104,29 +109,7 @@ export function parsePlatformBotsList(raw: unknown): PlatformBot[] {
 }
 
 export function parsePublishResult(raw: unknown): PublishBotResult {
-  if (!raw || typeof raw !== "object") return {};
-  const o = raw as Record<string, unknown>;
-  const inner = o.data && typeof o.data === "object" ? (o.data as Record<string, unknown>) : o;
-  const widget = inner.widget && typeof inner.widget === "object" ? (inner.widget as Record<string, unknown>) : inner;
-  return {
-    publicChatUrl:
-      str(inner.publicChatUrl) ||
-      str(inner.chatUrl) ||
-      str(inner.directChatUrl) ||
-      undefined,
-    widgetScript:
-      str(inner.widgetScript) ||
-      str(inner.embedScript) ||
-      str(widget.script) ||
-      undefined,
-    widgetUrl: str(inner.widgetUrl) || str(widget.url) || undefined,
-    widgetStatus: str(inner.widgetStatus) || str(widget.status) || "Published",
-    widgetVersion: str(inner.widgetVersion) || str(widget.version) || undefined,
-    embedMode: str(inner.embedMode) || str(widget.embedMode) || undefined,
-    allowedDomains: Array.isArray(inner.allowedDomains)
-      ? inner.allowedDomains.map((d) => str(d)).filter(Boolean)
-      : undefined,
-  };
+  return parseBotLiveLinks(raw);
 }
 
 export function parseAnalyticsSummary(raw: unknown): AnalyticsSummary {

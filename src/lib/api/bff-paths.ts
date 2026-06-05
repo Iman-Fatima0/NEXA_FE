@@ -22,6 +22,8 @@ export const BFF_PATHS = {
   documentsIngest: "/api/documents/ingest",
   documentsIngestUrl: "/api/documents/ingest-url",
   userBotPublish: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/publish`,
+  userBotLiveLinks: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/live-links`,
+  userBotUnpublish: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/unpublish`,
   userBotTheme: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/theme`,
   userBotAnalyticsSummary: (id: string) =>
     `/api/user/bots/${encodeURIComponent(id)}/analytics/summary`,
@@ -34,6 +36,11 @@ export const BFF_PATHS = {
   chatStart: "/api/chat/start",
   chatMessage: "/api/chat/message",
   chatHistory: (sessionId: string) => `/api/chat/history/${encodeURIComponent(sessionId)}`,
+  publicEmbedConfig: (slug: string) => `/api/public/embed/${encodeURIComponent(slug)}/config`,
+  publicChatStart: "/api/public/chat/start",
+  publicChatMessage: "/api/public/chat/message",
+  publicChatHistory: (sessionId: string, publicSlug: string) =>
+    `/api/public/chat/history/${encodeURIComponent(sessionId)}?publicSlug=${encodeURIComponent(publicSlug)}`,
   userIntegrations: "/api/user/integrations",
   userIntegration: (id: string) => `/api/user/integrations/${encodeURIComponent(id)}`,
   superadminCheck: "/api/superadmin/check",

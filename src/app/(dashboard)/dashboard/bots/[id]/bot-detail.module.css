@@ -441,6 +441,38 @@
   color: #fecaca;
 }
 
+.keyModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.keyModal {
+  width: min(100%, 28rem);
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.keyModalTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.keyModalHint {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.95);
+}
+
 @media (max-width: 900px) {
   .tableGrid {
     min-width: 580px;

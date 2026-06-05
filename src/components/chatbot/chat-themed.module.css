@@ -3,6 +3,21 @@
   transition: background var(--nexa-anim-duration, 220ms) ease;
 }
 
+.themedFullPage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100dvh;
+  max-width: 100%;
+  border-radius: 0;
+}
+
+.themedFullPage :global(.chatDarkBody),
+.themedFullPage :global(.chatDarkBodyTall) {
+  flex: 1;
+  min-height: 0;
+}
+
 .headerSolid {
   background: var(--nexa-primary);
   color: var(--nexa-text);

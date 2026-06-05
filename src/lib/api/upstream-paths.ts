@@ -67,6 +67,18 @@ export function pathBotPublish(id: string): string {
   return `/bots/${encodeURIComponent(id)}/publish`;
 }
 
+export function pathBotLiveLinks(id: string): string {
+  const t = process.env.BACKEND_BOT_LIVE_LINKS_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/live-links`;
+}
+
+export function pathBotUnpublish(id: string): string {
+  const t = process.env.BACKEND_BOT_UNPUBLISH_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/unpublish`;
+}
+
 export function pathBotTheme(id: string): string {
   const t = process.env.BACKEND_BOT_THEME_PATH?.trim();
   if (t) return t.replace(":id", encodeURIComponent(id));
@@ -109,6 +121,32 @@ export function pathChatHistory(sessionId: string): string {
   const t = process.env.BACKEND_CHAT_HISTORY_PATH?.trim();
   if (t) return t.replace(":sessionId", encodeURIComponent(sessionId));
   return `/chat/history/${encodeURIComponent(sessionId)}`;
+}
+
+/** Public embed config by slug — no auth, no apiKey in response. */
+export function pathPublicEmbedConfig(slug: string): string {
+  const t = process.env.BACKEND_PUBLIC_EMBED_CONFIG_PATH?.trim();
+  if (t) return t.replace(":slug", encodeURIComponent(slug));
+  return `/public/embed/${encodeURIComponent(slug)}/config`;
+}
+
+export function pathPublicChatStart(): string {
+  return process.env.BACKEND_PUBLIC_CHAT_START_PATH?.trim() || "/v1/public/chat/start";
+}
+
+export function pathPublicChatMessage(): string {
+  return process.env.BACKEND_PUBLIC_CHAT_MESSAGE_PATH?.trim() || "/v1/public/chat/message";
+}
+
+export function pathPublicChatHistory(sessionId: string, publicSlug: string): string {
+  const t = process.env.BACKEND_PUBLIC_CHAT_HISTORY_PATH?.trim();
+  if (t) {
+    return t
+      .replace(":sessionId", encodeURIComponent(sessionId))
+      .replace(":slug", encodeURIComponent(publicSlug));
+  }
+  const base = `/v1/public/chat/history/${encodeURIComponent(sessionId)}`;
+  return `${base}?publicSlug=${encodeURIComponent(publicSlug)}`;
 }
 
 /** Integrations are not implemented on NestJS yet; kept for BFF stubs. */
