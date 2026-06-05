@@ -92,7 +92,13 @@ export default function WebsitePreviewClient({ backHref }: WebsitePreviewClientP
           ) : null}
           {!error && websiteId && !site ? <p style={{ padding: "1rem" }}>Loading…</p> : null}
           {!error && site ? (
-            <WebsiteSectionsView name={site.name} themeColor={site.themeColor} logo={site.logo} sections={site.sections} />
+            <WebsiteSectionsView
+              name={site.name}
+              theme={site.theme}
+              themeColor={site.themeColor}
+              logo={site.logo}
+              sections={site.sections}
+            />
           ) : null}
         </article>
       </main>

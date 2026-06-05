@@ -1,5 +1,7 @@
 /** Parse builder `sections` JSON and render a polished marketing layout. */
 
+import { parseWebsiteTheme } from "./theme/parse-website-theme";
+import type { WebsiteThemeStyle } from "./theme/website-theme-style";
 import { SectionImage } from "../components/sites/SectionImage";
 import { resolveSectionImageUrl } from "./website-section-images";
 import {
@@ -14,6 +16,27 @@ export function displaySectionName(name: string, key: string): string {
   const k = key.toLowerCase();
   if (!n || n.toLowerCase() === "hero" || k === "hero" || k === "home") return "Home";
   return n;
+}
+
+function comparableSectionLabel(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/** Headline that only repeats the nav section name (e.g. "Home" / "About") — not real copy. */
+export function isRedundantSectionHeadline(headline: string, name: string, key: string): boolean {
+  const h = comparableSectionLabel(headline);
+  if (!h) return true;
+  const labels = new Set(
+    [name, key, displaySectionName(name, key), "home", "hero"].map(comparableSectionLabel).filter(Boolean),
+  );
+  return labels.has(h);
+}
+
+/** Visible section title — never falls back to the nav section name. */
+export function resolveSectionHeadline(headline: string, name: string, key: string): string {
+  const trimmed = headline.trim();
+  if (trimmed && !isRedundantSectionHeadline(trimmed, name, key)) return trimmed;
+  return "";
 }
 
 export type WebsiteSectionBlock = {
@@ -97,7 +120,10 @@ export type PublicSitePageLink = {
 
 export type WebsiteSectionsViewProps = Readonly<{
   name: string;
+  /** Legacy accent hex — used when theme preset is absent. */
   themeColor?: string | null;
+  /** Widget-style preset theme (modern, discord, slack, whatsapp). */
+  theme?: unknown;
   logo?: string | null;
   sections: unknown;
   className?: string;
@@ -109,10 +135,10 @@ export type WebsiteSectionsViewProps = Readonly<{
   siteSlug?: string | null;
 }>;
 
-const btnStyle = (accent: string): React.CSSProperties => ({
+const btnStyle = (accent: string, radius: string): React.CSSProperties => ({
   display: "inline-block",
   padding: "0.65rem 1.35rem",
-  borderRadius: 999,
+  borderRadius: radius,
   background: accent,
   color: "#fff",
   fontWeight: 600,
@@ -126,18 +152,20 @@ function CtaButton({
   href,
   label,
   accent,
+  radius,
   external,
 }: {
   href: string;
   label: string;
   accent: string;
+  radius: string;
   external?: boolean;
 }) {
   return (
     <a
       href={href}
       className="nexa-ws-cta"
-      style={btnStyle(accent)}
+      style={btnStyle(accent, radius)}
       {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
     >
       {label}
@@ -148,6 +176,7 @@ function CtaButton({
 export function WebsiteSectionsView({
   name,
   themeColor,
+  theme,
   logo,
   sections,
   className,
@@ -155,7 +184,9 @@ export function WebsiteSectionsView({
   pageLinks,
   siteSlug,
 }: WebsiteSectionsViewProps) {
-  const accent = themeColor?.trim() || "#2563eb";
+  const resolved = parseWebsiteTheme(theme, themeColor);
+  const style: WebsiteThemeStyle = resolved.style;
+  const accent = style.accent;
   const parsed = parseWebsiteSections(sections);
   const allKeys = parsed.blocks.map((b) => b.key);
   const linkMode: WebsiteLinkMode = activePageKey ? "multi-page" : "single-page";
@@ -163,6 +194,9 @@ export function WebsiteSectionsView({
     ? parsed.blocks.filter((b) => b.key.toLowerCase() === activePageKey.toLowerCase())
     : parsed.blocks;
   const hero = blocks[0];
+  const heroHeadline = hero
+    ? resolveSectionHeadline(hero.headline, hero.name, hero.key)
+    : "";
   const heroImage = hero
     ? resolveSectionImageUrl({
         sectionKey: hero.key,
@@ -188,9 +222,9 @@ export function WebsiteSectionsView({
       id="top"
       className={className ? `nexa-site-page ${className}` : "nexa-site-page"}
       style={{
-        fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
-        color: "#0f172a",
-        background: "#f8fafc",
+        fontFamily: `${style.fontFamily}, system-ui, -apple-system, sans-serif`,
+        color: style.text,
+        background: style.background,
         scrollBehavior: "smooth",
       }}
     >
@@ -212,9 +246,9 @@ export function WebsiteSectionsView({
           alignItems: "center",
           gap: "0.85rem",
           padding: "0.85rem 1.25rem",
-          background: "rgba(255,255,255,0.92)",
+          background: style.headerBackground,
           backdropFilter: "blur(10px)",
-          borderBottom: "1px solid #e2e8f0",
+          borderBottom: `1px solid ${style.headerBorder}`,
           boxShadow: "0 4px 20px rgba(15,23,42,0.06)",
         }}
       >
@@ -232,7 +266,7 @@ export function WebsiteSectionsView({
             }}
           />
         )}
-        <strong style={{ fontSize: "1.05rem", letterSpacing: "-0.02em" }}>{name}</strong>
+        <strong style={{ fontSize: "1.05rem", letterSpacing: "-0.02em", color: style.text }}>{name}</strong>
         {navItems.length > 1 ? (
           <nav
             style={{
@@ -249,7 +283,7 @@ export function WebsiteSectionsView({
                 key={link.key}
                 href={link.href}
                 style={{
-                  color: "#475569",
+                  color: style.mutedText,
                   textDecoration: "none",
                   padding: "0.25rem 0.5rem",
                   borderRadius: 6,
@@ -272,41 +306,33 @@ export function WebsiteSectionsView({
             textAlign: "center",
             background: heroImage
               ? `linear-gradient(180deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.72) 100%), url(${heroImage}) center/cover no-repeat`
-              : `linear-gradient(135deg, ${accent}18 0%, #fff 45%, ${accent}0d 100%)`,
+              : style.isDark
+                ? `linear-gradient(135deg, ${accent}33 0%, ${style.background} 45%, ${accent}1a 100%)`
+                : `linear-gradient(135deg, ${accent}18 0%, ${style.background} 45%, ${accent}0d 100%)`,
             color: heroImage ? "#fff" : undefined,
           }}
         >
           <div style={{ position: "relative", maxWidth: 680, margin: "0 auto" }}>
-            <p
-              style={{
-                margin: "0 0 0.5rem",
-                fontSize: "0.78rem",
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                opacity: heroImage ? 0.9 : 0.65,
-                color: heroImage ? "#e2e8f0" : accent,
-              }}
-            >
-              {displaySectionName(hero.name, hero.key)}
-            </p>
-            <h1
-              style={{
-                margin: "0 0 0.75rem",
-                fontSize: "clamp(2rem, 5vw, 3rem)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.1,
-                color: heroImage ? "#fff" : accent,
-              }}
-            >
-              {hero.headline.trim() || displaySectionName(hero.name, hero.key)}
-            </h1>
+            {heroHeadline ? (
+              <h1
+                style={{
+                  margin: "0 0 0.75rem",
+                  fontSize: "clamp(2rem, 5vw, 3rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.1,
+                  color: heroImage ? "#fff" : accent,
+                }}
+              >
+                {heroHeadline}
+              </h1>
+            ) : null}
             {hero.body.trim() ? (
               <p
                 style={{
                   margin: "0 auto 1.35rem",
                   maxWidth: 540,
-                  color: heroImage ? "#e2e8f0" : "#64748b",
+                  color: heroImage ? "#e2e8f0" : style.mutedText,
                   lineHeight: 1.65,
                   fontSize: "1.05rem",
                 }}
@@ -321,6 +347,7 @@ export function WebsiteSectionsView({
                 })}
                 label={hero.cta}
                 accent={accent}
+                radius={style.ctaRadius}
                 external={/^https?:\/\//i.test(hero.ctaLink.trim())}
               />
             ) : null}
@@ -336,6 +363,7 @@ export function WebsiteSectionsView({
         const reverse = index % 2 === 1;
         const isContact =
           block.key.toLowerCase().includes("contact") || block.name.toLowerCase().includes("contact");
+        const blockHeadline = resolveSectionHeadline(block.headline, block.name, block.key);
 
         return (
           <section
@@ -343,8 +371,8 @@ export function WebsiteSectionsView({
             id={sectionAnchorId(block.key)}
             style={{
               padding: "2.5rem 1.25rem",
-              background: index % 2 === 0 ? "#fff" : "#f1f5f9",
-              borderTop: "1px solid #e2e8f0",
+              background: index % 2 === 0 ? style.background : style.sectionAlt,
+              borderTop: `1px solid ${style.headerBorder}`,
             }}
           >
             <div
@@ -359,31 +387,21 @@ export function WebsiteSectionsView({
               }}
             >
               <div style={{ order: reverse && image ? 2 : 1 }}>
-                <p
-                  style={{
-                    margin: "0 0 0.35rem",
-                    fontSize: "0.75rem",
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: accent,
-                    fontWeight: 600,
-                  }}
-                >
-                  {displaySectionName(block.name, block.key)}
-                </p>
-                <h2
-                  style={{
-                    margin: "0 0 0.65rem",
-                    fontSize: "clamp(1.35rem, 3vw, 1.85rem)",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    color: "#0f172a",
-                  }}
-                >
-                  {block.headline.trim() || displaySectionName(block.name, block.key)}
-                </h2>
+                {blockHeadline ? (
+                  <h2
+                    style={{
+                      margin: "0 0 0.65rem",
+                      fontSize: "clamp(1.35rem, 3vw, 1.85rem)",
+                      fontWeight: 700,
+                      letterSpacing: "-0.02em",
+                      color: style.text,
+                    }}
+                  >
+                    {blockHeadline}
+                  </h2>
+                ) : null}
                 {block.body.trim() ? (
-                  <p style={{ margin: 0, color: "#64748b", lineHeight: 1.65, fontSize: "1rem" }}>{block.body}</p>
+                  <p style={{ margin: 0, color: style.mutedText, lineHeight: 1.65, fontSize: "1rem" }}>{block.body}</p>
                 ) : null}
                 {block.cta.trim() ? (
                   <p style={{ margin: "1rem 0 0" }}>
@@ -392,7 +410,8 @@ export function WebsiteSectionsView({
                         slug: siteSlug ?? undefined,
                       })}
                       label={block.cta}
-                      accent={isContact ? accent : "#0f172a"}
+                      accent={isContact ? accent : style.isDark ? style.secondary : style.text}
+                      radius={style.ctaRadius}
                       external={/^https?:\/\//i.test(block.ctaLink.trim())}
                     />
                   </p>
@@ -422,9 +441,9 @@ export function WebsiteSectionsView({
           padding: "1.25rem",
           textAlign: "center",
           fontSize: "0.82rem",
-          color: "#94a3b8",
-          borderTop: "1px solid #e2e8f0",
-          background: "#fff",
+          color: style.mutedText,
+          borderTop: `1px solid ${style.headerBorder}`,
+          background: style.footerBackground,
         }}
       >
         © {new Date().getFullYear()} {name}
