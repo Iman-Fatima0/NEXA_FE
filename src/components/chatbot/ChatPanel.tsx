@@ -14,6 +14,10 @@ import {
   getChatSessionId,
   setChatSessionId,
 } from "../../lib/chatbot/session-storage";
+import { themeToCssVars } from "../../lib/theme/theme-vars";
+import type { ThemeTokens } from "../../lib/theme/types";
+import { useBotTheme } from "../../lib/theme/use-bot-theme";
+import ct from "./chat-themed.module.css";
 
 export type ChatUiMessage = {
   id: string;
@@ -28,6 +32,8 @@ type ChatPanelProps = {
   tall?: boolean;
   /** Optional greeting when history is empty */
   greeting?: string;
+  /** Pre-loaded theme from bot fetch (skips extra request when provided) */
+  savedTheme?: ThemeTokens | null;
 };
 
 function mapHistory(messages: ChatHistoryMessage[]): ChatUiMessage[] {
@@ -40,7 +46,17 @@ function mapHistory(messages: ChatHistoryMessage[]): ChatUiMessage[] {
     }));
 }
 
-export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelProps) {
+function headerThemeClass(style: ThemeTokens["headerStyle"]): string {
+  if (style === "glass") return ct.headerGlass;
+  if (style === "gradient") return ct.headerGradient;
+  return ct.headerSolid;
+}
+
+export function ChatPanel({ botId, botName, tall = false, greeting, savedTheme }: ChatPanelProps) {
+  const theme = useBotTheme(botId, savedTheme);
+  const themeStyle = themeToCssVars(theme);
+  const headerClass = headerThemeClass(theme.headerStyle);
+
   const [messages, setMessages] = useState<ChatUiMessage[]>([]);
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -144,8 +160,8 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
   };
 
   return (
-    <div className={wb.chatDark}>
-      <div className={wb.chatDarkHeader}>
+    <div className={`${wb.chatDark} ${ct.themedRoot}`} style={themeStyle}>
+      <div className={`${wb.chatDarkHeader} ${headerClass}`}>
         {botName} · {loading ? "connecting…" : sending ? "typing…" : "online"}
         <button
           type="button"
@@ -191,13 +207,15 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
         aria-live="polite"
       >
         {loading ? (
-          <div className={wb.chatDarkBubble}>Connecting…</div>
+          <div className={`${wb.chatDarkBubble} ${ct.themedBubble}`}>Connecting…</div>
         ) : (
           <>
             {messages.map((m) => (
               <div
                 key={m.id}
-                className={`${wb.chatDarkBubble} ${m.role === "user" ? wb.chatDarkBubbleUser : ""}`}
+                className={`${wb.chatDarkBubble} ${ct.themedBubble} ${
+                  m.role === "user" ? `${wb.chatDarkBubbleUser} ${ct.themedBubbleUser}` : ""
+                }`}
               >
                 {m.content}
               </div>
@@ -230,13 +248,19 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
         />
         <button
           type="button"
-          className={wb.chatComposeSend}
+          className={`${wb.chatComposeSend} ${ct.themedSend}`}
           aria-label="Send message"
           disabled={loading || !sessionId || sending || !input.trim()}
           onClick={() => void onSend()}
         >
           {sending ? "…" : "Send"}
         </button>
+      </div>
+      <div
+        className={`${ct.themedBranding} ${theme.showBranding ? "" : ct.themedBrandingHidden}`}
+        aria-hidden={!theme.showBranding}
+      >
+        Powered by NEXA
       </div>
     </div>
   );

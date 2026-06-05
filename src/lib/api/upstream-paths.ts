@@ -67,6 +67,12 @@ export function pathBotPublish(id: string): string {
   return `/bots/${encodeURIComponent(id)}/publish`;
 }
 
+export function pathBotTheme(id: string): string {
+  const t = process.env.BACKEND_BOT_THEME_PATH?.trim();
+  if (t) return t.replace(":id", encodeURIComponent(id));
+  return `/bots/${encodeURIComponent(id)}/theme`;
+}
+
 export function pathBotAnalyticsSummary(id: string): string {
   const t = process.env.BACKEND_BOT_ANALYTICS_SUMMARY_PATH?.trim();
   if (t) return t.replace(":id", encodeURIComponent(id));

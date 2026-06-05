@@ -1,4 +1,5 @@
 import type { BotConfig, BotStatus, PlatformBot, PublishBotResult, AnalyticsSummary, UnansweredQuestion } from "./bot-types";
+import { parseBotTheme } from "../theme/parse-theme";
 import type { PersonalityPresetId } from "./personality-presets";
 
 function str(v: unknown): string {
@@ -66,6 +67,7 @@ export function parsePlatformBot(raw: unknown): PlatformBot | null {
   }
 
   const config = mergeBotConfig(inner);
+  const parsedTheme = parseBotTheme(inner) ?? parseBotTheme(o);
 
   return {
     id,
@@ -76,6 +78,8 @@ export function parsePlatformBot(raw: unknown): PlatformBot | null {
     updatedAt: str(inner.updatedAt) || undefined,
     documentCount,
     config,
+    themePreset: parsedTheme?.preset,
+    theme: parsedTheme?.theme,
     publicChatUrl: str(inner.publicChatUrl) || str(inner.chatUrl) || undefined,
     widgetScript: str(inner.widgetScript) || str(inner.embedScript) || undefined,
     widgetStatus: str(inner.widgetStatus) || undefined,

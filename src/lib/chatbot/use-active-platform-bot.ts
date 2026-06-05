@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { parseDescriptionFields, resolveBotDisplayName } from "./bot-display";
+import type { ThemeTokens } from "../theme/types";
 import type { PlatformBot } from "./bot-types";
 import { fetchDocumentCount, fetchPlatformBot } from "./chatbot-platform-api";
 import { presetById } from "./personality-presets";
+import { setBotThemeCache } from "../theme/use-bot-theme";
 import { getActiveBotId, getActiveBotName, setActiveBot } from "./session-storage";
 
 export type ActiveBotView = {
@@ -15,6 +17,7 @@ export type ActiveBotView = {
   purpose: string | null;
   personalityLabel: string | null;
   documentCount: number | null;
+  theme: ThemeTokens | null;
   loading: boolean;
   error: string | null;
 };
@@ -50,6 +53,7 @@ export function useActivePlatformBot(botIdOverride?: string | null): ActiveBotVi
         setBot(resolved);
         setDocumentCount(fetched.documentCount ?? docs);
         setActiveBot(resolved.id, displayName);
+        if (fetched.theme) setBotThemeCache(resolved.id, fetched.theme);
       } catch (e) {
         if (!cancelled) {
           setBot(null);
@@ -79,6 +83,7 @@ export function useActivePlatformBot(botIdOverride?: string | null): ActiveBotVi
     purpose: descMeta.purpose ?? null,
     personalityLabel,
     documentCount,
+    theme: bot?.theme ?? null,
     loading,
     error,
   };

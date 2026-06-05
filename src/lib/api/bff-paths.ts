@@ -22,6 +22,7 @@ export const BFF_PATHS = {
   documentsIngest: "/api/documents/ingest",
   documentsIngestUrl: "/api/documents/ingest-url",
   userBotPublish: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/publish`,
+  userBotTheme: (id: string) => `/api/user/bots/${encodeURIComponent(id)}/theme`,
   userBotAnalyticsSummary: (id: string) =>
     `/api/user/bots/${encodeURIComponent(id)}/analytics/summary`,
   userBotAnalyticsUnanswered: (id: string) =>

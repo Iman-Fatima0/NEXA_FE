@@ -38,6 +38,7 @@ export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrai
     purpose,
     personalityLabel,
     documentCount,
+    theme,
     loading,
     error,
   } = useActivePlatformBot(botIdFromUrl);
@@ -106,7 +107,13 @@ export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrai
             {loading ? (
               <p className={wb.kbHint}>Loading preview…</p>
             ) : botId ? (
-              <ChatPanel botId={botId} botName={botName} greeting={greeting} tall />
+              <ChatPanel
+                botId={botId}
+                botName={botName}
+                greeting={greeting}
+                tall
+                savedTheme={theme}
+              />
             ) : (
               <p className={wb.kbHint}>Preview unavailable — train your chatbot again to continue.</p>
             )}

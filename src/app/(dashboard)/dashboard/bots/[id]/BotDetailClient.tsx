@@ -126,6 +126,7 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
     purpose,
     personalityLabel,
     documentCount,
+    theme,
     loading,
     error,
   } = useActivePlatformBot(botId);
@@ -170,6 +171,12 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
       <div className={wb.topExtras}>
         <Link href={editHref} className={wb.topExtraPrimary}>
           Edit bot
+        </Link>
+        <Link
+          href={`/dashboard/bots/${encodeURIComponent(botId)}/theme`}
+          className={wb.topExtraGhost}
+        >
+          Theme builder
         </Link>
         <button
           type="button"
@@ -291,7 +298,13 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
             {loading ? (
               <div className={bd.loadingShimmer} style={{ flex: 1, minHeight: "320px" }} />
             ) : botId ? (
-              <ChatPanel botId={botId} botName={botName} greeting={greeting} tall />
+              <ChatPanel
+                botId={botId}
+                botName={botName}
+                greeting={greeting}
+                tall
+                savedTheme={theme}
+              />
             ) : (
               <p className={wb.kbHint}>Preview unavailable.</p>
             )}

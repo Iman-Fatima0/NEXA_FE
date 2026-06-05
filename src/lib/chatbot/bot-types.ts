@@ -1,4 +1,5 @@
 import type { PersonalityPresetId } from "./personality-presets";
+import type { ThemePreset, ThemeTokens } from "../theme/types";
 
 export type BotConfig = {
   welcomeMessage?: string;
@@ -24,6 +25,8 @@ export type PlatformBot = {
   widgetVersion?: string;
   embedMode?: string;
   allowedDomains?: string[];
+  themePreset?: ThemePreset;
+  theme?: ThemeTokens;
 };
 
 export type BotTrainSummary = {

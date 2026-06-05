@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./entry-splash.module.css";
 
 const SPLASH_STORAGE_KEY = "nexa_entry_splash_done";
@@ -37,24 +37,30 @@ export function AppProviders({ children }: Readonly<AppProvidersProps>) {
   /** Start idle so SSR and the first client render match (splash mounts only after hydration). */
   const [splashPhase, setSplashPhase] = useState<SplashPhase>("idle");
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    let active = true;
+
     if (shouldSkipEntrySplash()) {
       setSplashPhase("off");
-      return;
+      return () => {
+        active = false;
+      };
     }
 
     setSplashPhase("active");
 
     const fadeTimer = globalThis.setTimeout(() => {
-      setSplashPhase("fading");
+      if (active) setSplashPhase("fading");
     }, 2200);
 
     const removeTimer = globalThis.setTimeout(() => {
+      if (!active) return;
       markEntrySplashDone();
       setSplashPhase("off");
     }, 2550);
 
     return () => {
+      active = false;
       globalThis.clearTimeout(fadeTimer);
       globalThis.clearTimeout(removeTimer);
     };

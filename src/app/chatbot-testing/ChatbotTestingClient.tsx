@@ -11,7 +11,7 @@ type ChatbotTestingClientProps = {
 };
 
 export default function ChatbotTestingClient({ hubBackHref }: ChatbotTestingClientProps) {
-  const { botId, botName, greeting, loading, error } = useActivePlatformBot();
+  const { botId, botName, greeting, theme, loading, error } = useActivePlatformBot();
 
   if (!loading && !botId) {
     return (
@@ -48,7 +48,13 @@ export default function ChatbotTestingClient({ hubBackHref }: ChatbotTestingClie
             {loading ? "Loading chatbot…" : `Live conversation with ${botName}.`}
           </p>
           {botId && !loading ? (
-            <ChatPanel botId={botId} botName={botName} tall greeting={greeting} />
+            <ChatPanel
+              botId={botId}
+              botName={botName}
+              tall
+              greeting={greeting}
+              savedTheme={theme}
+            />
           ) : null}
         </article>
       </main>

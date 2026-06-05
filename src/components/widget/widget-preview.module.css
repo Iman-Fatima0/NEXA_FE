@@ -1,0 +1,243 @@
+/* Outer shell — fills preview panel and centers the mock site */
+.previewShell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 520px;
+  overflow: auto;
+}
+
+.previewShellMobile {
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mobileLabel {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.65rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1.25rem;
+  border-radius: 16px;
+  background: #0a0a0f;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.stageInner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 80% 90%, color-mix(in srgb, var(--nexa-primary) 18%, transparent) 0%, transparent 70%),
+    linear-gradient(180deg, #111118 0%, #0a0a0f 100%);
+  transition: background 220ms ease;
+}
+
+.deviceFrame {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.positionLeft .deviceFrame {
+  align-items: flex-start;
+}
+
+.chatWindow {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  font-family: var(--nexa-font), system-ui, sans-serif;
+  transition:
+    border-radius var(--nexa-anim-duration) ease,
+    box-shadow var(--nexa-anim-duration) ease;
+}
+
+.headerSolid {
+  background: var(--nexa-primary);
+  color: var(--nexa-text);
+}
+
+.headerGradient {
+  background: linear-gradient(135deg, var(--nexa-primary) 0%, var(--nexa-secondary) 100%);
+  color: var(--nexa-text);
+}
+
+.headerGlass {
+  background: color-mix(in srgb, var(--nexa-primary) 35%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--nexa-text);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.headerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+.headerClose {
+  opacity: 0.7;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.body {
+  background: #14141c;
+  padding: 0.85rem;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.bubble {
+  max-width: 82%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  border-radius: var(--nexa-bubble-radius);
+  transition:
+    border-radius var(--nexa-anim-duration) ease,
+    background var(--nexa-anim-duration) ease;
+}
+
+.bubbleBot {
+  align-self: flex-start;
+  background: #1e1e28;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bubbleUser {
+  align-self: flex-end;
+  background: var(--nexa-primary);
+  color: var(--nexa-text);
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.55rem 0.65rem;
+  background: #0f0f16;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.inputFake {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: #1a1a24;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.sendBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: var(--nexa-primary);
+  color: var(--nexa-text);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.branding {
+  text-align: center;
+  padding: 0.35rem;
+  font-size: 0.58rem;
+  color: #64748b;
+  background: #0f0f16;
+  flex-shrink: 0;
+}
+
+.brandingHidden {
+  display: none;
+}
+
+.launcherWrap {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.launcher {
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: var(--nexa-launcher-radius);
+  background: linear-gradient(145deg, var(--nexa-primary), var(--nexa-secondary));
+  color: var(--nexa-text);
+  font-size: 1.35rem;
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--nexa-primary) 45%, transparent);
+  cursor: default;
+  transition:
+    border-radius var(--nexa-anim-duration) ease,
+    transform var(--nexa-anim-duration) ease,
+    box-shadow var(--nexa-anim-duration) ease;
+}
+
+.launcherBounce:hover {
+  animation: launcherBounce 0.6s ease;
+}
+
+@keyframes launcherBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
+}

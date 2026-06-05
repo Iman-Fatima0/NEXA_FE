@@ -9,6 +9,7 @@ import {
 } from "./bot-parse";
 import { parseFriendlyBffError } from "./bff-user-errors";
 import { resolveBotDisplayName } from "./bot-display";
+import type { ThemeSavePayload } from "../theme/types";
 import type {
   AnalyticsSummary,
   BotConfig,
@@ -37,10 +38,14 @@ export async function listPlatformBots(): Promise<PlatformBot[]> {
   return parsePlatformBotsList(data);
 }
 
-export async function fetchPlatformBot(botId: string): Promise<PlatformBot> {
+export async function fetchPlatformBotRaw(botId: string): Promise<unknown> {
   const res = await fetch(BFF_PATHS.userBot(botId), { credentials: "same-origin", cache: "no-store" });
   await ensureOk(res, "Chatbot unavailable.");
-  const data = await res.json();
+  return res.json();
+}
+
+export async function fetchPlatformBot(botId: string): Promise<PlatformBot> {
+  const data = await fetchPlatformBotRaw(botId);
   const bot = parsePlatformBot(data);
   if (!bot) throw new Error("Chatbot unavailable.");
   return bot;
@@ -112,6 +117,16 @@ export async function ingestPlatformUrl(botId: string, url: string): Promise<voi
     body: JSON.stringify({ botId, url: url.trim() }),
   });
   await ensureOk(res, "Knowledge processing failed for that website.", "url");
+}
+
+export async function savePlatformBotTheme(botId: string, payload: ThemeSavePayload): Promise<void> {
+  const res = await fetch(BFF_PATHS.userBotTheme(botId), {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  await ensureOk(res, "Could not save theme.");
 }
 
 export async function publishPlatformBot(botId: string): Promise<PublishBotResult> {
