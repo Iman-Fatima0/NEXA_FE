@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { KnowledgeBasePanel } from "../../components/knowledge-base/KnowledgeBasePanel";
+import { isIngestableFile } from "../../lib/chatbot/ingest-files";
+import { fetchDocumentCount } from "../../lib/chatbot/chatbot-platform-api";
+import { ingestKnowledgeToBot } from "../../lib/knowledge-base/ingest-knowledge";
+import {
+  isValidKnowledgeUrl,
+  knowledgeFileKey,
+} from "../../lib/knowledge-base/knowledge-base-utils";
 import { createUserWebsite } from "../../lib/create-user-website";
 import {
   downloadWebsiteExportZip,
@@ -26,7 +34,14 @@ import {
 } from "../../lib/website-sections";
 import { sectionAnchorId } from "../../lib/website-section-links";
 import { SectionImageField } from "../../components/website-builder/SectionImageField";
-import { ThemeColorSlider } from "../../components/website-builder/ThemeColorSlider";
+import { WebsiteThemePicker } from "../../components/website-builder/WebsiteThemePicker";
+import { PRESET_MAP } from "../../lib/theme/presets";
+import {
+  parseWebsiteTheme,
+  websiteThemeSavePayload,
+  type WebsiteThemeSettings,
+} from "../../lib/theme/parse-website-theme";
+import type { ThemePreset, ThemeTokens } from "../../lib/theme/types";
 import type { UserWebsite } from "../../lib/user-websites-types";
 import wb from "./website-builder.module.css";
 
@@ -52,7 +67,8 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   const [websiteName, setWebsiteName] = useState("");
   const [description, setDescription] = useState("");
-  const [themeColor, setThemeColor] = useState("#2563eb");
+  const [themePreset, setThemePreset] = useState<ThemePreset>("modern");
+  const [themeTokens, setThemeTokens] = useState<ThemeTokens>(PRESET_MAP.modern);
   const [logo, setLogo] = useState("");
   const [sectionBlocks, setSectionBlocks] = useState<WebsiteSectionBlock[]>([]);
   const [siteMeta, setSiteMeta] = useState<UserWebsite | null>(null);
@@ -69,7 +85,97 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [templatesUnavailable, setTemplatesUnavailable] = useState(false);
   const [shareOrigin, setShareOrigin] = useState<string | null>(null);
 
+  const [knowledgeMode, setKnowledgeMode] = useState<"files" | "text">("files");
+  const [knowledgeFiles, setKnowledgeFiles] = useState<File[]>([]);
+  const [knowledgeText, setKnowledgeText] = useState("");
+  const [knowledgeUrls, setKnowledgeUrls] = useState<string[]>([""]);
+  const [ingestingKnowledge, setIngestingKnowledge] = useState(false);
+  const [knowledgeDocCount, setKnowledgeDocCount] = useState(0);
+
   const isEditMode = websiteId.length > 0;
+
+  const refreshKnowledgeDocCount = useCallback(async (botId?: string | null) => {
+    if (!botId) {
+      setKnowledgeDocCount(0);
+      return;
+    }
+    setKnowledgeDocCount(await fetchDocumentCount(botId));
+  }, []);
+
+  const addKnowledgeFiles = useCallback((list: FileList | File[]) => {
+    setKnowledgeFiles((prev) => {
+      const next = [...prev];
+      const seen = new Set(next.map(knowledgeFileKey));
+      for (const file of Array.from(list)) {
+        if (!isIngestableFile(file)) continue;
+        const key = knowledgeFileKey(file);
+        if (!seen.has(key)) {
+          seen.add(key);
+          next.push(file);
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const removeKnowledgeFile = useCallback((key: string) => {
+    setKnowledgeFiles((prev) => prev.filter((f) => knowledgeFileKey(f) !== key));
+  }, []);
+
+  const validKnowledgeUrls = useMemo(
+    () => knowledgeUrls.map((u) => u.trim()).filter(isValidKnowledgeUrl),
+    [knowledgeUrls],
+  );
+
+  const hasPendingKnowledge = useMemo(() => {
+    const hasFiles = knowledgeFiles.length > 0;
+    const hasText = knowledgeMode === "text" && knowledgeText.trim().length > 0;
+    const hasUrls = validKnowledgeUrls.length > 0;
+    return hasFiles || hasText || hasUrls;
+  }, [knowledgeFiles.length, knowledgeMode, knowledgeText, validKnowledgeUrls.length]);
+
+  const hasKnowledgeSource = useMemo(
+    () => hasPendingKnowledge || knowledgeDocCount > 0,
+    [hasPendingKnowledge, knowledgeDocCount],
+  );
+
+  const clearPendingKnowledge = useCallback(() => {
+    setKnowledgeFiles([]);
+    setKnowledgeText("");
+    setKnowledgeUrls([""]);
+    setKnowledgeMode("files");
+  }, []);
+
+  const uploadPendingKnowledge = useCallback(
+    async (botId: string) => {
+      if (!hasPendingKnowledge) return;
+      setIngestingKnowledge(true);
+      try {
+        await ingestKnowledgeToBot(
+          botId,
+          {
+            files: knowledgeFiles,
+            text: knowledgeMode === "text" ? knowledgeText : undefined,
+            urls: validKnowledgeUrls,
+          },
+          (msg) => setStatusMessage(msg),
+        );
+        clearPendingKnowledge();
+        await refreshKnowledgeDocCount(botId);
+      } finally {
+        setIngestingKnowledge(false);
+      }
+    },
+    [
+      clearPendingKnowledge,
+      hasPendingKnowledge,
+      knowledgeFiles,
+      knowledgeMode,
+      knowledgeText,
+      refreshKnowledgeDocCount,
+      validKnowledgeUrls,
+    ],
+  );
 
   useEffect(() => {
     void fetch("/api/config/site-public-base", { cache: "no-store" })
@@ -88,15 +194,21 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       .catch(() => setTemplatesUnavailable(true));
   }, []);
 
-  const applySiteToEditor = useCallback((site: UserWebsite) => {
-    setSiteMeta(site);
-    setWebsiteName(site.name);
-    setThemeColor(site.themeColor?.trim() || "#2563eb");
-    setLogo(site.logo?.trim() || "");
-    const parsed = parseWebsiteSections(site.sections);
-    setSectionBlocks(parsed.blocks);
-    setDescription(parsed.metaDescription || "");
-  }, []);
+  const applySiteToEditor = useCallback(
+    (site: UserWebsite) => {
+      setSiteMeta(site);
+      setWebsiteName(site.name);
+      const themeParsed = parseWebsiteTheme(site.theme, site.themeColor);
+      setThemePreset(themeParsed.preset);
+      setThemeTokens(themeParsed.theme);
+      setLogo(site.logo?.trim() || "");
+      const sectionsParsed = parseWebsiteSections(site.sections);
+      setSectionBlocks(sectionsParsed.blocks);
+      setDescription(sectionsParsed.metaDescription || "");
+      void refreshKnowledgeDocCount(site.knowledgeBotId);
+    },
+    [refreshKnowledgeDocCount],
+  );
 
   const loadSite = useCallback(
     async (id: string) => {
@@ -154,7 +266,14 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       const templateId = readStoredTemplateId();
       const created = await createUserWebsite({ name, templateId, description: desc || undefined });
-      // AI runs only when user clicks GENERATE WITH AI (avoids 2× Gemini on create + generate).
+      if (hasPendingKnowledge && created.knowledgeBotId) {
+        setStatusMessage("Uploading knowledge base…");
+        await uploadPendingKnowledge(created.knowledgeBotId);
+        setStatusMessage("Generating sections from your knowledge base…");
+        await generateUserWebsiteContent(created.id, {
+          prompt: desc || name || "Create website content from the knowledge base.",
+        });
+      }
       router.replace(`/website-builder/create?id=${encodeURIComponent(created.id)}`);
     } catch (e) {
       setError(formatErr(e));
@@ -165,15 +284,46 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   const persistBuilder = async () => {
     if (!websiteId) return null;
-    return updateUserWebsiteBuilder(websiteId, {
+    const themePayload: WebsiteThemeSettings = websiteThemeSavePayload(themePreset, themeTokens);
+    const payload: Parameters<typeof updateUserWebsiteBuilder>[1] = {
       title: websiteName.trim() || undefined,
-      themeColor: themeColor.trim() || null,
+      theme: themePayload,
+      themeColor: themeTokens.primaryColor.trim() || null,
       logo: logo.trim() || null,
-      sections: sectionsToRecord(sectionBlocks, description.trim() || undefined),
-    });
+    };
+    const hasBlockContent = sectionBlocks.some(
+      (b) => b.headline.trim() || b.body.trim() || b.cta.trim() || b.imageUrl.trim(),
+    );
+    if (hasBlockContent) {
+      payload.sections = sectionsToRecord(sectionBlocks, description.trim() || undefined);
+    } else if (siteMeta?.sections && description.trim()) {
+      const base = { ...(siteMeta.sections as Record<string, unknown>) };
+      base._meta = { description: description.trim() };
+      const firstKey = sectionBlocks[0]?.key;
+      if (firstKey && base[firstKey] && typeof base[firstKey] === "object") {
+        const block = { ...(base[firstKey] as Record<string, unknown>) };
+        if (!String(block.body ?? "").trim()) {
+          block.body = description.trim();
+        }
+        base[firstKey] = block;
+      }
+      payload.sections = base;
+    }
+    return updateUserWebsiteBuilder(websiteId, payload);
   };
 
-  const handleSave = async () => {
+  const enhanceFromKnowledge = async () => {
+    const prompt =
+      description.trim() ||
+      websiteName.trim() ||
+      "Create website content from the knowledge base.";
+    setStatusMessage("Building website from your knowledge base…");
+    const updated = await generateUserWebsiteContent(websiteId, { prompt });
+    applySiteToEditor(updated);
+    return updated;
+  };
+
+  const handleUpdateWebsite = async () => {
     if (!websiteId) return;
     if (!websiteName.trim()) {
       setError("Website name cannot be empty.");
@@ -182,36 +332,51 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     setError(null);
     setStatusMessage(null);
     setSaving(true);
+    const kbJustUploaded = hasPendingKnowledge;
     try {
-      const updated = await persistBuilder();
-      if (updated) {
-        setSiteMeta(updated);
-        setStatusMessage("Saved.");
+      if (kbJustUploaded && siteMeta?.knowledgeBotId) {
+        await uploadPendingKnowledge(siteMeta.knowledgeBotId);
+      }
+      await persistBuilder();
+      if (kbJustUploaded && siteMeta?.knowledgeBotId) {
+        setGenerating(true);
+        const enhanced = await enhanceFromKnowledge();
+        setStatusMessage(
+          enhanced.contentSource === "template"
+            ? "Knowledge uploaded. Basic section copy applied from your files (Gemini unavailable)."
+            : "Saved and sections filled from your knowledge base.",
+        );
+      } else {
+        const refreshed = await fetchUserWebsiteById(websiteId);
+        applySiteToEditor(refreshed);
+        setStatusMessage("Changes saved.");
       }
     } catch (e) {
       setError(formatErr(e));
     } finally {
       setSaving(false);
+      setGenerating(false);
     }
   };
 
-  const handleGenerateAi = async () => {
+  const handleEnhanceWithAi = async () => {
     if (!websiteId || generating) return;
-    const prompt = description.trim();
-    if (!prompt) {
-      setError("Enter a description of what you want before generating.");
+    if (!description.trim() && !hasKnowledgeSource) {
+      setError("Add knowledge base files/text or enter a site description first.");
       return;
     }
     setError(null);
     setStatusMessage(null);
     setGenerating(true);
     try {
-      const updated = await generateUserWebsiteContent(websiteId, { prompt });
-      applySiteToEditor(updated);
+      if (hasPendingKnowledge && siteMeta?.knowledgeBotId) {
+        await uploadPendingKnowledge(siteMeta.knowledgeBotId);
+      }
+      const updated = await enhanceFromKnowledge();
       setStatusMessage(
         updated.contentSource === "template"
-          ? "Gemini rate limit reached — basic template copy applied instead. Wait a few minutes or check quotas in Google AI Studio, then try again."
-          : "AI content applied. Review and save.",
+          ? "Gemini rate limit reached — basic copy applied from your knowledge base instead."
+          : "Sections enhanced from your knowledge base.",
       );
     } catch (e) {
       setError(formatErr(e));
@@ -227,9 +392,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       await persistBuilder();
       await downloadWebsiteExportZip(websiteId);
-      setStatusMessage(
-        "ZIP downloaded. Unzip → open app.netlify.com/drop → drag folder in → copy your https://….netlify.app link (see DEPLOY.md in ZIP).",
-      );
+      setStatusMessage("ZIP downloaded.");
     } catch (e) {
       setError(formatErr(e));
     } finally {
@@ -245,12 +408,28 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       await persistBuilder();
       const published = await publishUserWebsite(websiteId);
-      setSiteMeta(published);
-      setStatusMessage("Published.");
+      applySiteToEditor(published);
+      const live = resolveWebsitePublicUrl({
+        publicUrl: published.publicUrl,
+        slug: published.slug,
+        status: published.status,
+        originOverride: shareOrigin,
+      });
+      setStatusMessage(live ? `Published. Your site: ${live}` : "Published.");
     } catch (e) {
       setError(formatErr(e));
     } finally {
       setPublishing(false);
+    }
+  };
+
+  const copyPublicUrl = async () => {
+    if (!publicUrl) return;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setStatusMessage("Site URL copied.");
+    } catch {
+      setStatusMessage(publicUrl);
     }
   };
 
@@ -272,8 +451,10 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       ? "Publishing…"
       : saving
         ? "Saving…"
-        : generating
-          ? "Generating content…"
+        : ingestingKnowledge
+          ? "Uploading knowledge…"
+          : generating
+          ? "Enhancing with AI…"
           : loading
             ? "Creating…"
             : loadingSite
@@ -292,6 +473,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       </Link>
       <main className={wb.main}>
         <section className={wb.split}>
+          <div>
           <article className={wb.panel}>
             <h2 className={wb.panelTitle}>{isEditMode ? "Edit Your Website" : "Describe Your Website"}</h2>
             <div className={wb.field}>
@@ -308,112 +490,154 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
               />
             </div>
 
-            {isEditMode ? (
-              <>
-                <div className={wb.field}>
-                  <label className={wb.label} htmlFor="wb-desc-edit">
-                    Site description (for AI)
-                  </label>
-                  <textarea
-                    id="wb-desc-edit"
-                    className={wb.textarea}
-                    placeholder={PLACEHOLDER_PROMPT}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                  />
-                  <button
-                    type="button"
-                    className={wb.btn}
-                    style={{ marginTop: "0.5rem", width: "100%" }}
-                    onClick={handleGenerateAi}
-                    disabled={generating || loadingSite}
-                  >
-                    {generating ? "GENERATING…" : "GENERATE WITH AI"}
-                  </button>
-                </div>
-                <div className={wb.field}>
-                  <label className={wb.label} htmlFor="wb-theme">
-                    Theme color
-                  </label>
-                  <ThemeColorSlider id="wb-theme" value={themeColor} onChange={setThemeColor} />
-                </div>
-                <div className={wb.field}>
-                  <label className={wb.label} htmlFor="wb-logo">
-                    Logo URL
-                  </label>
-                  <input
-                    id="wb-logo"
-                    className={wb.input}
-                    placeholder="https://…"
-                    value={logo}
-                    onChange={(e) => setLogo(e.target.value)}
-                  />
-                </div>
-                {loadingSite ? <p className={wb.hint}>Loading site…</p> : null}
-                {sectionBlocks.map((block) => (
-                  <div key={block.key} className={wb.field}>
-                    <label className={wb.label}>{block.name}</label>
-                    <input
-                      className={wb.input}
-                      placeholder="Headline"
-                      value={block.headline}
-                      onChange={(e) => updateBlock(block.key, "headline", e.target.value)}
-                    />
-                    <textarea
-                      className={wb.textarea}
-                      placeholder="Body text"
-                      rows={3}
-                      value={block.body}
-                      onChange={(e) => updateBlock(block.key, "body", e.target.value)}
-                      style={{ marginTop: "0.5rem" }}
-                    />
-                    <input
-                      className={wb.input}
-                      placeholder="Call to action"
-                      value={block.cta}
-                      onChange={(e) => updateBlock(block.key, "cta", e.target.value)}
-                      style={{ marginTop: "0.5rem" }}
-                    />
-                    <input
-                      className={wb.input}
-                      placeholder="Button link (#contact or section key)"
-                      value={block.ctaLink}
-                      onChange={(e) => updateBlock(block.key, "ctaLink", e.target.value)}
-                      style={{ marginTop: "0.5rem" }}
-                    />
-                    <SectionImageField
-                      websiteId={websiteId}
-                      sectionKey={block.key}
-                      imageUrl={block.imageUrl}
-                      onImageUrl={(url) => updateBlock(block.key, "imageUrl", url)}
-                      disabled={saving || loadingSite || generating}
-                    />
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className={wb.field}>
-                <label className={wb.label} htmlFor="wb-desc">
-                  What kind of website do you want?
-                </label>
-                <textarea
-                  id="wb-desc"
-                  className={wb.textarea}
-                  placeholder={PLACEHOLDER_PROMPT}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={6}
-                />
-              </div>
-            )}
+            <div className={wb.field}>
+              <label className={wb.label} htmlFor={isEditMode ? "wb-desc-edit" : "wb-desc"}>
+                {isEditMode ? "Site description (for AI)" : "What kind of website do you want?"}
+              </label>
+              <textarea
+                id={isEditMode ? "wb-desc-edit" : "wb-desc"}
+                className={wb.textarea}
+                placeholder={PLACEHOLDER_PROMPT}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={isEditMode ? 4 : 6}
+              />
+            </div>
 
             {!isEditMode ? (
-              <>
-                <p className={wb.hint}>Be as detailed as possible. Mention colors, sections, features, and style preferences.</p>
-                <p className={wb.hint}>After create, AI will fill your sections when a description is provided.</p>
-              </>
+              <p className={wb.hint}>
+                Add knowledge base files below, then create your site. Use <strong>Enhance with AI</strong> after
+                create to fill sections from your uploads.
+              </p>
             ) : null}
+          </article>
+
+          <KnowledgeBasePanel
+            idPrefix="wb"
+            className={wb.panelGap}
+            disabled={loading || saving || generating || loadingSite || ingestingKnowledge}
+            knowledgeMode={knowledgeMode}
+            onKnowledgeModeChange={setKnowledgeMode}
+            files={knowledgeFiles}
+            onAddFiles={addKnowledgeFiles}
+            onRemoveFile={removeKnowledgeFile}
+            knowledgeText={knowledgeText}
+            onKnowledgeTextChange={setKnowledgeText}
+            urls={knowledgeUrls}
+            onUrlsChange={setKnowledgeUrls}
+            textHint="parsed and used when you click Enhance with AI."
+          />
+
+          {!isEditMode ? (
+            <div className={wb.panelGap}>
+              {templatesUnavailable ? (
+                <p className={wb.hint}>Templates could not be loaded. You can still create and edit sites.</p>
+              ) : null}
+              {error ? (
+                <div className={wb.errorBlock}>
+                  <p className={wb.error}>{error}</p>
+                </div>
+              ) : null}
+              {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
+              <button type="button" className={wb.btn} onClick={handleCreate} disabled={loading}>
+                {loading ? "CREATING…" : "CREATE WEBSITE"}
+              </button>
+            </div>
+          ) : (
+            <div className={`${wb.panel} ${wb.panelGap}`}>
+              <p className={wb.hint} style={{ marginTop: 0 }}>
+                Changes are <strong>not</strong> saved automatically. Click <strong>Save changes</strong> after
+                editing, or <strong>Enhance with AI</strong> to generate section copy (saved when complete).
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  className={wb.btn}
+                  onClick={() => void handleEnhanceWithAi()}
+                  disabled={generating || loadingSite || ingestingKnowledge}
+                >
+                  {generating ? "ENHANCING…" : "ENHANCE WITH AI"}
+                </button>
+                <button
+                  type="button"
+                  className={wb.btnBlack}
+                  onClick={() => void handleUpdateWebsite()}
+                  disabled={saving || loadingSite || ingestingKnowledge}
+                >
+                  {saving ? "SAVING…" : "SAVE CHANGES"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isEditMode ? (
+            <article className={`${wb.panel} ${wb.panelGap}`}>
+              <div className={wb.field}>
+                <label className={wb.label}>Theme preset</label>
+                <WebsiteThemePicker
+                  preset={themePreset}
+                  theme={themeTokens}
+                  onPresetSelect={(id) => {
+                    setThemePreset(id);
+                    setThemeTokens(PRESET_MAP[id]);
+                  }}
+                  onThemeChange={(patch) => setThemeTokens((t) => ({ ...t, ...patch }))}
+                />
+              </div>
+              <div className={wb.field}>
+                <label className={wb.label} htmlFor="wb-logo">
+                  Logo URL
+                </label>
+                <input
+                  id="wb-logo"
+                  className={wb.input}
+                  placeholder="https://…"
+                  value={logo}
+                  onChange={(e) => setLogo(e.target.value)}
+                />
+              </div>
+              {loadingSite ? <p className={wb.hint}>Loading site…</p> : null}
+              {sectionBlocks.map((block) => (
+                <div key={block.key} className={wb.field}>
+                  <label className={wb.label}>{block.name}</label>
+                  <input
+                    className={wb.input}
+                    placeholder="Headline"
+                    value={block.headline}
+                    onChange={(e) => updateBlock(block.key, "headline", e.target.value)}
+                  />
+                  <textarea
+                    className={wb.textarea}
+                    placeholder="Body text"
+                    rows={3}
+                    value={block.body}
+                    onChange={(e) => updateBlock(block.key, "body", e.target.value)}
+                    style={{ marginTop: "0.5rem" }}
+                  />
+                  <input
+                    className={wb.input}
+                    placeholder="Call to action"
+                    value={block.cta}
+                    onChange={(e) => updateBlock(block.key, "cta", e.target.value)}
+                    style={{ marginTop: "0.5rem" }}
+                  />
+                  <input
+                    className={wb.input}
+                    placeholder="Button link (#contact or section key)"
+                    value={block.ctaLink}
+                    onChange={(e) => updateBlock(block.key, "ctaLink", e.target.value)}
+                    style={{ marginTop: "0.5rem" }}
+                  />
+                  <SectionImageField
+                    websiteId={websiteId}
+                    sectionKey={block.key}
+                    imageUrl={block.imageUrl}
+                    onImageUrl={(url) => updateBlock(block.key, "imageUrl", url)}
+                    disabled={saving || loadingSite || generating}
+                  />
+                </div>
+              ))}
+
             {templatesUnavailable ? (
               <p className={wb.hint}>Templates could not be loaded. You can still create and edit sites.</p>
             ) : null}
@@ -428,69 +652,62 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
               </div>
             ) : null}
             {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
-            {siteMeta?.status === "PUBLISHED" ? (
+            {publicUrl ? (
               <div
-                className={wb.hint}
                 style={{
-                  padding: "0.75rem",
-                  border: "1px solid rgba(255,140,0,0.45)",
-                  borderRadius: 8,
-                  marginBottom: "0.5rem",
+                  padding: "1rem",
+                  border: "1px solid rgba(255,140,0,0.55)",
+                  borderRadius: 10,
+                  marginBottom: "0.75rem",
+                  background: "rgba(255,140,0,0.08)",
                 }}
               >
-                <strong>Deploy for FYP (free public URL)</strong>
-                <ol style={{ margin: "0.5rem 0 0", paddingLeft: "1.25rem" }}>
-                  <li>Click <strong>EXPORT ZIP (FREE HOSTING)</strong> below.</li>
-                  <li>Unzip the file on your PC.</li>
-                  <li>
-                    Open{" "}
-                    <a href="https://app.netlify.com/drop" target="_blank" rel="noreferrer">
-                      app.netlify.com/drop
-                    </a>{" "}
-                    and drag the unzipped folder in.
-                  </li>
-                  <li>Use the <code>https://….netlify.app</code> link anywhere (judges, report, phone data).</li>
-                </ol>
-                <p style={{ margin: "0.5rem 0 0", opacity: 0.9 }}>
-                  Also works on{" "}
-                  <a href="https://vercel.com/new" target="_blank" rel="noreferrer">
-                    Vercel
-                  </a>
-                  . See <code>DEPLOY.md</code> inside the ZIP. Re-export after you edit the site.
-                </p>
-              </div>
-            ) : null}
-            {publicUrl ? (
-              <p className={wb.hint} style={{ opacity: 0.85 }}>
-                <strong>Local preview</strong> (this PC only):{" "}
-                <a href={publicUrl} target="_blank" rel="noreferrer">
+                <div style={{ fontWeight: 700, marginBottom: "0.5rem" }}>Your site URL</div>
+                <a
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ wordBreak: "break-all", color: "#ff8c00", fontSize: "1.05rem" }}
+                >
                   {publicUrl}
                 </a>
-                {" — "}
-                for sharing outside your machine, use the ZIP export above.
-              </p>
-            ) : null}
-
-            {!isEditMode ? (
-              <button type="button" className={wb.btn} onClick={handleCreate} disabled={loading}>
-                {loading ? "CREATING…" : "CREATE WEBSITE"}
-              </button>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.65rem" }}>
+                  <button type="button" className={wb.btnGhost} onClick={() => void copyPublicUrl()}>
+                    Copy link
+                  </button>
+                  <a
+                    href={publicUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={wb.btnGhost}
+                    style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                  >
+                    Open site
+                  </a>
+                </div>
+                <p className={wb.hint} style={{ margin: "0.65rem 0 0", opacity: 0.9 }}>
+                  After you edit, click <strong>Save changes</strong> then <strong>Publish</strong> to update the live
+                  site.
+                </p>
+              </div>
             ) : (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                <button type="button" className={wb.btn} onClick={handleSave} disabled={saving || loadingSite}>
-                  {saving ? "SAVING…" : "SAVE"}
-                </button>
+              <p className={wb.hint}>
+                Click <strong>Publish</strong> when ready — you will get a shareable site link here.
+              </p>
+            )}
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.5rem" }}>
                 <button type="button" className={wb.btn} onClick={handlePublish} disabled={publishing || saving || loadingSite || exporting}>
                   {publishing ? "PUBLISHING…" : "PUBLISH"}
                 </button>
                 {siteMeta?.status === "PUBLISHED" ? (
                   <button
                     type="button"
-                    className={wb.btn}
+                    className={wb.btnGhost}
                     onClick={() => void handleExportZip()}
                     disabled={exporting || saving || loadingSite}
                   >
-                    {exporting ? "EXPORTING…" : "EXPORT ZIP (FREE HOSTING)"}
+                    {exporting ? "Exporting…" : "Download ZIP (optional)"}
                   </button>
                 ) : null}
                 {websiteId ? (
@@ -499,8 +716,9 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                   </Link>
                 ) : null}
               </div>
-            )}
-          </article>
+            </article>
+          ) : null}
+          </div>
 
           <article className={showPreview ? `${wb.previewPanel} ${wb.previewPanelLive}` : wb.previewShell}>
             {showPreview ? (
@@ -511,7 +729,8 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                 <div className={wb.previewFrame} style={{ background: "#fff" }}>
                   <WebsiteSectionsView
                     name={websiteName.trim() || "Website"}
-                    themeColor={themeColor}
+                    theme={websiteThemeSavePayload(themePreset, themeTokens)}
+                    themeColor={themeTokens.primaryColor}
                     logo={logo}
                     sections={previewSections}
                   />

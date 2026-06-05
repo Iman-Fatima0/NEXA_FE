@@ -12,7 +12,7 @@ export function PublicSiteView({ site, activePageKey }: PublicSiteViewProps) {
     activePageKey && site.pages && site.pages.length > 0
       ? site.pages.map((p) => ({
           key: p.key,
-          name: displaySectionName(p.name, p.key, p.key === site.pages![0]?.key),
+          name: displaySectionName(p.name, p.key),
           href: `/s/${encodeURIComponent(site.slug)}#${sectionAnchorId(p.key)}`,
         }))
       : undefined;

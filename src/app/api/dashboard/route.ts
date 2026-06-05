@@ -1,70 +1,101 @@
 /**
- * Browser calls `GET /api/dashboard` (credentials). Requires `nexa_session`.
- * When `NEXT_PUBLIC_BACKEND_API_BASE_URL` is set, proxies to your BE with `Authorization: Bearer` from `nexa_access_token` if present.
- * Response JSON is normalized in `lib/dashboard-normalize.ts` (projects, activity, optional user).
+ * Composes dashboard data from NestJS: GET /auth/me, GET /bots, GET /websites.
+ * There is no dedicated /dashboard endpoint on the backend.
  */
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { env } from "../../../config/env";
-import { normalizeDashboardPayload } from "../../../lib/dashboard-normalize";
-import type { DashboardPayload } from "../../../lib/dashboard-types";
-
-const SESSION_COOKIE = "nexa_session";
-
-function dashboardPath(): string {
-  const p = process.env.BACKEND_DASHBOARD_PATH?.trim();
-  if (p) {
-    return p.startsWith("/") ? p : `/${p}`;
-  }
-  return "/dashboard";
-}
-
-async function fetchFromBackend(): Promise<{ ok: true; payload: DashboardPayload } | { ok: false; status: number; detail: string }> {
-  const base = env.backendApiBaseUrl.trim();
-  if (!base) {
-    return { ok: false, status: 503, detail: "NEXT_PUBLIC_BACKEND_API_BASE_URL is not set." };
-  }
-  const jar = await cookies();
-  const token = jar.get("nexa_access_token")?.value;
-  const path = dashboardPath();
-  const url = `${base.replace(/\/+$/, "")}${path}`;
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      cache: "no-store",
-    });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
-    return { ok: false, status: 502, detail: msg };
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    const detail = text ? `${res.status} ${text.slice(0, 200)}` : `Upstream returned ${res.status}`;
-    const status = res.status === 401 || res.status === 403 ? res.status : 502;
-    return { ok: false, status, detail };
-  }
-  let raw: unknown;
-  try {
-    raw = await res.json();
-  } catch {
-    return { ok: false, status: 502, detail: "Upstream response was not JSON." };
-  }
-  const normalized = normalizeDashboardPayload(raw);
-  if (!normalized) {
-    return { ok: false, status: 502, detail: "Dashboard response shape was not recognized (need projects + activity arrays)." };
-  }
-  return { ok: true, payload: normalized };
-}
+import {
+  mapUserToDashboardUser,
+  normalizeBotsListResponse,
+  normalizeWebsitesListResponse,
+  parseNexaUser,
+} from "../../../lib/api/nestjs-normalize";
+import { pathAuthMe, pathUserBotsList, pathUserWebsitesList } from "../../../lib/api/upstream-paths";
+import type { DashboardActivity, DashboardPayload, DashboardProject } from "../../../lib/dashboard-types";
+import { ACCESS_COOKIE, SESSION_COOKIE } from "../../../lib/auth/session-cookie-names";
 
 function withMeta(payload: DashboardPayload, source: "api" | "pending"): DashboardPayload {
   return {
     ...payload,
     meta: { source, fetchedAt: new Date().toISOString() },
+  };
+}
+
+function projectsFromLists(
+  bots: ReturnType<typeof normalizeBotsListResponse>["bots"],
+  websites: ReturnType<typeof normalizeWebsitesListResponse>["websites"],
+): DashboardProject[] {
+  const botProjects: DashboardProject[] = bots.map((b) => ({
+    id: b.id,
+    type: "chatbot" as const,
+    name: b.name,
+    status: "active",
+    updatedAt: b.updatedAt ?? b.createdAt ?? new Date().toISOString(),
+    href: b.href,
+  }));
+  const siteProjects: DashboardProject[] = websites.map((w) => ({
+    id: w.id,
+    type: "website" as const,
+    name: w.name,
+    status: "active",
+    updatedAt: w.updatedAt ?? w.createdAt ?? new Date().toISOString(),
+    href: w.href,
+  }));
+  return [...siteProjects, ...botProjects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+function activityFromLists(
+  bots: ReturnType<typeof normalizeBotsListResponse>["bots"],
+  websites: ReturnType<typeof normalizeWebsitesListResponse>["websites"],
+): DashboardActivity[] {
+  const rows: DashboardActivity[] = [];
+  for (const w of websites.slice(0, 8)) {
+    rows.push({
+      id: `website-${w.id}`,
+      kind: "website.updated",
+      title: w.name,
+      detail: w.description,
+      createdAt: w.updatedAt ?? w.createdAt ?? new Date().toISOString(),
+    });
+  }
+  for (const b of bots.slice(0, 8)) {
+    rows.push({
+      id: `bot-${b.id}`,
+      kind: "chatbot.updated",
+      title: b.name,
+      detail: b.description,
+      createdAt: b.updatedAt ?? b.createdAt ?? new Date().toISOString(),
+    });
+  }
+  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 12);
+}
+
+async function composeFromNestJs(token: string): Promise<DashboardPayload | null> {
+  const base = env.backendApiBaseUrl.trim().replace(/\/+$/, "");
+  const headers = { Accept: "application/json", Authorization: `Bearer ${token}` };
+
+  const [meRes, botsRes, sitesRes] = await Promise.all([
+    fetch(`${base}${pathAuthMe()}`, { headers, cache: "no-store" }),
+    fetch(`${base}${pathUserBotsList()}`, { headers, cache: "no-store" }),
+    fetch(`${base}${pathUserWebsitesList()}`, { headers, cache: "no-store" }),
+  ]);
+
+  if (meRes.status === 401 || meRes.status === 403) {
+    return null;
+  }
+
+  const user = meRes.ok ? parseNexaUser(await meRes.json().catch(() => null)) : null;
+  const botsRaw = botsRes.ok ? await botsRes.json().catch(() => []) : [];
+  const sitesRaw = sitesRes.ok ? await sitesRes.json().catch(() => []) : [];
+
+  const { bots } = normalizeBotsListResponse(botsRaw);
+  const { websites } = normalizeWebsitesListResponse(sitesRaw);
+
+  return {
+    projects: projectsFromLists(bots, websites),
+    activity: activityFromLists(bots, websites),
+    ...(user ? { user: mapUserToDashboardUser(user) } : {}),
   };
 }
 
@@ -77,23 +108,31 @@ export async function GET() {
   const baseConfigured = Boolean(env.backendApiBaseUrl.trim());
 
   if (baseConfigured) {
-    const remote = await fetchFromBackend();
-    if (remote.ok) {
-      return NextResponse.json(withMeta(remote.payload, "api"), {
+    const token = jar.get(ACCESS_COOKIE)?.value;
+    if (!token) {
+      return NextResponse.json(
+        { error: "dashboard_upstream_failed", message: "Missing access token." },
+        { status: 401, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+    try {
+      const payload = await composeFromNestJs(token);
+      if (!payload) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.json(withMeta(payload, "api"), {
         headers: { "Cache-Control": "no-store, must-revalidate" },
       });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Network error";
+      return NextResponse.json(
+        { error: "dashboard_upstream_failed", message: msg },
+        { status: 502, headers: { "Cache-Control": "no-store" } },
+      );
     }
-    return NextResponse.json(
-      {
-        error: "dashboard_upstream_failed",
-        message: remote.detail,
-      },
-      { status: remote.status, headers: { "Cache-Control": "no-store" } },
-    );
   }
 
-  const empty: DashboardPayload = { projects: [], activity: [] };
-  return NextResponse.json(withMeta(empty, "pending"), {
+  return NextResponse.json(withMeta({ projects: [], activity: [] }, "pending"), {
     headers: { "Cache-Control": "no-store, must-revalidate" },
   });
 }

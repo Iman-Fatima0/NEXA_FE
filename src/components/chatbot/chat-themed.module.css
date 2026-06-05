@@ -1,0 +1,65 @@
+.themedRoot {
+  font-family: var(--nexa-font, system-ui), system-ui, sans-serif;
+  transition: background var(--nexa-anim-duration, 220ms) ease;
+}
+
+.themedFullPage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100dvh;
+  max-width: 100%;
+  border-radius: 0;
+}
+
+.themedFullPage :global(.chatDarkBody),
+.themedFullPage :global(.chatDarkBodyTall) {
+  flex: 1;
+  min-height: 0;
+}
+
+.headerSolid {
+  background: var(--nexa-primary);
+  color: var(--nexa-text);
+}
+
+.headerGradient {
+  background: linear-gradient(135deg, var(--nexa-primary) 0%, var(--nexa-secondary) 100%);
+  color: var(--nexa-text);
+}
+
+.headerGlass {
+  background: color-mix(in srgb, var(--nexa-primary) 40%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--nexa-text);
+}
+
+.themedBubble {
+  border-radius: var(--nexa-bubble-radius, 10px);
+  transition: border-radius var(--nexa-anim-duration, 220ms) ease;
+}
+
+.themedBubbleUser {
+  background: var(--nexa-primary) !important;
+  color: var(--nexa-text) !important;
+}
+
+.themedSend {
+  background: var(--nexa-primary) !important;
+  color: var(--nexa-text) !important;
+  border-color: color-mix(in srgb, var(--nexa-primary) 60%, transparent) !important;
+}
+
+.themedBranding {
+  text-align: center;
+  padding: 0.35rem;
+  font-size: 0.58rem;
+  color: #64748b;
+  background: #0f0f16;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.themedBrandingHidden {
+  display: none;
+}

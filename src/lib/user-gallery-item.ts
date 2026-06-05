@@ -13,6 +13,8 @@ export type UserGalleryItem = {
   href?: string;
   templateId?: string | null;
   themeColor?: string | null;
+  theme?: { preset: string; overrides?: Record<string, unknown> } | null;
+  themePreset?: string | null;
   logo?: string | null;
   sections?: unknown;
   status?: "DRAFT" | "PUBLISHED";
@@ -26,4 +28,6 @@ export type UserGalleryItem = {
   customDomainUrl?: string | null;
   /** Present after generate-content: gemini vs template fallback. */
   contentSource?: "gemini" | "template";
+  /** Internal bot used for document/URL knowledge (website builder). */
+  knowledgeBotId?: string | null;
 };

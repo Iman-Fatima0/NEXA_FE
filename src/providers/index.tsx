@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./entry-splash.module.css";
 
 const SPLASH_STORAGE_KEY = "nexa_entry_splash_done";
@@ -31,37 +31,57 @@ function markEntrySplashDone(): void {
   }
 }
 
-export function AppProviders({ children }: Readonly<AppProvidersProps>) {
-  const [showSplash, setShowSplash] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
+type SplashPhase = "idle" | "active" | "fading" | "off";
 
-  useLayoutEffect(() => {
+export function AppProviders({ children }: Readonly<AppProvidersProps>) {
+  /** Start idle so SSR and the first client render match (splash mounts only after hydration). */
+  const [splashPhase, setSplashPhase] = useState<SplashPhase>("idle");
+
+  useEffect(() => {
+    let active = true;
+
     if (shouldSkipEntrySplash()) {
-      setShowSplash(false);
-      return;
+      setSplashPhase("off");
+      return () => {
+        active = false;
+      };
     }
 
+    setSplashPhase("active");
+
     const fadeTimer = globalThis.setTimeout(() => {
-      setFadeOut(true);
+      if (active) setSplashPhase("fading");
     }, 2200);
 
     const removeTimer = globalThis.setTimeout(() => {
+      if (!active) return;
       markEntrySplashDone();
-      setShowSplash(false);
+      setSplashPhase("off");
     }, 2550);
 
     return () => {
+      active = false;
       globalThis.clearTimeout(fadeTimer);
       globalThis.clearTimeout(removeTimer);
     };
   }, []);
 
+  const showSplash = splashPhase === "active" || splashPhase === "fading";
+
   return (
     <>
       {children}
       {showSplash ? (
-        <div className={`${styles.splash} ${fadeOut ? styles.splashOut : ""}`} aria-label="Opening animation">
-          <img src="/assets/images/fireeye.gif" alt="" className={styles.fireEye} />
+        <div
+          className={`${styles.splash} ${splashPhase === "fading" ? styles.splashOut : ""}`}
+          aria-label="Opening animation"
+        >
+          <img
+            src="/assets/images/fireeye.gif"
+            alt=""
+            className={styles.fireEye}
+            suppressHydrationWarning
+          />
           <div className={styles.blackFade} />
         </div>
       ) : null}

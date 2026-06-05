@@ -1,10 +1,24 @@
-import { bffUserResourceGet, jsonNoStore } from "../../../../lib/api/bff-upstream-proxy";
+import { bffAuthenticated, jsonNoStore } from "../../../../lib/api/bff-upstream-proxy";
+import { normalizeBotsListResponse } from "../../../../lib/api/nestjs-normalize";
 import { pathUserBotsList } from "../../../../lib/api/upstream-paths";
 import type { UserBotsPayload } from "../../../../lib/user-bots-types";
 
-/** Live data: `GET {BACKEND}{BACKEND_USER_BOTS_PATH||/users/me/chatbots}`. */
 export async function GET() {
   const empty = () =>
     jsonNoStore({ bots: [] } satisfies UserBotsPayload, { headers: { "x-nexa-data": "no-backend" } });
-  return bffUserResourceGet(pathUserBotsList(), empty);
+
+  const upstream = await bffAuthenticated("GET", pathUserBotsList(), { emptyResponse: empty });
+  if (!upstream.ok) return upstream;
+  try {
+    const raw = await upstream.json();
+    return jsonNoStore(normalizeBotsListResponse(raw));
+  } catch {
+    return jsonNoStore({ bots: [] } satisfies UserBotsPayload);
+  }
+}
+
+/** NestJS: POST /bots — create bot for current user. */
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => ({}));
+  return bffAuthenticated("POST", pathUserBotsList(), { body });
 }

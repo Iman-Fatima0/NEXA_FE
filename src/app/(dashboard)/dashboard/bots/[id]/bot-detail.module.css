@@ -1,0 +1,480 @@
+.detailPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+}
+
+/* —— Services card (matches Active Services reference) —— */
+.servicesCard {
+  border-radius: 16px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.servicesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 1.1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.servicesTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.servicesDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.servicesDotLive {
+  background: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.75);
+}
+
+.servicesDotDraft {
+  background: #fbbf24;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.65);
+}
+
+.servicesTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+
+.servicesMeta {
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.85);
+}
+
+/* —— Table —— */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.tableGrid {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(9rem, 1.35fr) minmax(6.5rem, 1fr) minmax(5.5rem, 0.9fr) minmax(7rem, 1.1fr) minmax(5.5rem, 0.85fr);
+  min-width: 640px;
+  align-items: center;
+}
+
+.tableHead {
+  composes: tableGrid;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tableHead span:last-child {
+  text-align: right;
+}
+
+.tableRow {
+  composes: tableGrid;
+  position: relative;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(24, 24, 27, 0.55);
+  transition: background 180ms ease;
+}
+
+.tableRow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 38%;
+  pointer-events: none;
+  border-radius: 0;
+}
+
+.tableRowLive::after {
+  background: radial-gradient(ellipse 80% 120% at 100% 50%, rgba(74, 222, 128, 0.14) 0%, transparent 72%);
+}
+
+.tableRowDraft::after {
+  background: radial-gradient(ellipse 80% 120% at 100% 50%, rgba(251, 191, 36, 0.12) 0%, transparent 72%);
+}
+
+.tableRow:hover {
+  background: rgba(30, 30, 33, 0.75);
+}
+
+.rowNo {
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(100, 116, 139, 0.45);
+  letter-spacing: -0.03em;
+}
+
+.rowName {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.botAvatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.botAvatar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.nameStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.namePrimary {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nameSecondary {
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.cellText {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.cellMuted {
+  font-size: 0.82rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+/* —— Segmented meter (CPU-style) —— */
+.meterWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.meterBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+}
+
+.meterBar {
+  width: 5px;
+  border-radius: 2px;
+  background: rgba(51, 65, 85, 0.85);
+  transition: background 200ms ease, height 200ms ease;
+}
+
+.meterBarOn {
+  background: linear-gradient(180deg, #f1f5f9 0%, #cbd5e1 100%);
+  box-shadow: 0 0 6px rgba(241, 245, 249, 0.25);
+}
+
+.meterPct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 2.25rem;
+}
+
+/* —— Status pill —— */
+.statusCell {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+  background: transparent;
+}
+
+.statusActive {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.55);
+  box-shadow: 0 0 14px rgba(74, 222, 128, 0.2);
+}
+
+.statusPaused {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.55);
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.18);
+}
+
+.statusInactive {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.5);
+  box-shadow: 0 0 14px rgba(248, 113, 113, 0.15);
+}
+
+/* —— Scope / purpose sub-row —— */
+.scopeRow {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem 1rem;
+  background: rgba(15, 15, 18, 0.65);
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.scopeNo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(100, 116, 139, 0.35);
+  padding-top: 0.1rem;
+}
+
+.scopeBody {
+  min-width: 0;
+}
+
+.scopeLabel {
+  margin: 0 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.scopeText {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(226, 232, 240, 0.88);
+}
+
+/* —— Footer actions —— */
+.footerActions {
+  padding: 0 0.15rem;
+}
+
+.makeLiveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.9rem 1.25rem;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.08);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.12);
+  transition: background 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.makeLiveBtn:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.14);
+  box-shadow: 0 0 28px rgba(251, 191, 36, 0.2);
+}
+
+.makeLiveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.urlSection {
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.urlLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(100, 116, 139, 0.9);
+}
+
+.urlRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.urlValue {
+  flex: 1;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(15, 15, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  word-break: break-all;
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  padding: 0.6rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  background: rgba(74, 222, 128, 0.08);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4ade80;
+  cursor: pointer;
+}
+
+.copyBtn:hover {
+  background: rgba(74, 222, 128, 0.14);
+}
+
+/* —— Preview column —— */
+.previewPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.previewLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.previewBadge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  font-size: 0.58rem;
+  color: #4ade80;
+}
+
+.loadingCard {
+  border-radius: 16px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.25rem;
+}
+
+.loadingShimmer {
+  height: 3.5rem;
+  border-radius: 8px;
+  margin-bottom: 0.65rem;
+  background: linear-gradient(90deg, rgba(38, 38, 42, 0.8) 0%, rgba(55, 55, 60, 0.5) 50%, rgba(38, 38, 42, 0.8) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.errorBanner {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  font-size: 0.8rem;
+  color: #fecaca;
+}
+
+.keyModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.keyModal {
+  width: min(100%, 28rem);
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.keyModalTitle {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.keyModalHint {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+@media (max-width: 900px) {
+  .tableGrid {
+    min-width: 580px;
+  }
+}

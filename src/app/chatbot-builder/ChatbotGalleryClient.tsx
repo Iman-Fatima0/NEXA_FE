@@ -18,7 +18,7 @@ export default function ChatbotGalleryClient() {
       errorLoadMessage="Could not load bots."
       fetchItems={fetchItems}
       dashboardBackHref="/dashboard"
-      previewHref={(id) => `/dashboard/bots/${encodeURIComponent(id)}/preview`}
+      previewHref={(id) => `/dashboard/bots/${encodeURIComponent(id)}`}
       ctaHref={innovateChatbotEntry}
       ctaButtonText="Create your bot"
       ctaSectionAriaLabel="Create bot"

@@ -1,13 +1,15 @@
-/** Auth BFF: proxies login to backend when `NEXT_PUBLIC_BACKEND_API_BASE_URL` is set. */
+/** Auth BFF: proxies login/logout to NestJS when `NEXT_PUBLIC_BACKEND_API_BASE_URL` is set. */
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { env } from "../../../../config/env";
 import {
   applySessionCookies,
-  extractAccessTokenFromJson,
-  extractSessionIdFromJson,
+  clearAuthCookies,
   sanitizeLoginJsonForClient,
+  sessionCookiesFromAuthResponse,
 } from "../../../../lib/api/bff-upstream-proxy";
-import { ACCESS_COOKIE, SESSION_COOKIE } from "../../../../lib/auth/session-cookie-names";
+import { pathAuthLogout } from "../../../../lib/api/upstream-paths";
+import { REFRESH_COOKIE } from "../../../../lib/auth/session-cookie-names";
 
 type SessionBody = {
   email?: string;
@@ -55,13 +57,11 @@ export async function POST(request: Request) {
         parsed = JSON.parse(text);
       } catch {
         const res = NextResponse.json({ ok: true });
-        applySessionCookies(res, { accessToken: body?.accessToken, sessionValue: "1" });
+        applySessionCookies(res, { accessToken: body?.accessToken, sessionValue: "1", userEmail: body?.email });
         return res;
       }
-      const access = extractAccessTokenFromJson(parsed) ?? body?.accessToken?.trim();
-      const sessionVal = extractSessionIdFromJson(parsed);
       const res = NextResponse.json(sanitizeLoginJsonForClient(parsed));
-      applySessionCookies(res, { accessToken: access, sessionValue: sessionVal ?? "1" });
+      applySessionCookies(res, sessionCookiesFromAuthResponse(parsed, body?.email));
       return res;
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Network error";
@@ -70,13 +70,30 @@ export async function POST(request: Request) {
   }
 
   const res = NextResponse.json({ ok: true });
-  applySessionCookies(res, { accessToken: body?.accessToken?.trim(), sessionValue: "1" });
+  applySessionCookies(res, { accessToken: body?.accessToken?.trim(), sessionValue: "1", userEmail: body?.email });
   return res;
 }
 
 export async function DELETE() {
+  const base = env.backendApiBaseUrl.trim();
+  const jar = await cookies();
+  const refreshToken = jar.get(REFRESH_COOKIE)?.value;
+
+  if (base && refreshToken) {
+    const url = `${base.replace(/\/+$/, "")}${pathAuthLogout()}`;
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ refreshToken }),
+        cache: "no-store",
+      });
+    } catch {
+      /* still clear local session */
+    }
+  }
+
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(SESSION_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
-  res.cookies.set(ACCESS_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  clearAuthCookies(res);
   return res;
 }

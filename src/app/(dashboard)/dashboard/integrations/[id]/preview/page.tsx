@@ -10,7 +10,7 @@ export default async function IntegrationFullPreviewPage({ params }: PageProps) 
       itemId={id}
       entity="integration"
       backHref={dashboardIntegrationHub}
-      backLabel="← Integrations"
+      backAriaLabel="Back to integrations"
       entityNoun="integration"
     />
   );

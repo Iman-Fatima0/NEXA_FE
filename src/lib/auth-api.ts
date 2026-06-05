@@ -9,7 +9,7 @@ export function formString(fd: FormData, key: string): string {
 
 /**
  * Login HTTP helper. Override with NEXT_PUBLIC_NEXA_LOGIN_URL when your auth API exists.
- * Default `POST /api/auth/session` — proxies to `{NEXT_PUBLIC_BACKEND_API_BASE_URL}{BACKEND_AUTH_LOGIN_PATH||/auth/login}` when the base URL is set; otherwise sets a local dev session cookie only.
+ * Default `POST /api/auth/session` — proxies to NestJS `POST /auth/login` when `NEXT_PUBLIC_BACKEND_API_BASE_URL` is set.
  */
 
 export type LoginCredentials = {
@@ -59,13 +59,25 @@ export async function loginWithCredentials(credentials: LoginCredentials): Promi
 
 export async function readAuthErrorMessage(res: Response, fallback: string): Promise<string> {
   try {
-    const data = (await res.json()) as { error?: string; message?: string };
+    const data = (await res.json()) as { error?: string; message?: string | string[] };
     if (typeof data.error === "string" && data.error.trim()) return data.error.trim();
     if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
+    if (Array.isArray(data.message) && data.message.length) {
+      return data.message.join(" ");
+    }
   } catch {
     /* ignore */
   }
   return fallback;
+}
+
+export async function resendVerificationEmail(email: string): Promise<Response> {
+  return fetch(BFF_PATHS.authResendVerification, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
 }
 
 /** Clears session cookies then sends the browser to the home page. */

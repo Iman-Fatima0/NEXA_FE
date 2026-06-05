@@ -11,6 +11,8 @@ export type BackendWebsiteRow = {
   domain?: string | null;
   templateId?: string | null;
   themeColor?: string | null;
+  theme?: { preset: string; overrides?: Record<string, unknown> } | null;
+  themePreset?: string | null;
   logo?: string | null;
   sections?: unknown;
   status?: "DRAFT" | "PUBLISHED";
@@ -19,6 +21,7 @@ export type BackendWebsiteRow = {
   publicUrl?: string | null;
   customDomainUrl?: string | null;
   contentSource?: "gemini" | "template";
+  knowledgeBotId?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -57,9 +60,12 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
     domain: null,
     customDomainUrl: null,
     contentSource: row.contentSource,
+    knowledgeBotId: row.knowledgeBotId ?? null,
   };
   if (opts?.includeBuilder) {
     item.themeColor = row.themeColor;
+    item.theme = row.theme ?? null;
+    item.themePreset = row.themePreset ?? row.theme?.preset ?? null;
     item.logo = row.logo;
     item.sections = row.sections;
     item.domain = null;
