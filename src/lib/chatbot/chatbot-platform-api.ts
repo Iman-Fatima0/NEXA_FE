@@ -8,6 +8,7 @@ import {
   pickBotId,
 } from "./bot-parse";
 import { parseFriendlyBffError } from "./bff-user-errors";
+import { resolveBotDisplayName } from "./bot-display";
 import type {
   AnalyticsSummary,
   BotConfig,
@@ -54,28 +55,26 @@ export async function createPlatformBot(name: string): Promise<PlatformBot> {
   });
   await ensureOk(res, "Could not create your chatbot.", "train");
   const data = await res.json();
+  const requested = name.trim();
   const bot = parsePlatformBot(data);
   if (!bot) {
     const id = pickBotId(data);
     if (!id) throw new Error("Could not create your chatbot.");
-    return { id, name: name.trim(), status: "draft" };
+    return { id, name: resolveBotDisplayName(requested), status: "draft" };
   }
-  return bot;
+  return { ...bot, name: resolveBotDisplayName(requested, bot.name) };
 }
 
 export async function updatePlatformBot(
   botId: string,
   patch: { name?: string; description?: string | null; config?: BotConfig },
 ): Promise<void> {
+  /** NestJS PATCH /bots/:id — flat fields only (no nested `config`). */
   const body: Record<string, unknown> = {};
   if (patch.name !== undefined) body.name = patch.name;
   if (patch.description !== undefined) body.description = patch.description;
-  if (patch.config?.welcomeMessage !== undefined) {
-    body.welcomeMessage = patch.config.welcomeMessage;
-  }
-  if (patch.config?.primaryColor !== undefined) {
-    body.primaryColor = patch.config.primaryColor;
-  }
+  if (patch.config?.welcomeMessage !== undefined) body.welcomeMessage = patch.config.welcomeMessage;
+  if (patch.config?.primaryColor !== undefined) body.primaryColor = patch.config.primaryColor;
   const res = await fetch(BFF_PATHS.userBot(botId), {
     method: "PATCH",
     credentials: "same-origin",

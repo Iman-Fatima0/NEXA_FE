@@ -48,7 +48,7 @@ export async function createBot(name: string): Promise<NexaBotRecord> {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: name.trim() || "My First Bot" }),
+    body: JSON.stringify({ name: name.trim() || "My Chatbot" }),
   });
   await ensureOk(res, "Could not create chatbot.", "train");
   const data = (await res.json()) as unknown;

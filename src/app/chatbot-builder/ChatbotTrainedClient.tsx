@@ -1,41 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
-import { fetchPlatformBot } from "../../lib/chatbot/chatbot-platform-api";
-import { getActiveBotId, getActiveBotName, getBotTrainSummary } from "../../lib/chatbot/session-storage";
+import { useActivePlatformBot } from "../../lib/chatbot/use-active-platform-bot";
 
 type ChatbotTrainedClientProps = {
   backHref: string;
   saveHref: string;
 };
 
+function formatDate(iso?: string): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
 export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrainedClientProps) {
   const router = useRouter();
-  const summary = getBotTrainSummary();
-  const [botId, setBotId] = useState<string | null>(null);
-  const [botName, setBotName] = useState("Chatbot");
-  const [greeting, setGreeting] = useState("Hi! I'm your AI assistant. How can I help you today?");
-
-  useEffect(() => {
-    const id = getActiveBotId();
-    setBotId(id);
-    setBotName(summary?.name ?? getActiveBotName() ?? "Chatbot");
-    if (!id) return;
-    void (async () => {
-      try {
-        const bot = await fetchPlatformBot(id);
-        setBotName(bot.name);
-        if (bot.config?.welcomeMessage) setGreeting(bot.config.welcomeMessage);
-      } catch {
-        /* keep defaults */
-      }
-    })();
-  }, [summary?.name]);
+  const searchParams = useSearchParams();
+  const botIdFromUrl = useMemo(() => searchParams.get("botId"), [searchParams]);
+  const {
+    botId,
+    bot,
+    botName,
+    greeting,
+    purpose,
+    personalityLabel,
+    documentCount,
+    loading,
+    error,
+  } = useActivePlatformBot(botIdFromUrl);
 
   const publishHref = botId ? `/dashboard/bots/${encodeURIComponent(botId)}/publish` : saveHref;
 
@@ -60,26 +65,36 @@ export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrai
             <div className={wb.ctaBanner}>
               <h3 className={wb.ctaBannerTitle}>Training complete</h3>
               <p className={wb.ctaBannerText}>
-                {botName} is ready. Try the preview chat, run a full test, or publish when you are happy.
+                {loading ? "Loading your chatbot…" : `${botName} is ready. Try the preview chat, run a full test, or publish when you are happy.`}
               </p>
             </div>
-            <ul className={wb.kbHint} style={{ listStyle: "none", padding: 0, margin: "0.75rem 0 0" }}>
-              <li>
-                <strong>Personality:</strong> {summary?.personalityLabel ?? "—"}
-              </li>
-              <li>
-                <strong>Documents:</strong> {summary?.fileCount ?? 0}
-              </li>
-              <li>
-                <strong>Websites:</strong> {summary?.urlCount ?? 0}
-              </li>
-              {summary?.purpose ? (
-                <li style={{ marginTop: "0.35rem" }}>
-                  <strong>Helps with:</strong> {summary.purpose}
+            {error ? (
+              <p className={wb.trainError} role="alert">
+                {error}
+              </p>
+            ) : null}
+            {!loading && bot ? (
+              <ul className={wb.kbHint} style={{ listStyle: "none", padding: 0, margin: "0.75rem 0 0" }}>
+                <li>
+                  <strong>Name:</strong> {botName}
                 </li>
-              ) : null}
-            </ul>
-            {!botId ? (
+                <li>
+                  <strong>Personality:</strong> {personalityLabel ?? "—"}
+                </li>
+                <li>
+                  <strong>Documents:</strong> {documentCount ?? 0}
+                </li>
+                <li>
+                  <strong>Created:</strong> {formatDate(bot.createdAt)}
+                </li>
+                {purpose ? (
+                  <li style={{ marginTop: "0.35rem" }}>
+                    <strong>Helps with:</strong> {purpose}
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
+            {!loading && !botId ? (
               <p className={wb.trainError} style={{ marginTop: "0.75rem" }}>
                 Something went wrong — please train again from the builder.
               </p>
@@ -88,8 +103,10 @@ export default function ChatbotTrainedClient({ backHref, saveHref }: ChatbotTrai
 
           <article className={wb.panel}>
             <h2 className={wb.panelTitle}>Chatbot Preview</h2>
-            {botId ? (
-              <ChatPanel botId={botId} botName={botName} greeting={greeting} />
+            {loading ? (
+              <p className={wb.kbHint}>Loading preview…</p>
+            ) : botId ? (
+              <ChatPanel botId={botId} botName={botName} greeting={greeting} tall />
             ) : (
               <p className={wb.kbHint}>Preview unavailable — train your chatbot again to continue.</p>
             )}

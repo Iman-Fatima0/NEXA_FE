@@ -1,39 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
-import { fetchPlatformBot } from "../../lib/chatbot/chatbot-platform-api";
-import { getActiveBotId, getActiveBotName } from "../../lib/chatbot/session-storage";
+import { useActivePlatformBot } from "../../lib/chatbot/use-active-platform-bot";
 
 type ChatbotTestingClientProps = {
   hubBackHref: string;
 };
 
 export default function ChatbotTestingClient({ hubBackHref }: ChatbotTestingClientProps) {
-  const [botId, setBotId] = useState<string | null>(null);
-  const [botName, setBotName] = useState("Chatbot");
-  const [greeting, setGreeting] = useState("Hi! How can I help you today?");
+  const { botId, botName, greeting, loading, error } = useActivePlatformBot();
 
-  useEffect(() => {
-    const id = getActiveBotId();
-    setBotId(id);
-    setBotName(getActiveBotName() ?? "Chatbot");
-    if (!id) return;
-    void (async () => {
-      try {
-        const bot = await fetchPlatformBot(id);
-        setBotName(bot.name);
-        if (bot.config?.welcomeMessage) setGreeting(bot.config.welcomeMessage);
-      } catch {
-        /* keep defaults */
-      }
-    })();
-  }, []);
-
-  if (!botId) {
+  if (!loading && !botId) {
     return (
       <div className={wb.page}>
         <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
@@ -53,19 +33,23 @@ export default function ChatbotTestingClient({ hubBackHref }: ChatbotTestingClie
   return (
     <div className={wb.page}>
       <DashboardStyleBackNav href={hubBackHref} ariaLabel="Back" />
-      <div className={wb.topExtras}>
-        <Link
-          href={`/dashboard/bots/${encodeURIComponent(botId)}/edit`}
-          className={wb.topExtraPrimary}
-        >
-          Edit Chatbot
-        </Link>
-      </div>
+      {botId ? (
+        <div className={wb.topExtras}>
+          <Link href={`/dashboard/bots/${encodeURIComponent(botId)}/edit`} className={wb.topExtraPrimary}>
+            Edit Chatbot
+          </Link>
+        </div>
+      ) : null}
       <main className={`${wb.main} ${wb.mainToolbarSpace}`}>
         <article className={wb.panel}>
           <h2 className={wb.panelTitle}>Chatbot testing</h2>
-          <p className={wb.kbHint}>Live conversation with {botName}.</p>
-          <ChatPanel botId={botId} botName={botName} tall greeting={greeting} />
+          {error ? <p className={wb.trainError}>{error}</p> : null}
+          <p className={wb.kbHint}>
+            {loading ? "Loading chatbot…" : `Live conversation with ${botName}.`}
+          </p>
+          {botId && !loading ? (
+            <ChatPanel botId={botId} botName={botName} tall greeting={greeting} />
+          ) : null}
         </article>
       </main>
     </div>

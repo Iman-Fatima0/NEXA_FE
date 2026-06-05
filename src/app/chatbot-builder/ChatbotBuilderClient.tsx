@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useCallback, useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import wb from "../website-builder/website-builder.module.css";
 import {
@@ -17,7 +18,7 @@ import {
   presetById,
   type PersonalityPresetId,
 } from "../../lib/chatbot/personality-presets";
-import { setActiveBot, setBotTrainSummary } from "../../lib/chatbot/session-storage";
+import { clearChatSessionId, setActiveBot, setBotTrainSummary } from "../../lib/chatbot/session-storage";
 import { TRAIN_STEPS, type TrainStepId } from "../../lib/chatbot/train-steps";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
@@ -49,8 +50,13 @@ type ChatbotBuilderClientProps = Readonly<{
   hubBackHref: string;
 }>;
 
+type TrainedPreview = {
+  botId: string;
+  botName: string;
+  greeting: string;
+};
+
 export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClientProps) {
-  const router = useRouter();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +75,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
   const [training, setTraining] = useState(false);
   const [trainStatus, setTrainStatus] = useState<string | null>(null);
   const [trainError, setTrainError] = useState<string | null>(null);
+  const [trainedPreview, setTrainedPreview] = useState<TrainedPreview | null>(null);
 
   const addFiles = useCallback((list: FileList | File[]) => {
     setFiles((prev) => {
@@ -138,12 +145,16 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
     setTraining(true);
     setTrainError(null);
     setTrainStatus(statusLabel("creating"));
+    setTrainedPreview(null);
+    clearChatSessionId();
 
     try {
       const bot = await createPlatformBot(name);
 
+      const displayName = name.trim();
       setTrainStatus(statusLabel("saving_settings"));
       await updatePlatformBot(bot.id, {
+        name: displayName,
         description: buildBotDescription(purpose, presetId),
         config: {
           welcomeMessage: welcomeMessage.trim() || DEFAULT_WELCOME,
@@ -177,9 +188,9 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
       setTrainStatus(statusLabel("finalizing"));
 
       const preset = presetById(presetId);
-      setActiveBot(bot.id, bot.name);
+      setActiveBot(bot.id, displayName);
       setBotTrainSummary({
-        name: bot.name,
+        name: displayName,
         personalityLabel: preset.label,
         purpose: purpose.trim(),
         fileCount: docFiles.length + (hasText ? 1 : 0),
@@ -187,7 +198,10 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
         createdAt: new Date().toISOString(),
       });
 
-      router.push("/chatbot-builder/trained");
+      const greeting = welcomeMessage.trim() || DEFAULT_WELCOME;
+      setTrainedPreview({ botId: bot.id, botName: displayName, greeting });
+      setTraining(false);
+      setTrainStatus(null);
     } catch (e) {
       setTrainError(e instanceof Error ? e.message : "Training could not be completed. Please try again.");
       setTraining(false);
@@ -441,15 +455,32 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
             </article>
           </div>
 
-          <article className={wb.previewShell}>
-            <img className={wb.previewGif} src={PREVIEW_WAIT_GIF} alt="" width={800} height={600} decoding="async" />
-            <div className={wb.previewScrim} aria-hidden />
-            <div className={wb.previewMessage}>
-              <h3 className={wb.previewHeading}>
-                {training ? "Training your chatbot…" : "Your chatbot will appear here after training"}
-              </h3>
-            </div>
-          </article>
+          {trainedPreview ? (
+            <article className={wb.previewPanel}>
+              <div className={wb.previewHeader}>
+                <span>Chatbot preview</span>
+                <Link href="/chatbot-testing" className={wb.previewMeta}>
+                  Full test →
+                </Link>
+              </div>
+              <ChatPanel
+                botId={trainedPreview.botId}
+                botName={trainedPreview.botName}
+                greeting={trainedPreview.greeting}
+                tall
+              />
+            </article>
+          ) : (
+            <article className={wb.previewShell}>
+              <img className={wb.previewGif} src={PREVIEW_WAIT_GIF} alt="" width={800} height={600} decoding="async" />
+              <div className={wb.previewScrim} aria-hidden />
+              <div className={wb.previewMessage}>
+                <h3 className={wb.previewHeading}>
+                  {training ? "Training your chatbot…" : "Your chatbot will appear here after training"}
+                </h3>
+              </div>
+            </article>
+          )}
         </section>
       </main>
     </div>

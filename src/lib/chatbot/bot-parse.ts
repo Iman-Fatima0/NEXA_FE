@@ -32,6 +32,20 @@ export function parseBotConfig(raw: unknown): BotConfig | undefined {
   return Object.keys(cfg).length ? cfg : undefined;
 }
 
+function mergeBotConfig(inner: Record<string, unknown>): BotConfig | undefined {
+  const fromNested = parseBotConfig(inner.config);
+  const fromRoot = parseBotConfig({
+    welcomeMessage: inner.welcomeMessage,
+    primaryColor: inner.primaryColor,
+    personalityPreset: inner.personalityPreset,
+  });
+  const fromSnapshot =
+    inner.configSnapshot && typeof inner.configSnapshot === "object"
+      ? parseBotConfig((inner.configSnapshot as Record<string, unknown>).theme)
+      : undefined;
+  return { ...fromSnapshot, ...fromRoot, ...fromNested };
+}
+
 export function parsePlatformBot(raw: unknown): PlatformBot | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -51,11 +65,7 @@ export function parsePlatformBot(raw: unknown): PlatformBot | null {
     documentCount = num(c.documents);
   }
 
-  let config = parseBotConfig(inner.config);
-  if (!config && inner.configSnapshot && typeof inner.configSnapshot === "object") {
-    const snap = inner.configSnapshot as Record<string, unknown>;
-    config = parseBotConfig(snap.theme);
-  }
+  const config = mergeBotConfig(inner);
 
   return {
     id,

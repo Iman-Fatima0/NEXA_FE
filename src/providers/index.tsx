@@ -31,23 +31,27 @@ function markEntrySplashDone(): void {
   }
 }
 
+type SplashPhase = "idle" | "active" | "fading" | "off";
+
 export function AppProviders({ children }: Readonly<AppProvidersProps>) {
-  const [showSplash, setShowSplash] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
+  /** Start idle so SSR and the first client render match (splash mounts only after hydration). */
+  const [splashPhase, setSplashPhase] = useState<SplashPhase>("idle");
 
   useLayoutEffect(() => {
     if (shouldSkipEntrySplash()) {
-      setShowSplash(false);
+      setSplashPhase("off");
       return;
     }
 
+    setSplashPhase("active");
+
     const fadeTimer = globalThis.setTimeout(() => {
-      setFadeOut(true);
+      setSplashPhase("fading");
     }, 2200);
 
     const removeTimer = globalThis.setTimeout(() => {
       markEntrySplashDone();
-      setShowSplash(false);
+      setSplashPhase("off");
     }, 2550);
 
     return () => {
@@ -56,12 +60,22 @@ export function AppProviders({ children }: Readonly<AppProvidersProps>) {
     };
   }, []);
 
+  const showSplash = splashPhase === "active" || splashPhase === "fading";
+
   return (
     <>
       {children}
       {showSplash ? (
-        <div className={`${styles.splash} ${fadeOut ? styles.splashOut : ""}`} aria-label="Opening animation">
-          <img src="/assets/images/fireeye.gif" alt="" className={styles.fireEye} />
+        <div
+          className={`${styles.splash} ${splashPhase === "fading" ? styles.splashOut : ""}`}
+          aria-label="Opening animation"
+        >
+          <img
+            src="/assets/images/fireeye.gif"
+            alt=""
+            className={styles.fireEye}
+            suppressHydrationWarning
+          />
           <div className={styles.blackFade} />
         </div>
       ) : null}

@@ -2,14 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import wb from "../../app/website-builder/website-builder.module.css";
-import plat from "./chatbot-platform.module.css";
 import {
   fetchChatHistory,
   sendChatMessage,
   startChatSession,
   type ChatHistoryMessage,
 } from "../../lib/chatbot/chatbot-builder-api";
-import { clearChatSessionId, getChatSessionId, setChatSessionId } from "../../lib/chatbot/session-storage";
+import {
+  clearChatSessionId,
+  getChatSessionBotId,
+  getChatSessionId,
+  setChatSessionId,
+} from "../../lib/chatbot/session-storage";
 
 export type ChatUiMessage = {
   id: string;
@@ -58,10 +62,12 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
       setError(null);
       try {
         let sid = getChatSessionId();
-        if (!sid) {
+        const sessionBotId = getChatSessionBotId();
+        if (!sid || sessionBotId !== botId) {
+          clearChatSessionId();
           const started = await startChatSession(botId);
           sid = started.sessionId;
-          setChatSessionId(sid);
+          setChatSessionId(sid, botId);
         }
         if (cancelled) return;
         setSessionId(sid);
@@ -124,7 +130,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
     void (async () => {
       try {
         const started = await startChatSession(botId);
-        setChatSessionId(started.sessionId);
+        setChatSessionId(started.sessionId, botId);
         setSessionId(started.sessionId);
         if (greeting) {
           setMessages([{ id: "greeting", role: "assistant", content: greeting }]);
@@ -157,7 +163,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
           {lastFailedText ? (
             <button
               type="button"
-              className={plat.btnSecondary}
+              className={wb.chatRetryBtn}
               style={{ marginTop: "0.5rem" }}
               onClick={() => {
                 setInput(lastFailedText);
@@ -170,7 +176,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
           ) : (
             <button
               type="button"
-              className={plat.btnSecondary}
+              className={wb.chatRetryBtn}
               style={{ marginTop: "0.5rem" }}
               onClick={restartSession}
             >
@@ -197,7 +203,7 @@ export function ChatPanel({ botId, botName, tall = false, greeting }: ChatPanelP
               </div>
             ))}
             {sending ? (
-              <div className={plat.typingDots} aria-label="Assistant is typing">
+              <div className={wb.typingDots} aria-label="Assistant is typing">
                 <span />
                 <span />
                 <span />
