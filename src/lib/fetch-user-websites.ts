@@ -25,6 +25,18 @@ export type UpdateWebsiteBuilderPayload = {
   sections?: Record<string, unknown> | null;
 };
 
+export async function uploadWebsiteSectionImage(
+  websiteId: string,
+  file: File,
+): Promise<{ url: string }> {
+  const fd = new FormData();
+  fd.append("file", file);
+  return bffJson<{ url: string }>(
+    `/api/user/websites/${encodeURIComponent(websiteId)}/section-image`,
+    { method: "POST", body: fd },
+  );
+}
+
 export async function updateUserWebsiteBuilder(id: string, payload: UpdateWebsiteBuilderPayload): Promise<UserWebsite> {
   const row = await bffJson<BackendWebsiteRow>(BFF_PATHS.userWebsite(id), {
     method: "PUT",

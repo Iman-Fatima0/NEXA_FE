@@ -48,6 +48,10 @@ export function pathUserWebsiteExportZip(id: string): string {
   return `/websites/${encodeURIComponent(id)}/export-zip`;
 }
 
+export function pathUserWebsiteSectionImage(id: string): string {
+  return `/websites/${encodeURIComponent(id)}/section-image`;
+}
+
 export function pathUserBotsList(): string {
   return process.env.BACKEND_USER_BOTS_PATH?.trim() || "/users/me/chatbots";
 }

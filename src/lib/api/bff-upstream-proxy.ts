@@ -137,6 +137,59 @@ export async function bffUserResourcePost(
   return bffUserResourceWrite("POST", upstreamPath, body, emptyResponse, transform);
 }
 
+/** Forward multipart FormData to the Nest API (e.g. section image upload). */
+export async function bffUserResourceMultipartPost(
+  upstreamPath: string,
+  formData: FormData,
+  emptyResponse: () => NextResponse,
+  transform?: (parsed: unknown) => unknown,
+): Promise<NextResponse> {
+  const jar = await cookies();
+  if (!jar.get(SESSION_COOKIE)?.value) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const base = env.backendApiBaseUrl.trim();
+  if (!base) {
+    return emptyResponse();
+  }
+  const token = jar.get(ACCESS_COOKIE)?.value;
+  const url = `${base.replace(/\/+$/, "")}${upstreamPath.startsWith("/") ? upstreamPath : `/${upstreamPath}`}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+      cache: "no-store",
+    });
+    const text = await res.text();
+    if (res.status < 200 || res.status >= 300) {
+      return jsonErrorFromUpstream(text, res.status);
+    }
+    if (!transform) {
+      return new NextResponse(text, {
+        status: res.status,
+        headers: {
+          "content-type": res.headers.get("content-type") || "application/json",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return jsonErrorFromUpstream(text, res.status);
+    }
+    return jsonNoStore(transform(parsed), { status: res.status });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Network error";
+    return NextResponse.json({ message: msg }, { status: 502 });
+  }
+}
+
 export async function bffUserResourcePut(
   upstreamPath: string,
   body: unknown,

@@ -1,6 +1,7 @@
 import type { UserGalleryItem } from "../user-gallery-item";
 import type { UserWebsite } from "../user-websites-types";
 import type { UserWebsitesPayload } from "../user-websites-types";
+import { resolveSitePublicOrigin } from "../site-public-base.server";
 import { resolveWebsitePublicUrl } from "../website-public-url";
 
 /** Raw website row from Nest `GET /websites` or `GET /websites/:id`. */
@@ -17,6 +18,7 @@ export type BackendWebsiteRow = {
   publishedAt?: string | null;
   publicUrl?: string | null;
   customDomainUrl?: string | null;
+  contentSource?: "gemini" | "template";
   createdAt?: string;
   updatedAt?: string;
 };
@@ -30,13 +32,12 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
   if (row.templateId) {
     description = `Template: ${row.templateId}`;
   }
-  if (row.domain?.trim()) {
-    description = description ? `${description} · ${row.domain.trim()}` : row.domain.trim();
-  }
+  const shareOrigin = resolveSitePublicOrigin();
   const publicUrl = resolveWebsitePublicUrl({
     publicUrl: row.publicUrl,
     slug: row.slug,
     status: row.status,
+    originOverride: shareOrigin,
   });
   if (publicUrl) {
     description = description ? `${description} · Live` : "Live";
@@ -53,14 +54,15 @@ export function mapBackendWebsiteToGalleryItem(row: BackendWebsiteRow, opts?: { 
     publishedAt:
       typeof row.publishedAt === "string" ? row.publishedAt : row.publishedAt != null ? String(row.publishedAt) : null,
     publicUrl,
-    domain: row.domain ?? null,
-    customDomainUrl: row.customDomainUrl ?? null,
+    domain: null,
+    customDomainUrl: null,
+    contentSource: row.contentSource,
   };
   if (opts?.includeBuilder) {
     item.themeColor = row.themeColor;
     item.logo = row.logo;
     item.sections = row.sections;
-    item.domain = row.domain ?? null;
+    item.domain = null;
   }
   return item;
 }

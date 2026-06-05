@@ -24,4 +24,6 @@ export type UserGalleryItem = {
   domain?: string | null;
   /** https://{domain} when published with a custom domain. */
   customDomainUrl?: string | null;
+  /** Present after generate-content: gemini vs template fallback. */
+  contentSource?: "gemini" | "template";
 };

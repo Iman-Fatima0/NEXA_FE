@@ -119,8 +119,10 @@ export default function KeycapPreviewFullClient({ itemId, entity, backHref, back
           />
         ) : null}
         {!error && item && !previewUrl && !previewHtml && hasSections ? (
-          <div className={full.iframe} style={{ overflow: "auto", background: "#fff" }}>
-            <WebsiteSectionsView name={item.name} themeColor={item.themeColor} logo={item.logo} sections={item.sections} />
+          <div className={full.frameScroll}>
+            <div className={full.sitePreview}>
+              <WebsiteSectionsView name={item.name} themeColor={item.themeColor} logo={item.logo} sections={item.sections} />
+            </div>
           </div>
         ) : null}
         {!error && item && !previewUrl && !previewHtml && !hasSections ? (

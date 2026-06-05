@@ -24,12 +24,15 @@ import {
   WebsiteSectionsView,
   type WebsiteSectionBlock,
 } from "../../lib/website-sections";
+import { sectionAnchorId } from "../../lib/website-section-links";
+import { SectionImageField } from "../../components/website-builder/SectionImageField";
+import { ThemeColorSlider } from "../../components/website-builder/ThemeColorSlider";
 import type { UserWebsite } from "../../lib/user-websites-types";
 import wb from "./website-builder.module.css";
 
 const PLACEHOLDER_NAME = "My Awesome Website";
 const PLACEHOLDER_PROMPT =
-  "Example: Create a modern landing page for my coffee shop with a menu section, about us page, and contact form. Use warm colors and include images of coffee.";
+  "Example: Create a modern landing page for my coffee shop with a menu section, about us page, and contact form. Use warm colors.";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 
@@ -51,7 +54,6 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [description, setDescription] = useState("");
   const [themeColor, setThemeColor] = useState("#2563eb");
   const [logo, setLogo] = useState("");
-  const [customDomain, setCustomDomain] = useState("");
   const [sectionBlocks, setSectionBlocks] = useState<WebsiteSectionBlock[]>([]);
   const [siteMeta, setSiteMeta] = useState<UserWebsite | null>(null);
 
@@ -65,8 +67,18 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [loadFailed, setLoadFailed] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [templatesUnavailable, setTemplatesUnavailable] = useState(false);
+  const [shareOrigin, setShareOrigin] = useState<string | null>(null);
 
   const isEditMode = websiteId.length > 0;
+
+  useEffect(() => {
+    void fetch("/api/config/site-public-base", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { origin?: string } | null) => {
+        if (data?.origin) setShareOrigin(data.origin);
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     const fromQuery = readTemplateIdFromSearch(globalThis.window?.location.search ?? "");
@@ -81,7 +93,6 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     setWebsiteName(site.name);
     setThemeColor(site.themeColor?.trim() || "#2563eb");
     setLogo(site.logo?.trim() || "");
-    setCustomDomain(site.domain?.trim() || "");
     const parsed = parseWebsiteSections(site.sections);
     setSectionBlocks(parsed.blocks);
     setDescription(parsed.metaDescription || "");
@@ -125,8 +136,9 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
         publicUrl: siteMeta?.publicUrl,
         slug: siteMeta?.slug,
         status: siteMeta?.status,
+        originOverride: shareOrigin,
       }),
-    [siteMeta?.publicUrl, siteMeta?.slug, siteMeta?.status],
+    [siteMeta?.publicUrl, siteMeta?.slug, siteMeta?.status, shareOrigin],
   );
 
   const handleCreate = async () => {
@@ -155,7 +167,6 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     if (!websiteId) return null;
     return updateUserWebsiteBuilder(websiteId, {
       title: websiteName.trim() || undefined,
-      domain: customDomain.trim() || null,
       themeColor: themeColor.trim() || null,
       logo: logo.trim() || null,
       sections: sectionsToRecord(sectionBlocks, description.trim() || undefined),
@@ -197,7 +208,11 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       const updated = await generateUserWebsiteContent(websiteId, { prompt });
       applySiteToEditor(updated);
-      setStatusMessage("AI content applied. Review and save.");
+      setStatusMessage(
+        updated.contentSource === "template"
+          ? "Gemini rate limit reached — basic template copy applied instead. Wait a few minutes or check quotas in Google AI Studio, then try again."
+          : "AI content applied. Review and save.",
+      );
     } catch (e) {
       setError(formatErr(e));
     } finally {
@@ -212,7 +227,9 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     try {
       await persistBuilder();
       await downloadWebsiteExportZip(websiteId);
-      setStatusMessage("Export downloaded. Upload the ZIP to Vercel or S3 (see DEPLOY.md inside).");
+      setStatusMessage(
+        "ZIP downloaded. Unzip → open app.netlify.com/drop → drag folder in → copy your https://….netlify.app link (see DEPLOY.md in ZIP).",
+      );
     } catch (e) {
       setError(formatErr(e));
     } finally {
@@ -237,7 +254,14 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
     }
   };
 
-  const updateBlock = (key: string, field: keyof Pick<WebsiteSectionBlock, "headline" | "body" | "cta">, value: string) => {
+  const updateBlock = (
+    key: string,
+    field: keyof Pick<
+      WebsiteSectionBlock,
+      "headline" | "body" | "cta" | "ctaLink" | "imageUrl"
+    >,
+    value: string,
+  ) => {
     setSectionBlocks((prev) => prev.map((b) => (b.key === key ? { ...b, [field]: value } : b)));
   };
 
@@ -312,29 +336,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                   <label className={wb.label} htmlFor="wb-theme">
                     Theme color
                   </label>
-                  <input
-                    id="wb-theme"
-                    className={wb.input}
-                    type="color"
-                    value={themeColor}
-                    onChange={(e) => setThemeColor(e.target.value)}
-                  />
-                </div>
-                <div className={wb.field}>
-                  <label className={wb.label} htmlFor="wb-domain">
-                    Custom domain
-                  </label>
-                  <input
-                    id="wb-domain"
-                    className={wb.input}
-                    placeholder="shop.example.com"
-                    value={customDomain}
-                    onChange={(e) => setCustomDomain(e.target.value)}
-                  />
-                  <p className={wb.hint}>
-                    Point your DNS A/CNAME to this app, then publish. Visitors can use https://your-domain (local dev:
-                    add host to hosts file).
-                  </p>
+                  <ThemeColorSlider id="wb-theme" value={themeColor} onChange={setThemeColor} />
                 </div>
                 <div className={wb.field}>
                   <label className={wb.label} htmlFor="wb-logo">
@@ -372,6 +374,20 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                       value={block.cta}
                       onChange={(e) => updateBlock(block.key, "cta", e.target.value)}
                       style={{ marginTop: "0.5rem" }}
+                    />
+                    <input
+                      className={wb.input}
+                      placeholder="Button link (#contact or section key)"
+                      value={block.ctaLink}
+                      onChange={(e) => updateBlock(block.key, "ctaLink", e.target.value)}
+                      style={{ marginTop: "0.5rem" }}
+                    />
+                    <SectionImageField
+                      websiteId={websiteId}
+                      sectionKey={block.key}
+                      imageUrl={block.imageUrl}
+                      onImageUrl={(url) => updateBlock(block.key, "imageUrl", url)}
+                      disabled={saving || loadingSite || generating}
                     />
                   </div>
                 ))}
@@ -412,29 +428,46 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
               </div>
             ) : null}
             {statusMessage ? <p className={wb.hint}>{statusMessage}</p> : null}
-            {siteMeta?.customDomainUrl ? (
-              <p className={wb.hint}>
-                Custom domain:{" "}
-                <a href={siteMeta.customDomainUrl} target="_blank" rel="noreferrer">
-                  {siteMeta.customDomainUrl}
-                </a>
-              </p>
+            {siteMeta?.status === "PUBLISHED" ? (
+              <div
+                className={wb.hint}
+                style={{
+                  padding: "0.75rem",
+                  border: "1px solid rgba(255,140,0,0.45)",
+                  borderRadius: 8,
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>Deploy for FYP (free public URL)</strong>
+                <ol style={{ margin: "0.5rem 0 0", paddingLeft: "1.25rem" }}>
+                  <li>Click <strong>EXPORT ZIP (FREE HOSTING)</strong> below.</li>
+                  <li>Unzip the file on your PC.</li>
+                  <li>
+                    Open{" "}
+                    <a href="https://app.netlify.com/drop" target="_blank" rel="noreferrer">
+                      app.netlify.com/drop
+                    </a>{" "}
+                    and drag the unzipped folder in.
+                  </li>
+                  <li>Use the <code>https://….netlify.app</code> link anywhere (judges, report, phone data).</li>
+                </ol>
+                <p style={{ margin: "0.5rem 0 0", opacity: 0.9 }}>
+                  Also works on{" "}
+                  <a href="https://vercel.com/new" target="_blank" rel="noreferrer">
+                    Vercel
+                  </a>
+                  . See <code>DEPLOY.md</code> inside the ZIP. Re-export after you edit the site.
+                </p>
+              </div>
             ) : null}
             {publicUrl ? (
-              <p className={wb.hint}>
-                Live at{" "}
+              <p className={wb.hint} style={{ opacity: 0.85 }}>
+                <strong>Local preview</strong> (this PC only):{" "}
                 <a href={publicUrl} target="_blank" rel="noreferrer">
                   {publicUrl}
                 </a>
-                {" · "}
-                <button
-                  type="button"
-                  className={wb.btn}
-                  style={{ display: "inline", padding: "0.15rem 0.5rem", fontSize: "0.75rem" }}
-                  onClick={() => void navigator.clipboard?.writeText(publicUrl)}
-                >
-                  Copy link
-                </button>
+                {" — "}
+                for sharing outside your machine, use the ZIP export above.
               </p>
             ) : null}
 
@@ -457,7 +490,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
                     onClick={() => void handleExportZip()}
                     disabled={exporting || saving || loadingSite}
                   >
-                    {exporting ? "EXPORTING…" : "EXPORT ZIP (VERCEL/S3)"}
+                    {exporting ? "EXPORTING…" : "EXPORT ZIP (FREE HOSTING)"}
                   </button>
                 ) : null}
                 {websiteId ? (
@@ -469,13 +502,13 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
             )}
           </article>
 
-          <article className={showPreview ? wb.previewPanel : wb.previewShell}>
+          <article className={showPreview ? `${wb.previewPanel} ${wb.previewPanelLive}` : wb.previewShell}>
             {showPreview ? (
               <>
                 <div className={wb.previewHeader}>
                   <span>Website preview</span>
                 </div>
-                <div className={wb.previewFrame} style={{ background: "#fff", overflow: "auto" }}>
+                <div className={wb.previewFrame} style={{ background: "#fff" }}>
                   <WebsiteSectionsView
                     name={websiteName.trim() || "Website"}
                     themeColor={themeColor}

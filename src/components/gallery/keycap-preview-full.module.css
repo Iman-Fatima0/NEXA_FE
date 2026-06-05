@@ -72,6 +72,19 @@
   background: #fff;
 }
 
+/* Inline website HTML preview — height follows content (no gap below footer). */
+.frameScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #0a0a0a;
+}
+
+.sitePreview {
+  width: 100%;
+  background: #fff;
+}
+
 .fallback {
   position: absolute;
   inset: 0;

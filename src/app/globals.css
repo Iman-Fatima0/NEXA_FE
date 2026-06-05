@@ -33,6 +33,12 @@ body {
   background: #f3f4f8;
 }
 
+/* Published sites (`/s/...`) end at the footer — no extra viewport gap below. */
+body:has(main.nexa-site-page-root) {
+  min-height: 0;
+  background: #f8fafc;
+}
+
 a {
   color: inherit;
 }

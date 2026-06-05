@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { UserGalleryItem } from "../../lib/user-gallery-item";
+import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import DashboardStyleBackNav from "./DashboardStyleBackNav";
 import tiles from "./keycap-tiles.module.css";
 
@@ -163,16 +164,38 @@ export default function KeycapTilesGalleryClient({
                   <div className={tiles.keycapTop}>
                     <KeyEntityIcon entity={entity} className={tiles.keycapIcon} />
                     <p className={tiles.keycapLabel}>{w.name}</p>
-                    {entity === "website" && w.publicUrl ? (
-                      <a
-                        href={w.publicUrl}
-                        style={{ fontSize: "0.62rem", letterSpacing: "0.04em", opacity: 0.9, marginTop: 2 }}
-                        onClick={(e) => e.stopPropagation()}
-                        target="_blank"
-                        rel="noreferrer"
+                    {entity === "website" && w.status === "PUBLISHED" && w.slug ? (
+                      <span
+                        role="link"
+                        tabIndex={0}
+                        style={{ fontSize: "0.62rem", letterSpacing: "0.04em", opacity: 0.9, marginTop: 2, cursor: "pointer", textDecoration: "underline" }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const live =
+                            resolveWebsitePublicUrl({
+                              publicUrl: w.publicUrl,
+                              slug: w.slug,
+                              status: w.status,
+                            }) ?? w.publicUrl;
+                          if (live) globalThis.open(live, "_blank", "noopener,noreferrer");
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const live =
+                              resolveWebsitePublicUrl({
+                                publicUrl: w.publicUrl,
+                                slug: w.slug,
+                                status: w.status,
+                              }) ?? w.publicUrl;
+                            if (live) globalThis.open(live, "_blank", "noopener,noreferrer");
+                          }
+                        }}
                       >
                         Live →
-                      </a>
+                      </span>
                     ) : null}
                   </div>
                 </div>
