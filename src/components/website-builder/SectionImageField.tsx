@@ -33,10 +33,15 @@ export function SectionImageField({
       setLocalError("Please choose an image file.");
       return;
     }
+    const named =
+      file.name?.trim() ||
+      `pasted-image.${file.type === "image/jpeg" ? "jpg" : file.type.replace("image/", "") || "png"}`;
+    const uploadable =
+      file.name?.trim() ? file : new File([file], named, { type: file.type });
     setLocalError(null);
     setUploading(true);
     try {
-      const { url } = await uploadWebsiteSectionImage(websiteId, file);
+      const { url } = await uploadWebsiteSectionImage(websiteId, uploadable);
       onImageUrl(url);
     } catch (e) {
       setLocalError(formatUploadErr(e));

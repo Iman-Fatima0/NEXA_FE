@@ -136,14 +136,9 @@ function CtaButton({
   return (
     <a
       href={href}
+      className="nexa-ws-cta"
       style={btnStyle(accent)}
       {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-1px)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "none";
-      }}
     >
       {label}
     </a>
@@ -200,6 +195,9 @@ export function WebsiteSectionsView({
       }}
     >
       <style>{`
+        .nexa-ws-cta:hover {
+          transform: translateY(-1px);
+        }
         @media (max-width: 720px) {
           .nexa-ws-grid { grid-template-columns: 1fr !important; }
           .nexa-ws-grid > div { order: unset !important; }
