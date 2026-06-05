@@ -70,6 +70,33 @@
   margin-bottom: 2.75rem;
 }
 
+.tileWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.tileDelete {
+  margin: 0;
+  padding: 0.28rem 0.65rem;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 999px;
+  background: rgba(127, 29, 29, 0.35);
+  color: #fecaca;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tileDelete:hover {
+  background: rgba(185, 28, 28, 0.55);
+  color: #fff;
+}
+
 .tile {
   display: flex;
   flex-direction: column;

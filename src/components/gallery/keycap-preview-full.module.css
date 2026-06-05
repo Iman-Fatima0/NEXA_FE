@@ -38,6 +38,44 @@
   flex-shrink: 0;
 }
 
+.barActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.barBtn {
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.6);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.barBtn:hover {
+  background: rgba(51, 65, 85, 0.85);
+}
+
+.barBtnDanger {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.45);
+  color: #fecaca;
+}
+
+.barBtnDanger:hover {
+  background: rgba(185, 28, 28, 0.65);
+  color: #fff;
+}
+
 .frame {
   flex: 1;
   min-height: 0;

@@ -189,9 +189,9 @@ export function pathPublicChatHistory(sessionId: string, publicSlug: string): st
   return `${base}?publicSlug=${encodeURIComponent(publicSlug)}`;
 }
 
-/** Integrations are not implemented on NestJS yet; kept for BFF stubs. */
+/** BFF composes integrations from `GET /websites` (not a separate Nest route). */
 export function pathUserIntegrationsList(): string {
-  return process.env.BACKEND_USER_INTEGRATIONS_PATH?.trim() || "/integrations";
+  return process.env.BACKEND_USER_INTEGRATIONS_PATH?.trim() || "/websites";
 }
 
 export function pathUserIntegrationDetail(id: string): string {

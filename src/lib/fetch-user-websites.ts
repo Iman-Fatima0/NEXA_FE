@@ -17,10 +17,20 @@ export async function fetchUserWebsiteById(id: string): Promise<UserWebsite> {
   return body.website;
 }
 
+export async function deleteUserWebsite(id: string): Promise<void> {
+  await bffJson<{ success?: boolean }>(BFF_PATHS.userWebsite(id), { method: "DELETE" });
+}
+
+export type WebsiteThemePayload = {
+  preset: string;
+  overrides?: Record<string, unknown>;
+};
+
 export type UpdateWebsiteBuilderPayload = {
   title?: string;
   domain?: string | null;
   themeColor?: string | null;
+  theme?: WebsiteThemePayload | null;
   logo?: string | null;
   sections?: Record<string, unknown> | null;
 };
@@ -64,6 +74,8 @@ export type PublicWebsitePayload = {
   name: string;
   domain?: string | null;
   themeColor: string | null;
+  theme?: WebsiteThemePayload | null;
+  themePreset?: string | null;
   logo: string | null;
   sections: unknown;
   pages?: PublicWebsitePageRef[];

@@ -1,5 +1,10 @@
 import { normalizeWebsiteDetailPayload } from "../../../../../lib/api/bff-website-normalize";
-import { bffUserResourceGet, bffUserResourcePut, jsonNoStore } from "../../../../../lib/api/bff-upstream-proxy";
+import {
+  bffAuthenticated,
+  bffUserResourceGet,
+  bffUserResourcePut,
+  jsonNoStore,
+} from "../../../../../lib/api/bff-upstream-proxy";
 import { pathUserWebsiteBuilder, pathUserWebsiteDetail } from "../../../../../lib/api/upstream-paths";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -31,4 +36,10 @@ export async function PUT(request: Request, context: RouteContext) {
     const detail = normalizeWebsiteDetailPayload(parsed);
     return detail?.website ?? parsed;
   });
+}
+
+/** NestJS: `DELETE /websites/:id` */
+export async function DELETE(_req: Request, context: RouteContext) {
+  const { id } = await context.params;
+  return bffAuthenticated("DELETE", pathUserWebsiteDetail(id));
 }

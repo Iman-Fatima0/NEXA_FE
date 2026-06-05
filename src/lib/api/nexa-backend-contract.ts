@@ -3,7 +3,7 @@
  *
  * Backend base: `http://localhost:3000` (set `NEXT_PUBLIC_BACKEND_API_BASE_URL`).
  * Swagger: `GET http://localhost:3000/api`
- * Auth header: `Authorization: Bearer <accessToken>` (15 min TTL by default).
+ * Auth header: `Authorization: Bearer <accessToken>` (6 hr TTL minimum by default).
  * Roles: `USER` (default), `ADMIN` (`GET /users` requires ADMIN).
  *
  * The browser calls Next `/api/*` routes (`bff-paths.ts`); handlers proxy to NestJS with
@@ -25,7 +25,8 @@
  * | `GET /api/user/bots/:id` | `GET /bots/:id` | `{ bot }` |
  * | `GET /api/user/websites` | `GET /websites` | Normalized to `{ websites: [] }` |
  * | `GET /api/user/websites/:id` | `GET /websites/:id` | `{ website }` |
- * | `GET /api/user/integrations` | — | Not on NestJS; empty list |
+ * | `GET /api/user/integrations` | `GET /websites` | Composed from sites with `sections._meta.chatIntegration` |
+ * | `POST /api/user/integrations` | `GET/POST /bots/:id` + `PUT /websites/:id/builder` | Connect widget to site |
  * | `GET /api/superadmin/check` | — | `{ isSuperAdmin }` from role ADMIN |
  * | `GET /api/superadmin/users` | `GET /users` | ADMIN; read-only list |
  * | `GET /api/superadmin/websites` | `GET /websites` | ADMIN’s own sites until global admin API |

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ConfirmModal } from "../chatbot/ConfirmModal";
 import type { UserGalleryItem } from "../../lib/user-gallery-item";
+import { deleteConfirmCopy, deleteGalleryItem } from "../../lib/gallery/gallery-delete";
 import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import DashboardStyleBackNav from "./DashboardStyleBackNav";
 import tiles from "./keycap-tiles.module.css";
@@ -69,16 +71,19 @@ function KeyEntityIcon({ entity, className }: { entity: KeycapGalleryEntity; cla
   return <KeyWebsiteIcon className={className} />;
 }
 
+function deleteButtonLabel(entity: KeycapGalleryEntity): string {
+  if (entity === "integration") return "Remove";
+  return "Delete";
+}
+
 export type KeycapTilesGalleryClientProps = Readonly<{
   entity: KeycapGalleryEntity;
   title: string;
   subtitle: string;
-  /** When set, shows this label fixed top-right instead of the visible title + subtitle block. */
   topRightCornerLabel?: string;
   emptyMessage: string;
   errorLoadMessage: string;
   fetchItems: () => Promise<UserGalleryItem[]>;
-  /** e.g. `/dashboard/websites` — back arrow target */
   dashboardBackHref: string;
   previewHref: (id: string) => string;
   ctaHref: string;
@@ -102,6 +107,9 @@ export default function KeycapTilesGalleryClient({
 }: KeycapTilesGalleryClientProps) {
   const [items, setItems] = useState<UserGalleryItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserGalleryItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -124,9 +132,36 @@ export default function KeycapTilesGalleryClient({
     return sorted.map((site) => ({ site, variant: randomKeyVariant() }));
   }, [items]);
 
+  const confirmCopy = deleteTarget ? deleteConfirmCopy(entity, deleteTarget.name) : null;
+
+  const onConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setActionError(null);
+    try {
+      await deleteGalleryItem(entity, deleteTarget.id);
+      setDeleteTarget(null);
+      await load();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Could not complete that action.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className={tiles.page}>
       <DashboardStyleBackNav href={dashboardBackHref} />
+      <ConfirmModal
+        open={Boolean(deleteTarget)}
+        title={confirmCopy?.title ?? "Delete?"}
+        message={confirmCopy?.message ?? ""}
+        confirmLabel={confirmCopy?.confirmLabel ?? "Delete"}
+        danger
+        busy={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => void onConfirmDelete()}
+      />
       {topRightCornerLabel ? <div className={tiles.topRightCornerLabel}>{topRightCornerLabel}</div> : null}
       <main className={topRightCornerLabel ? `${tiles.main} ${tiles.mainTightTop}` : tiles.main}>
         {topRightCornerLabel ? (
@@ -145,6 +180,11 @@ export default function KeycapTilesGalleryClient({
             </button>
           </div>
         ) : null}
+        {actionError ? (
+          <div className={tiles.errorBlock}>
+            <p className={tiles.error}>{actionError}</p>
+          </div>
+        ) : null}
         {items === null ? (
           <p className={tiles.sub}>Loading…</p>
         ) : tilesWithVariants.length === 0 && !error ? (
@@ -153,35 +193,30 @@ export default function KeycapTilesGalleryClient({
         {items !== null && tilesWithVariants.length > 0 ? (
           <div className={tiles.grid}>
             {tilesWithVariants.map(({ site: w, variant }) => (
-              <Link
-                key={w.id}
-                href={previewHref(w.id)}
-                className={tiles.tile}
-                prefetch={false}
-                aria-label={`Open preview: ${w.name}`}
-              >
-                <div className={keycapClass(variant)}>
-                  <div className={tiles.keycapTop}>
-                    <KeyEntityIcon entity={entity} className={tiles.keycapIcon} />
-                    <p className={tiles.keycapLabel}>{w.name}</p>
-                    {entity === "website" && w.status === "PUBLISHED" && w.slug ? (
-                      <span
-                        role="link"
-                        tabIndex={0}
-                        style={{ fontSize: "0.62rem", letterSpacing: "0.04em", opacity: 0.9, marginTop: 2, cursor: "pointer", textDecoration: "underline" }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          const live =
-                            resolveWebsitePublicUrl({
-                              publicUrl: w.publicUrl,
-                              slug: w.slug,
-                              status: w.status,
-                            }) ?? w.publicUrl;
-                          if (live) globalThis.open(live, "_blank", "noopener,noreferrer");
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+              <div key={w.id} className={tiles.tileWrap}>
+                <Link
+                  href={previewHref(w.id)}
+                  className={tiles.tile}
+                  prefetch={false}
+                  aria-label={`Open preview: ${w.name}`}
+                >
+                  <div className={keycapClass(variant)}>
+                    <div className={tiles.keycapTop}>
+                      <KeyEntityIcon entity={entity} className={tiles.keycapIcon} />
+                      <p className={tiles.keycapLabel}>{w.name}</p>
+                      {entity === "website" && w.status === "PUBLISHED" && w.slug ? (
+                        <span
+                          role="link"
+                          tabIndex={0}
+                          style={{
+                            fontSize: "0.62rem",
+                            letterSpacing: "0.04em",
+                            opacity: 0.9,
+                            marginTop: 2,
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                          }}
+                          onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             const live =
@@ -191,15 +226,36 @@ export default function KeycapTilesGalleryClient({
                                 status: w.status,
                               }) ?? w.publicUrl;
                             if (live) globalThis.open(live, "_blank", "noopener,noreferrer");
-                          }
-                        }}
-                      >
-                        Live →
-                      </span>
-                    ) : null}
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const live =
+                                resolveWebsitePublicUrl({
+                                  publicUrl: w.publicUrl,
+                                  slug: w.slug,
+                                  status: w.status,
+                                }) ?? w.publicUrl;
+                              if (live) globalThis.open(live, "_blank", "noopener,noreferrer");
+                            }
+                          }}
+                        >
+                          Live →
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  className={tiles.tileDelete}
+                  onClick={() => setDeleteTarget(w)}
+                  aria-label={`${deleteButtonLabel(entity)} ${w.name}`}
+                >
+                  {deleteButtonLabel(entity)}
+                </button>
+              </div>
             ))}
           </div>
         ) : null}
