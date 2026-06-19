@@ -11,6 +11,7 @@ import {
   isValidKnowledgeUrl,
   knowledgeFileKey,
 } from "../../lib/knowledge-base/knowledge-base-utils";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import { createUserWebsite } from "../../lib/create-user-website";
 import {
   downloadWebsiteExportZip,
@@ -22,10 +23,12 @@ import {
 import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
 import { fetchWebsiteTemplates } from "../../lib/fetch-website-templates";
 import {
+  normalizeTemplateId,
   readStoredTemplateId,
   readTemplateIdFromSearch,
   storeTemplateId,
 } from "../../lib/website-template-storage";
+import type { WebsiteTemplate } from "../../lib/website-templates-types";
 import {
   parseWebsiteSections,
   sectionsToRecord,
@@ -34,6 +37,7 @@ import {
 } from "../../lib/website-sections";
 import { sectionAnchorId } from "../../lib/website-section-links";
 import { SectionImageField } from "../../components/website-builder/SectionImageField";
+import { WebsiteTemplatePicker } from "../../components/website-builder/WebsiteTemplatePicker";
 import { WebsiteThemePicker } from "../../components/website-builder/WebsiteThemePicker";
 import { PRESET_MAP } from "../../lib/theme/presets";
 import {
@@ -42,6 +46,7 @@ import {
   type WebsiteThemeSettings,
 } from "../../lib/theme/parse-website-theme";
 import type { ThemePreset, ThemeTokens } from "../../lib/theme/types";
+import type { WebsiteBuilderScreenPayload } from "../../lib/api/compose-screens";
 import type { UserWebsite } from "../../lib/user-websites-types";
 import wb from "./website-builder.module.css";
 
@@ -51,16 +56,15 @@ const PLACEHOLDER_PROMPT =
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 
-function formatErr(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return "Something went wrong.";
-}
-
 type WebsiteBuilderClientProps = Readonly<{
   hubBackHref: string;
+  initialBuilderScreen?: WebsiteBuilderScreenPayload | null;
 }>;
 
-export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClientProps) {
+export default function WebsiteBuilderClient({
+  hubBackHref,
+  initialBuilderScreen = null,
+}: WebsiteBuilderClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const websiteId = searchParams.get("id")?.trim() || "";
@@ -82,6 +86,8 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
   const [error, setError] = useState<string | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<WebsiteTemplate[]>(initialBuilderScreen?.templates ?? []);
+  const [selectedTemplateId, setSelectedTemplateId] = useState(() => readStoredTemplateId());
   const [templatesUnavailable, setTemplatesUnavailable] = useState(false);
   const [shareOrigin, setShareOrigin] = useState<string | null>(null);
 
@@ -188,10 +194,35 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
 
   useEffect(() => {
     const fromQuery = readTemplateIdFromSearch(globalThis.window?.location.search ?? "");
-    if (fromQuery) storeTemplateId(fromQuery);
+    if (fromQuery) {
+      storeTemplateId(fromQuery);
+      setSelectedTemplateId(fromQuery);
+    }
+    if (initialBuilderScreen?.templates.length) {
+      setTemplates(initialBuilderScreen.templates);
+      setTemplatesUnavailable(false);
+      return;
+    }
     void fetchWebsiteTemplates()
-      .then(() => setTemplatesUnavailable(false))
+      .then((list) => {
+        setTemplates(list);
+        setTemplatesUnavailable(list.length === 0);
+      })
       .catch(() => setTemplatesUnavailable(true));
+  }, [initialBuilderScreen]);
+
+  useEffect(() => {
+    if (!templates.length) return;
+    setSelectedTemplateId((prev) => {
+      if (templates.some((t) => t.templateId === prev)) return prev;
+      return templates[0].templateId;
+    });
+  }, [templates]);
+
+  const handleSelectTemplate = useCallback((templateId: string) => {
+    const id = normalizeTemplateId(templateId);
+    setSelectedTemplateId(id);
+    storeTemplateId(id);
   }, []);
 
   const applySiteToEditor = useCallback(
@@ -220,7 +251,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
         applySiteToEditor(site);
       } catch (e) {
         setLoadFailed(true);
-        setError(formatErr(e));
+        setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
       } finally {
         setLoadingSite(false);
       }
@@ -234,8 +265,12 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       setSectionBlocks([]);
       return;
     }
+    if (initialBuilderScreen?.website.id === websiteId) {
+      applySiteToEditor(initialBuilderScreen.website);
+      return;
+    }
     void loadSite(websiteId);
-  }, [websiteId, loadSite]);
+  }, [websiteId, loadSite, initialBuilderScreen, applySiteToEditor]);
 
   const previewSections = useMemo(
     () => sectionsToRecord(sectionBlocks, description.trim() || undefined),
@@ -262,9 +297,12 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       setError("Please enter a website name.");
       return;
     }
+    const templateId = templates.some((t) => t.templateId === selectedTemplateId)
+      ? selectedTemplateId
+      : readStoredTemplateId();
     setLoading(true);
     try {
-      const templateId = readStoredTemplateId();
+      storeTemplateId(templateId);
       const created = await createUserWebsite({ name, templateId, description: desc || undefined });
       if (hasPendingKnowledge && created.knowledgeBotId) {
         setStatusMessage("Uploading knowledge base…");
@@ -276,7 +314,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       }
       router.replace(`/website-builder/create?id=${encodeURIComponent(created.id)}`);
     } catch (e) {
-      setError(formatErr(e));
+      setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
     } finally {
       setLoading(false);
     }
@@ -352,7 +390,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
         setStatusMessage("Changes saved.");
       }
     } catch (e) {
-      setError(formatErr(e));
+      setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
     } finally {
       setSaving(false);
       setGenerating(false);
@@ -379,7 +417,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
           : "Sections enhanced from your knowledge base.",
       );
     } catch (e) {
-      setError(formatErr(e));
+      setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
     } finally {
       setGenerating(false);
     }
@@ -394,7 +432,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       await downloadWebsiteExportZip(websiteId);
       setStatusMessage("ZIP downloaded.");
     } catch (e) {
-      setError(formatErr(e));
+      setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
     } finally {
       setExporting(false);
     }
@@ -417,7 +455,7 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
       });
       setStatusMessage(live ? `Published. Your site: ${live}` : "Published.");
     } catch (e) {
-      setError(formatErr(e));
+      setError(friendlyUserError(e, "Something went wrong with your website. Please try again.", "website"));
     } finally {
       setPublishing(false);
     }
@@ -490,9 +528,23 @@ export default function WebsiteBuilderClient({ hubBackHref }: WebsiteBuilderClie
               />
             </div>
 
+            {!isEditMode && templates.length > 0 ? (
+              <div className={wb.field}>
+                <span className={wb.label} id="wb-template-label">
+                  Website type
+                </span>
+                <WebsiteTemplatePicker
+                  templates={templates}
+                  selectedTemplateId={selectedTemplateId}
+                  onSelect={handleSelectTemplate}
+                  disabled={loading}
+                />
+              </div>
+            ) : null}
+
             <div className={wb.field}>
               <label className={wb.label} htmlFor={isEditMode ? "wb-desc-edit" : "wb-desc"}>
-                {isEditMode ? "Site description (for AI)" : "What kind of website do you want?"}
+                {isEditMode ? "Site description (for AI)" : "Describe your website (optional)"}
               </label>
               <textarea
                 id={isEditMode ? "wb-desc-edit" : "wb-desc"}
