@@ -21,6 +21,7 @@ import {
   updateUserWebsiteBuilder,
 } from "../../lib/fetch-user-websites";
 import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
+import { websiteFullPreviewHref, WEBSITE_PREVIEW_FROM_BUILDER } from "../../lib/website-preview-nav";
 import { fetchWebsiteTemplates } from "../../lib/fetch-website-templates";
 import {
   normalizeTemplateId,
@@ -763,7 +764,11 @@ export default function WebsiteBuilderClient({
                   </button>
                 ) : null}
                 {websiteId ? (
-                  <Link href={`/dashboard/websites/${encodeURIComponent(websiteId)}/preview`} className={wb.btn} style={{ textAlign: "center", textDecoration: "none" }}>
+                  <Link
+                    href={websiteFullPreviewHref(websiteId, WEBSITE_PREVIEW_FROM_BUILDER)}
+                    className={wb.btn}
+                    style={{ textAlign: "center", textDecoration: "none" }}
+                  >
                     FULL PREVIEW
                   </Link>
                 ) : null}
