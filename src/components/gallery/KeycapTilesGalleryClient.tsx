@@ -15,8 +15,13 @@ type KeyVariant = "cream" | "amber" | "orange" | "glassOrange";
 
 const KEY_VARIANTS: KeyVariant[] = ["cream", "amber", "orange", "glassOrange"];
 
-function randomKeyVariant(): KeyVariant {
-  return KEY_VARIANTS[Math.floor(Math.random() * KEY_VARIANTS.length)]!;
+/** Stable per tile id — avoids SSR/client hydration mismatch from Math.random(). */
+function keyVariantForId(id: string): KeyVariant {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash + id.charCodeAt(i)) | 0;
+  }
+  return KEY_VARIANTS[Math.abs(hash) % KEY_VARIANTS.length]!;
 }
 
 function keycapClass(variant: KeyVariant): string {
@@ -84,6 +89,9 @@ export type KeycapTilesGalleryClientProps = Readonly<{
   emptyMessage: string;
   errorLoadMessage: string;
   fetchItems: () => Promise<UserGalleryItem[]>;
+  /** When set, gallery renders immediately without a client-side mount fetch. */
+  initialItems?: UserGalleryItem[];
+  initialError?: string | null;
   dashboardBackHref: string;
   previewHref: (id: string) => string;
   ctaHref: string;
@@ -99,14 +107,17 @@ export default function KeycapTilesGalleryClient({
   emptyMessage,
   errorLoadMessage,
   fetchItems,
+  initialItems,
+  initialError = null,
   dashboardBackHref,
   previewHref,
   ctaHref,
   ctaButtonText,
   ctaSectionAriaLabel,
 }: KeycapTilesGalleryClientProps) {
-  const [items, setItems] = useState<UserGalleryItem[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const serverHydrated = initialItems !== undefined;
+  const [items, setItems] = useState<UserGalleryItem[] | null>(serverHydrated ? initialItems : null);
+  const [error, setError] = useState<string | null>(serverHydrated ? initialError : null);
   const [deleteTarget, setDeleteTarget] = useState<UserGalleryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -123,13 +134,14 @@ export default function KeycapTilesGalleryClient({
   }, [fetchItems, errorLoadMessage]);
 
   useEffect(() => {
+    if (serverHydrated) return;
     void load();
-  }, [load]);
+  }, [load, serverHydrated]);
 
   const tilesWithVariants = useMemo(() => {
     if (!items?.length) return [];
     const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
-    return sorted.map((site) => ({ site, variant: randomKeyVariant() }));
+    return sorted.map((site) => ({ site, variant: keyVariantForId(site.id) }));
   }, [items]);
 
   const confirmCopy = deleteTarget ? deleteConfirmCopy(entity, deleteTarget.name) : null;
@@ -197,7 +209,6 @@ export default function KeycapTilesGalleryClient({
                 <Link
                   href={previewHref(w.id)}
                   className={tiles.tile}
-                  prefetch={false}
                   aria-label={`Open preview: ${w.name}`}
                 >
                   <div className={keycapClass(variant)}>
@@ -261,7 +272,7 @@ export default function KeycapTilesGalleryClient({
         ) : null}
         <section className={tiles.ctaSection} aria-label={ctaSectionAriaLabel ?? ctaButtonText}>
           <p className={tiles.ctaLabel}>Ready for something new?</p>
-          <Link href={ctaHref} className={tiles.ctaButton} prefetch={false}>
+          <Link href={ctaHref} className={tiles.ctaButton}>
             {ctaButtonText}
           </Link>
         </section>
