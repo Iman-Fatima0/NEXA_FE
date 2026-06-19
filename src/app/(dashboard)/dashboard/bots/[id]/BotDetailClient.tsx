@@ -20,10 +20,20 @@ import {
   fetchBotLiveLinks,
   publishPlatformBot,
 } from "../../../../../lib/chatbot/chatbot-platform-api";
-import { useActivePlatformBot } from "../../../../../lib/chatbot/use-active-platform-bot";
+import { useActivePlatformBot, type InitialBotScreenData } from "../../../../../lib/chatbot/use-active-platform-bot";
+import { chatbotTestingHref, dashboardBotDetail } from "../../../../../lib/dashboard-app-hubs";
+import type { BotScreenChatBootstrap } from "../../../../../lib/api/compose-screens";
+import type { ChatUiMessage } from "../../../../../components/chatbot/ChatPanel";
 import bd from "./bot-detail.module.css";
 
-type BotDetailClientProps = { botId: string };
+type BotDetailClientProps = {
+  botId: string;
+  initialScreen?: {
+    bot: InitialBotScreenData["bot"];
+    documentCount: number;
+    chat: BotScreenChatBootstrap | null;
+  } | null;
+};
 
 const METER_SEGMENTS = 10;
 const METER_MAX_DOCS = 10;
@@ -31,9 +41,9 @@ const METER_MAX_DOCS = 10;
 function formatDate(iso?: string): string {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString("en-GB", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
     });
   } catch {
@@ -133,7 +143,25 @@ function LiveUrlField({
   );
 }
 
-export default function BotDetailClient({ botId }: BotDetailClientProps) {
+function mapChatBootstrap(
+  chat: BotScreenChatBootstrap | null | undefined,
+  greeting: string,
+): { sessionId: string; messages: ChatUiMessage[] } | null {
+  if (!chat?.sessionId) return null;
+  const messages: ChatUiMessage[] = chat.messages
+    .filter((m) => m.role === "user" || m.role === "assistant")
+    .map((m) => ({
+      id: m.id,
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    }));
+  if (messages.length === 0 && greeting) {
+    messages.push({ id: "greeting", role: "assistant", content: greeting });
+  }
+  return { sessionId: chat.sessionId, messages };
+}
+
+export default function BotDetailClient({ botId, initialScreen = null }: BotDetailClientProps) {
   const router = useRouter();
   const { toast, showSuccess, showError } = usePlatformToast();
   const [publishing, setPublishing] = useState(false);
@@ -141,6 +169,14 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
   const [fetchedLinks, setFetchedLinks] = useState<BotLiveLinks | null>(null);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [publishApiKey, setPublishApiKey] = useState<string | null>(null);
+
+  const hookInitialScreen = useMemo(
+    () =>
+      initialScreen
+        ? { bot: initialScreen.bot, documentCount: initialScreen.documentCount }
+        : null,
+    [initialScreen],
+  );
 
   const {
     bot,
@@ -152,7 +188,12 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
     theme,
     loading,
     error,
-  } = useActivePlatformBot(botId);
+  } = useActivePlatformBot(botId, hookInitialScreen);
+
+  const initialChat = useMemo(
+    () => mapChatBootstrap(initialScreen?.chat, greeting),
+    [initialScreen?.chat, greeting],
+  );
 
   const isPublished = bot?.status === "published" || publishData !== null;
 
@@ -269,7 +310,7 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
           type="button"
           className={wb.topExtraGhost}
           disabled={!botId || loading}
-          onClick={() => router.push("/chatbot-testing")}
+          onClick={() => router.push(chatbotTestingHref(botId, dashboardBotDetail(botId)))}
         >
           Test chatbot
         </button>
@@ -343,7 +384,6 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
 
                     {purpose ? (
                       <div className={bd.scopeRow}>
-                        <span className={bd.scopeNo}>02</span>
                         <div className={bd.scopeBody}>
                           <p className={bd.scopeLabel}>Helps with</p>
                           <p className={bd.scopeText}>{purpose}</p>
@@ -393,6 +433,7 @@ export default function BotDetailClient({ botId }: BotDetailClientProps) {
                 greeting={greeting}
                 tall
                 savedTheme={theme}
+                initialChat={initialChat}
               />
             ) : (
               <p className={wb.kbHint}>Preview unavailable.</p>

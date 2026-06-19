@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { parseDescriptionFields, resolveBotDisplayName } from "./bot-display";
 import type { ThemeTokens } from "../theme/types";
 import type { PlatformBot } from "./bot-types";
@@ -8,6 +8,11 @@ import { fetchDocumentCount, fetchPlatformBot } from "./chatbot-platform-api";
 import { presetById } from "./personality-presets";
 import { setBotThemeCache } from "../theme/use-bot-theme";
 import { getActiveBotId, getActiveBotName, setActiveBot } from "./session-storage";
+
+export type InitialBotScreenData = {
+  bot: PlatformBot;
+  documentCount: number;
+};
 
 export type ActiveBotView = {
   botId: string | null;
@@ -22,19 +27,49 @@ export type ActiveBotView = {
   error: string | null;
 };
 
-export function useActivePlatformBot(botIdOverride?: string | null): ActiveBotView {
-  const [botId, setBotId] = useState<string | null>(null);
-  const [bot, setBot] = useState<PlatformBot | null>(null);
-  const [documentCount, setDocumentCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+function hydrateBotFromScreen(initial: InitialBotScreenData): PlatformBot {
+  const displayName = resolveBotDisplayName(getActiveBotName() ?? "", initial.bot.name);
+  return { ...initial.bot, name: displayName };
+}
+
+export function useActivePlatformBot(
+  botIdOverride?: string | null,
+  initialScreen?: InitialBotScreenData | null,
+): ActiveBotView {
+  const serverHydrated = initialScreen != null;
+  const [botId, setBotId] = useState<string | null>(() => botIdOverride?.trim() || null);
+  const [bot, setBot] = useState<PlatformBot | null>(() =>
+    initialScreen ? hydrateBotFromScreen(initialScreen) : null,
+  );
+  const [documentCount, setDocumentCount] = useState<number | null>(() =>
+    initialScreen ? initialScreen.documentCount : null,
+  );
+  const [loading, setLoading] = useState(!serverHydrated);
   const [error, setError] = useState<string | null>(null);
+
+  const initialScreenRef = useRef(initialScreen);
+  initialScreenRef.current = initialScreen;
+  const initialBotId = initialScreen?.bot.id ?? null;
+  const initialDocCount = initialScreen?.documentCount ?? null;
 
   useEffect(() => {
     const id = botIdOverride?.trim() || getActiveBotId();
-    setBotId(id);
+    setBotId((prev) => (prev === id ? prev : id));
     if (!id) {
       setBot(null);
       setDocumentCount(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    const screen = initialScreenRef.current;
+    if (screen && screen.bot.id === id) {
+      const resolved = hydrateBotFromScreen(screen);
+      setBot(resolved);
+      setDocumentCount(screen.documentCount);
+      setActiveBot(resolved.id, resolved.name);
+      if (resolved.theme) setBotThemeCache(resolved.id, resolved.theme);
       setLoading(false);
       setError(null);
       return;
@@ -67,7 +102,7 @@ export function useActivePlatformBot(botIdOverride?: string | null): ActiveBotVi
     return () => {
       cancelled = true;
     };
-  }, [botIdOverride]);
+  }, [botIdOverride, initialBotId, initialDocCount]);
 
   const descMeta = parseDescriptionFields(bot?.description);
   const personalityLabel =

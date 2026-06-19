@@ -1,17 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
 import wb from "../website-builder/website-builder.module.css";
-import { useActivePlatformBot } from "../../lib/chatbot/use-active-platform-bot";
+import {
+  useActivePlatformBot,
+  type InitialBotScreenData,
+} from "../../lib/chatbot/use-active-platform-bot";
 
 type ChatbotTestingClientProps = {
   hubBackHref: string;
+  botId?: string | null;
+  initialScreen?: InitialBotScreenData | null;
 };
 
-export default function ChatbotTestingClient({ hubBackHref }: ChatbotTestingClientProps) {
-  const { botId, botName, greeting, theme, loading, error } = useActivePlatformBot();
+export default function ChatbotTestingClient({
+  hubBackHref,
+  botId: botIdProp = null,
+  initialScreen = null,
+}: ChatbotTestingClientProps) {
+  const hookInitialScreen = useMemo(
+    () =>
+      initialScreen
+        ? { bot: initialScreen.bot, documentCount: initialScreen.documentCount }
+        : null,
+    [initialScreen],
+  );
+
+  const { botId, botName, greeting, theme, loading, error } = useActivePlatformBot(
+    botIdProp,
+    hookInitialScreen,
+  );
 
   if (!loading && !botId) {
     return (

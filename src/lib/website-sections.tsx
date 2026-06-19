@@ -2,6 +2,7 @@
 
 import { parseWebsiteTheme } from "./theme/parse-website-theme";
 import type { WebsiteThemeStyle } from "./theme/website-theme-style";
+import { WebsiteSectionAnchorScroll } from "../components/sites/WebsiteSectionAnchorScroll";
 import { SectionImage } from "../components/sites/SectionImage";
 import { resolveSectionImageUrl } from "./website-section-images";
 import {
@@ -229,6 +230,9 @@ export function WebsiteSectionsView({
       }}
     >
       <style>{`
+        .nexa-ws-section {
+          scroll-margin-top: var(--nexa-ws-header-offset, 4.75rem);
+        }
         .nexa-ws-cta:hover {
           transform: translateY(-1px);
         }
@@ -237,7 +241,9 @@ export function WebsiteSectionsView({
           .nexa-ws-grid > div { order: unset !important; }
         }
       `}</style>
+      <WebsiteSectionAnchorScroll />
       <header
+        className="nexa-ws-header"
         style={{
           position: "sticky",
           top: 0,
@@ -298,6 +304,7 @@ export function WebsiteSectionsView({
 
       {hero ? (
         <section
+          className="nexa-ws-section"
           id={sectionAnchorId(hero.key)}
           style={{
             position: "relative",
@@ -368,6 +375,7 @@ export function WebsiteSectionsView({
         return (
           <section
             key={block.key}
+            className="nexa-ws-section"
             id={sectionAnchorId(block.key)}
             style={{
               padding: "2.5rem 1.25rem",
