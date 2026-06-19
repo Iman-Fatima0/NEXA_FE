@@ -30,7 +30,7 @@ export async function startPublicChatSession(publicSlug: string): Promise<ChatSt
   await ensureOk(res, "Could not start chat session.");
   const data = (await res.json()) as unknown;
   const sessionId = pickSessionId(data);
-  if (!sessionId) throw new Error("Chat start response missing sessionId.");
+  if (!sessionId) throw new Error("Could not start chat. Please try again.");
   return { sessionId, botId: publicSlug };
 }
 

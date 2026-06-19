@@ -7,7 +7,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 /** `POST {BACKEND}/websites/:id/generate-content` */
 export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const empty = () => jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+  const empty = () =>
+    jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   let body: { prompt?: string };
   try {
     body = (await request.json()) as { prompt?: string };

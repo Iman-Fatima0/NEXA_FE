@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { friendlyUserError } from "../../../lib/api/friendly-user-error";
 import DashboardStyleBackNav from "../../../components/gallery/DashboardStyleBackNav";
 import IntegrationLivePreview from "../../../components/integration/IntegrationLivePreview";
 import { fetchUserWebsiteById } from "../../../lib/fetch-user-websites";
@@ -89,7 +90,7 @@ export default function IntegrationCompletedClient({ hubBackHref }: IntegrationC
       setRemoveOpen(false);
       router.push("/dashboard/integrations");
     } catch (e) {
-      setRemoveError(e instanceof Error ? e.message : "Could not remove connection.");
+      setRemoveError(friendlyUserError(e, "Could not remove connection.", "integration"));
     } finally {
       setRemoving(false);
     }

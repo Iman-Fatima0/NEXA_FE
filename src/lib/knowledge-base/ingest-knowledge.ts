@@ -1,4 +1,5 @@
 import { BFF_PATHS } from "../api/bff-paths";
+import { friendlyUserError } from "../api/friendly-user-error";
 import { ingestPlatformDocument, ingestPlatformUrl } from "../chatbot/chatbot-platform-api";
 import { isIngestableFile, textFileFromString } from "../chatbot/ingest-files";
 
@@ -22,7 +23,15 @@ async function listBotDocuments(botId: string): Promise<DocumentRow[]> {
     credentials: "same-origin",
     cache: "no-store",
   });
-  if (!res.ok) return [];
+  if (!res.ok) {
+    throw new Error(
+      friendlyUserError(
+        new Error(`documents list ${res.status}`),
+        "Could not check knowledge processing status. Please try again.",
+        "upload",
+      ),
+    );
+  }
   const data = await res.json();
   if (Array.isArray(data)) return data as DocumentRow[];
   if (data && typeof data === "object") {

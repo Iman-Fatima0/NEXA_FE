@@ -4,8 +4,17 @@ import { useCallback } from "react";
 import KeycapTilesGalleryClient from "../../components/gallery/KeycapTilesGalleryClient";
 import { innovateIntegrationEntry } from "../../lib/dashboard-app-hubs";
 import { fetchUserIntegrations } from "../../lib/fetch-user-integrations";
+import type { UserGalleryItem } from "../../lib/user-gallery-item";
 
-export default function IntegrationGalleryClient() {
+type IntegrationGalleryClientProps = Readonly<{
+  initialIntegrations?: UserGalleryItem[];
+  initialError?: string | null;
+}>;
+
+export default function IntegrationGalleryClient({
+  initialIntegrations,
+  initialError = null,
+}: IntegrationGalleryClientProps) {
   const fetchItems = useCallback(async () => (await fetchUserIntegrations()).integrations, []);
 
   return (
@@ -17,6 +26,8 @@ export default function IntegrationGalleryClient() {
       emptyMessage="No integrations yet. Create one below to get started."
       errorLoadMessage="Could not load integrations."
       fetchItems={fetchItems}
+      initialItems={initialIntegrations}
+      initialError={initialError}
       dashboardBackHref="/dashboard"
       previewHref={(id) => `/dashboard/integrations/${encodeURIComponent(id)}/preview`}
       ctaHref={innovateIntegrationEntry}

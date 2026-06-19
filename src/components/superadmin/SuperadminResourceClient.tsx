@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { parseBffErrorMessage } from "../../lib/api/bff-json";
+import { superadminItemApiPath } from "../../lib/superadmin/resource-api-paths";
 import type { SuperadminResourceKind } from "../../lib/superadmin/types";
 import { SuperadminShell } from "./SuperadminShell";
 import styles from "./superadmin.module.css";
@@ -25,7 +26,6 @@ type SuperadminResourceClientProps = {
   subtitle: string;
   listKey: string;
   listPath: string;
-  itemPath: (id: string) => string;
   columns: ColumnDef[];
   fields: FieldDef[];
   /** List-only (e.g. GET /users) */
@@ -62,7 +62,6 @@ export function SuperadminResourceClient({
   subtitle,
   listKey,
   listPath,
-  itemPath,
   columns,
   fields,
   readOnly = false,
@@ -130,7 +129,7 @@ export function SuperadminResourceClient({
       for (const f of fields) {
         body[f.key] = form[f.key]?.trim() ?? "";
       }
-      const url = editingId ? itemPath(editingId) : listPath;
+      const url = editingId ? superadminItemApiPath(kind, editingId) : listPath;
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -158,7 +157,7 @@ export function SuperadminResourceClient({
     if (!globalThis.confirm("Delete this record?")) return;
     setError(null);
     try {
-      const res = await fetch(itemPath(id), { method: "DELETE", credentials: "same-origin" });
+      const res = await fetch(superadminItemApiPath(kind, id), { method: "DELETE", credentials: "same-origin" });
       if (res.status === 503) {
         setApiPending(true);
         throw new Error("Backend API is not connected yet.");

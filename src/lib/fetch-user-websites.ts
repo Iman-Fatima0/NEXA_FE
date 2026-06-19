@@ -118,7 +118,7 @@ export async function fetchPublicWebsiteBySlug(slug: string): Promise<PublicWebs
 export async function fetchPublicWebsiteBySlugFromBackend(slug: string): Promise<PublicWebsitePayload> {
   const base = env.backendApiBaseUrl.trim();
   if (!base) {
-    throw new Error("Backend not configured.");
+    throw new Error("This feature is temporarily unavailable. Please try again later.");
   }
   const res = await fetch(`${base.replace(/\/+$/, "")}${pathPublicSite(slug)}`, {
     headers: { Accept: "application/json" },
@@ -136,7 +136,7 @@ export async function fetchPublicWebsitePageFromBackend(
 ): Promise<PublicWebsitePayload> {
   const base = env.backendApiBaseUrl.trim();
   if (!base) {
-    throw new Error("Backend not configured.");
+    throw new Error("This feature is temporarily unavailable. Please try again later.");
   }
   const path = `/public/sites/${encodeURIComponent(slug)}/pages/${encodeURIComponent(pageKey)}`;
   const res = await fetch(`${base.replace(/\/+$/, "")}${path}`, {

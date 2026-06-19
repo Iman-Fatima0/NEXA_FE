@@ -15,7 +15,10 @@ export async function GET(_req: Request, context: RouteContext) {
   }
   const base = env.backendApiBaseUrl.trim();
   if (!base) {
-    return NextResponse.json({ message: "Backend not configured." }, { status: 503 });
+    return NextResponse.json(
+      { message: "This feature is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
   }
   const token = jar.get(ACCESS_COOKIE)?.value;
   const url = `${base.replace(/\/+$/, "")}${pathUserWebsiteExportZip(id)}`;

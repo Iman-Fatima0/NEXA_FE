@@ -15,7 +15,6 @@ import {
   dashboardIntegrationHub,
   dashboardWebsiteHub,
 } from "../../../lib/dashboard-app-hubs";
-import { fetchDashboardPayload } from "../../../lib/fetch-dashboard";
 import type { DashboardUser } from "../../../lib/dashboard-types";
 import {
   NEXA_PROFILE_ICON_SEED_EMAIL_KEY,
@@ -35,11 +34,16 @@ function greetingName(u?: DashboardUser): string {
   return "";
 }
 
-export default function DashboardClient() {
-  /** Avoid flashing the dashboard shell before `/api/dashboard` confirms the session. */
-  const [sessionReady, setSessionReady] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [user, setUser] = useState<DashboardUser | null>(null);
+type DashboardClientProps = Readonly<{
+  initialUser?: DashboardUser | null;
+}>;
+
+export default function DashboardClient({ initialUser = null }: DashboardClientProps) {
+  const user = initialUser;
+  const [userName] = useState<string | null>(() => {
+    const n = greetingName(initialUser ?? undefined);
+    return n || "there";
+  });
   /** Read after mount so SSR + hydration match (localStorage is not on the server). */
   const [lastLoginEmail, setLastLoginEmail] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -51,31 +55,6 @@ export default function DashboardClient() {
     } catch {
       setLastLoginEmail(null);
     }
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await fetchDashboardPayload();
-        if (cancelled) return;
-        setUser(data.user ?? null);
-        const n = greetingName(data.user);
-        setUserName(n || "there");
-        setSessionReady(true);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof Error && err.message === "Unauthorized") {
-          return;
-        }
-        setUser(null);
-        setUserName("there");
-        setSessionReady(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const profileIconSrc = useMemo(
@@ -95,16 +74,6 @@ export default function DashboardClient() {
 
   const welcomeTypingSteps = useMemo(() => Math.max(12, greetingText.length), [greetingText]);
 
-  if (!sessionReady) {
-    return (
-      <div
-        className={styles.dashboardLoopOnly}
-        aria-busy="true"
-        aria-label="Loading dashboard"
-      />
-    );
-  }
-
   return (
     <div className={styles.dashboardLoopOnly}>
       <nav className={styles.dashboardAppLibraryCorner} aria-label="App library">
@@ -114,7 +83,7 @@ export default function DashboardClient() {
           <div className={styles.dashboardAppLibraryShell}>
             <div className={styles.dashboardAppLibraryGrid2}>
               <span className={styles.dashboardIconHoverWrap}>
-                <Link href="/profile" className={styles.dashboardAppLibraryCell} aria-label="Profile" prefetch={false}>
+                <Link href="/profile" className={styles.dashboardAppLibraryCell} aria-label="Profile">
                   <ProfileMiniIcon className={styles.dashboardAppLibraryCellSvg} />
                 </Link>
                 <span
@@ -129,7 +98,6 @@ export default function DashboardClient() {
                   href={dashboardBotHub}
                   className={styles.dashboardAppLibraryCell}
                   aria-label="Bot and chatbots"
-                  prefetch={false}
                 >
                   <BotMiniIcon className={styles.dashboardAppLibraryCellSvg} />
                 </Link>
@@ -145,7 +113,6 @@ export default function DashboardClient() {
                   href={dashboardWebsiteHub}
                   className={styles.dashboardAppLibraryCell}
                   aria-label="Website builder"
-                  prefetch={false}
                 >
                   <WebsiteMiniIcon className={styles.dashboardAppLibraryCellSvg} />
                 </Link>
@@ -161,7 +128,6 @@ export default function DashboardClient() {
                   href={dashboardIntegrationHub}
                   className={styles.dashboardAppLibraryCell}
                   aria-label="Integrations"
-                  prefetch={false}
                 >
                   <IntegrationMiniIcon className={styles.dashboardAppLibraryCellSvg} />
                 </Link>

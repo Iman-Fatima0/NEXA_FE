@@ -9,7 +9,6 @@ export default function SuperadminUsersPage() {
       subtitle="All accounts (NestJS GET /users, ADMIN only)"
       listKey="users"
       listPath={BFF_PATHS.superadminUsers}
-      itemPath={BFF_PATHS.superadminUser}
       readOnly
       apiNote="Read-only: NestJS exposes GET /users for ADMIN. Registration is POST /auth/register."
       columns={[

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "../../config/env";
+import { bffNetworkErrorMessage } from "./friendly-user-error";
 
 function upstreamUrl(path: string): string | null {
   const base = env.backendApiBaseUrl.trim();
@@ -31,7 +32,7 @@ export async function bffPublicGet(upstreamPath: string): Promise<NextResponse> 
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }
@@ -61,7 +62,7 @@ export async function bffPublicPost(upstreamPath: string, body: unknown): Promis
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }

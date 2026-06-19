@@ -53,7 +53,7 @@ export async function createBot(name: string): Promise<NexaBotRecord> {
   await ensureOk(res, "Could not create chatbot.", "train");
   const data = (await res.json()) as unknown;
   const id = pickBotId(data);
-  if (!id) throw new Error("Create bot response missing id.");
+  if (!id) throw new Error("Could not create your chatbot.");
   const o = data as Record<string, unknown>;
   const inner = (o.bot && typeof o.bot === "object" ? o.bot : o) as Record<string, unknown>;
   return {
@@ -106,7 +106,7 @@ export async function startChatSession(botId: string): Promise<ChatStartResponse
   });
   await ensureOk(res, "Could not start chat session.");
   const data = (await res.json()) as ChatStartResponse;
-  if (!data.sessionId) throw new Error("Chat start response missing sessionId.");
+  if (!data.sessionId) throw new Error("Could not start chat. Please try again.");
   return data;
 }
 

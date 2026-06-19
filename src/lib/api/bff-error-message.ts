@@ -1,7 +1,9 @@
+import { sanitizeUserFacingMessage } from "./friendly-user-error";
+
 /** Normalize Nest / BFF JSON error bodies into a single user-facing string. */
 export function messageFromErrorBody(data: unknown, fallback: string): string {
   if (typeof data === "string" && data.trim()) {
-    return data.trim();
+    return sanitizeUserFacingMessage(data.trim(), "generic", fallback);
   }
   if (!data || typeof data !== "object") {
     return fallback;
@@ -10,18 +12,20 @@ export function messageFromErrorBody(data: unknown, fallback: string): string {
 
   const message = o.message;
   if (typeof message === "string" && message.trim()) {
-    return message.trim();
+    return sanitizeUserFacingMessage(message.trim(), "generic", fallback);
   }
   if (Array.isArray(message)) {
     const parts = message
       .map((m) => (typeof m === "string" ? m.trim() : ""))
       .filter(Boolean);
-    if (parts.length) return parts.join(" ");
+    if (parts.length) {
+      return sanitizeUserFacingMessage(parts.join(" "), "generic", fallback);
+    }
   }
 
   const error = o.error;
   if (typeof error === "string" && error.trim()) {
-    return error.trim();
+    return sanitizeUserFacingMessage(error.trim(), "generic", fallback);
   }
 
   return fallback;
@@ -35,6 +39,7 @@ export function messageFromUpstreamText(text: string, status: number): string {
   try {
     return messageFromErrorBody(JSON.parse(trimmed) as unknown, fallback);
   } catch {
-    return trimmed.length > 280 ? `${trimmed.slice(0, 280)}…` : trimmed;
+    const clipped = trimmed.length > 280 ? `${trimmed.slice(0, 280)}…` : trimmed;
+    return sanitizeUserFacingMessage(clipped, "generic", fallback);
   }
 }

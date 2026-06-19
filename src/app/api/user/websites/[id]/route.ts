@@ -25,7 +25,8 @@ export async function GET(_req: Request, context: RouteContext) {
 /** `PUT {BACKEND}/websites/:id/builder` — title, theme, logo, sections. */
 export async function PUT(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const empty = () => jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+  const empty = () =>
+    jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   let body: unknown;
   try {
     body = await request.json();

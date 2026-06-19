@@ -9,7 +9,6 @@ export default function SuperadminWebsitesPage() {
       subtitle="Your admin account websites (GET /websites)"
       listKey="websites"
       listPath={BFF_PATHS.superadminWebsites}
-      itemPath={BFF_PATHS.superadminWebsite}
       apiNote="Global admin website listing is not on NestJS yet — this shows websites owned by the signed-in ADMIN user."
       columns={[
         { key: "name", label: "Name" },

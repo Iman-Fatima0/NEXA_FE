@@ -101,7 +101,7 @@ export function ProfileClient() {
   return (
     <div className={css.page}>
       <div className={css.topChrome}>
-        <Link href="/dashboard" prefetch={false}>
+        <Link href="/dashboard">
           Dashboard
         </Link>
         <button type="button" onClick={signOut}>
@@ -140,7 +140,6 @@ export function ProfileClient() {
               <Link
                 href={dashboardWebsiteHub}
                 className={`${css.card} ${css.cardWebsites}`}
-                prefetch={false}
                 aria-label="Open websites — Web Verse"
               >
                 <div className={css.cardWebsitesHero}>
@@ -151,7 +150,6 @@ export function ProfileClient() {
               <Link
                 href={dashboardBotHub}
                 className={`${css.card} ${css.cardBots}`}
-                prefetch={false}
                 aria-label="Open bots — Bot Vault"
               >
                 <div className={`${css.cardHeader} ${css.cardBotsHeader}`}>
@@ -180,7 +178,6 @@ export function ProfileClient() {
               <Link
                 href={dashboardIntegrationHub}
                 className={`${css.card} ${css.cardIntegrations}`}
-                prefetch={false}
                 aria-label="Open integrations — Integration Vault"
               >
                 <div className={`${css.cardHeader} ${css.cardIntegrationsHeader}`}>

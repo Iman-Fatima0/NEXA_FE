@@ -30,14 +30,14 @@ export async function DELETE(_req: Request, context: RouteContext) {
   const { id } = await context.params;
   const jar = await cookies();
   if (!jar.get(SESSION_COOKIE)?.value) {
-    return jsonNoStore({ message: "Unauthorized." }, { status: 401 });
+    return jsonNoStore({ message: "Please sign in to continue." }, { status: 401 });
   }
   const token = jar.get(ACCESS_COOKIE)?.value;
   if (!token?.trim()) {
     return jsonNoStore({ message: "Missing access token." }, { status: 401 });
   }
   if (!env.backendApiBaseUrl.trim()) {
-    return jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+    return jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   }
 
   const base = env.backendApiBaseUrl.trim().replace(/\/+$/, "");
@@ -59,7 +59,7 @@ export async function DELETE(_req: Request, context: RouteContext) {
   try {
     siteParsed = siteText ? JSON.parse(siteText) : null;
   } catch {
-    return jsonNoStore({ message: "Invalid upstream response." }, { status: 502 });
+    return jsonNoStore({ message: "Something went wrong. Please try again." }, { status: 502 });
   }
 
   const siteRaw = siteParsed as Record<string, unknown>;

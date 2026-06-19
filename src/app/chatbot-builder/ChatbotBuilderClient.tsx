@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useId, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { ChatPanel } from "../../components/chatbot/ChatPanel";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import wb from "../website-builder/website-builder.module.css";
 import {
@@ -203,7 +204,7 @@ export default function ChatbotBuilderClient({ hubBackHref }: ChatbotBuilderClie
       setTraining(false);
       setTrainStatus(null);
     } catch (e) {
-      setTrainError(e instanceof Error ? e.message : "Training could not be completed. Please try again.");
+      setTrainError(friendlyUserError(e, "Training could not be completed. Please try again.", "train"));
       setTraining(false);
       setTrainStatus(null);
     }

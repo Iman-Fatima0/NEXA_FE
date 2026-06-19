@@ -12,7 +12,7 @@ export async function GET() {
     jsonNoStore(
       {
         websites: [],
-        hint: "Backend not configured. Set NEXT_PUBLIC_BACKEND_API_BASE_URL in .env and restart the dev server.",
+        hint: "This feature is temporarily unavailable. Please try again later.",
       } satisfies UserWebsitesPayload,
       { headers: { "x-nexa-data": "no-backend" } },
     );
@@ -28,7 +28,8 @@ type CreateWebsiteBody = {
 
 /** `POST {BACKEND}/websites` — create site with template bootstrap. */
 export async function POST(request: Request) {
-  const empty = () => jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+  const empty = () =>
+    jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   let body: CreateWebsiteBody;
   try {
     body = (await request.json()) as CreateWebsiteBody;

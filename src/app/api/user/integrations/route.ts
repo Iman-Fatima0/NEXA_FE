@@ -69,14 +69,14 @@ async function upstreamJson(
 export async function POST(request: Request) {
   const jar = await cookies();
   if (!jar.get(SESSION_COOKIE)?.value) {
-    return jsonNoStore({ message: "Unauthorized." }, { status: 401 });
+    return jsonNoStore({ message: "Please sign in to continue." }, { status: 401 });
   }
   const token = jar.get(ACCESS_COOKIE)?.value;
   if (!token?.trim()) {
     return jsonNoStore({ message: "Missing access token." }, { status: 401 });
   }
   if (!env.backendApiBaseUrl.trim()) {
-    return jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+    return jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   }
 
   let body: ConnectBody;
@@ -140,7 +140,12 @@ export async function POST(request: Request) {
     }).builderBody;
   } catch (e) {
     return jsonNoStore(
-      { message: e instanceof Error ? e.message : "Could not connect chatbot." },
+      {
+        message:
+          e instanceof Error && e.message.trim()
+            ? e.message.trim()
+            : "Could not connect chatbot to your website. Please try again.",
+      },
       { status: 400 },
     );
   }

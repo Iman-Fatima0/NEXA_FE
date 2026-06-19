@@ -1,4 +1,5 @@
 import { BFF_PATHS } from "./api/bff-paths";
+import { authErrorMessage } from "./api/friendly-user-error";
 import { clearProfileIconSeedEmail } from "./user-profile-icon";
 
 /** Read a string field from FormData (ignores File entries). */
@@ -60,11 +61,8 @@ export async function loginWithCredentials(credentials: LoginCredentials): Promi
 export async function readAuthErrorMessage(res: Response, fallback: string): Promise<string> {
   try {
     const data = (await res.json()) as { error?: string; message?: string | string[] };
-    if (typeof data.error === "string" && data.error.trim()) return data.error.trim();
-    if (typeof data.message === "string" && data.message.trim()) return data.message.trim();
-    if (Array.isArray(data.message) && data.message.length) {
-      return data.message.join(" ");
-    }
+    const msg = authErrorMessage(data);
+    if (msg) return msg;
   } catch {
     /* ignore */
   }

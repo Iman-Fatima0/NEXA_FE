@@ -10,7 +10,10 @@ export async function GET(request: Request) {
   }
   const base = env.backendApiBaseUrl.trim();
   if (!base) {
-    return NextResponse.json({ message: "Backend not configured." }, { status: 503 });
+    return NextResponse.json(
+      { message: "This feature is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
   }
   const url = `${base.replace(/\/+$/, "")}${pathPublicSiteResolveHost(host)}`;
   try {

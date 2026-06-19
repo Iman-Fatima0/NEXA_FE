@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ConfirmModal } from "../../components/chatbot/ConfirmModal";
 import { PlatformToast } from "../../components/chatbot/PlatformToast";
 import { usePlatformToast } from "../../components/chatbot/usePlatformToast";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import DashboardStyleBackNav from "../../components/gallery/DashboardStyleBackNav";
 import styles from "../../components/chatbot/chatbot-platform.module.css";
 import { innovateChatbotEntry } from "../../lib/dashboard-app-hubs";
@@ -49,7 +50,7 @@ export default function BotsDashboardClient() {
       setError(null);
     } catch (e) {
       setBots([]);
-      setError(e instanceof Error ? e.message : "Could not load your chatbots.");
+      setError(friendlyUserError(e, "Could not load your chatbots.", "generic"));
     }
   }, []);
 
@@ -66,7 +67,7 @@ export default function BotsDashboardClient() {
       setDeleteTarget(null);
       await load();
     } catch (e) {
-      showError(e instanceof Error ? e.message : "Could not delete this chatbot.");
+      showError(friendlyUserError(e, "Could not delete this chatbot.", "generic"));
     } finally {
       setDeleting(false);
     }

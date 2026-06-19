@@ -9,7 +9,6 @@ export default function SuperadminIntegrationsPage() {
       subtitle="Chatbot ↔ website connections"
       listKey="integrations"
       listPath={BFF_PATHS.superadminIntegrations}
-      itemPath={BFF_PATHS.superadminIntegration}
       readOnly
       apiNote="Not implemented on NestJS yet (websites are not connected to chat). This tab will light up when your API adds integration routes."
       columns={[

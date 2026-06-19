@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "../../config/env";
+import { bffNetworkErrorMessage } from "./friendly-user-error";
 import { isSuperadminSession } from "../superadmin/server-auth";
 import { ACCESS_COOKIE } from "../auth/session-cookie-names";
 import { cookies } from "next/headers";
@@ -42,7 +43,7 @@ async function upstreamFetch(method: string, upstreamPath: string, body?: unknow
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }

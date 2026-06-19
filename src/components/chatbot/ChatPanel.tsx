@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import wb from "../../app/website-builder/website-builder.module.css";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import {
   fetchChatHistory,
   sendChatMessage,
@@ -46,6 +47,11 @@ type ChatPanelProps = {
   savedTheme?: ThemeTokens | null;
   /** Fill viewport on public embed page */
   fullPage?: boolean;
+  /** Server-composed chat bootstrap — skips session + history fetch on mount. */
+  initialChat?: {
+    sessionId: string;
+    messages: ChatUiMessage[];
+  } | null;
 };
 
 function mapHistory(messages: ChatHistoryMessage[]): ChatUiMessage[] {
@@ -72,6 +78,7 @@ export function ChatPanel({
   greeting,
   savedTheme,
   fullPage = false,
+  initialChat = null,
 }: ChatPanelProps) {
   const isPublic = Boolean(publicSlug?.trim());
   const themeKey = (publicSlug?.trim() || botId?.trim()) ?? "chat";
@@ -79,10 +86,17 @@ export function ChatPanel({
   const themeStyle = themeToCssVars(theme);
   const headerClass = headerThemeClass(theme.headerStyle);
 
-  const [messages, setMessages] = useState<ChatUiMessage[]>([]);
+  const serverChatHydrated = Boolean(initialChat?.sessionId && botId);
+  const [messages, setMessages] = useState<ChatUiMessage[]>(() => {
+    if (initialChat?.messages.length) return initialChat.messages;
+    if (initialChat && greeting) {
+      return [{ id: "greeting", role: "assistant", content: greeting }];
+    }
+    return [];
+  });
   const [input, setInput] = useState("");
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(() => initialChat?.sessionId ?? null);
+  const [loading, setLoading] = useState(!serverChatHydrated);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFailedText, setLastFailedText] = useState<string | null>(null);
@@ -128,6 +142,11 @@ export function ChatPanel({
   useEffect(() => {
     if (!botId && !publicSlug) return;
 
+    if (serverChatHydrated && initialChat && botId) {
+      setChatSessionId(initialChat.sessionId, botId);
+      return;
+    }
+
     let cancelled = false;
     void (async () => {
       setLoading(true);
@@ -145,7 +164,7 @@ export function ChatPanel({
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Chat is unavailable. Please try again.");
+          setError(friendlyUserError(e, "Chat is unavailable. Please try again.", "chat"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -155,7 +174,7 @@ export function ChatPanel({
     return () => {
       cancelled = true;
     };
-  }, [botId, publicSlug, greeting, bootstrapSession, loadHistory]);
+  }, [botId, publicSlug, greeting, bootstrapSession, loadHistory, initialChat, serverChatHydrated]);
 
   useEffect(() => {
     scrollToBottom();
@@ -184,7 +203,7 @@ export function ChatPanel({
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       setInput(text);
       setLastFailedText(text);
-      setError(e instanceof Error ? e.message : "Message could not be sent. Please try again.");
+      setError(friendlyUserError(e, "Message could not be sent. Please try again.", "chat"));
     } finally {
       setSending(false);
     }
@@ -207,7 +226,7 @@ export function ChatPanel({
           setMessages([{ id: "greeting", role: "assistant", content: greeting }]);
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not restart chat.");
+        setError(friendlyUserError(e, "Could not restart chat.", "chat"));
       } finally {
         setLoading(false);
       }

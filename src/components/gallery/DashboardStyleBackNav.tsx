@@ -12,7 +12,7 @@ type DashboardStyleBackNavProps = Readonly<{
 export default function DashboardStyleBackNav({ href, ariaLabel = "Back to dashboard" }: DashboardStyleBackNavProps) {
   return (
     <nav className={nexa.dashboardHubBackNav} aria-label={ariaLabel}>
-      <Link href={href} className={nexa.dashboardHubBackLink} prefetch={false} aria-label={ariaLabel}>
+      <Link href={href} className={nexa.dashboardHubBackLink} aria-label={ariaLabel}>
         <div className={nexa.dashboardAppLibraryPulseWrap}>
           <span className={nexa.dashboardAppLibraryRipple} aria-hidden />
           <span className={`${nexa.dashboardAppLibraryRipple} ${nexa.dashboardAppLibraryRippleDelay}`} aria-hidden />

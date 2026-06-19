@@ -22,10 +22,9 @@ export async function parseBffErrorMessage(res: Response, fallback: string): Pro
 export async function bffJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...defaultInit, ...init });
   if (!res.ok) {
-    let msg = await parseBffErrorMessage(res, `Request failed (${res.status}).`);
+    let msg = await parseBffErrorMessage(res, "Something went wrong. Please try again.");
     if (res.status === 404 && path.includes("/section-image")) {
-      msg =
-        "Image upload API not found. Restart the NEXA backend (npm run start:dev in the NEXA folder) and try again.";
+      msg = "Image upload is not available right now. Please try again later.";
     }
     throw new Error(msg);
   }

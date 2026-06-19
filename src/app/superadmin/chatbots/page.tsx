@@ -9,7 +9,6 @@ export default function SuperadminChatbotsPage() {
       subtitle="Bots for your admin account (GET /bots)"
       listKey="chatbots"
       listPath={BFF_PATHS.superadminChatbots}
-      itemPath={BFF_PATHS.superadminChatbot}
       apiNote="Uses NestJS /bots (owner-scoped). PATCH name/description, DELETE removes documents and chat sessions."
       columns={[
         { key: "name", label: "Name" },

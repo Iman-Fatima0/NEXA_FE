@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { env } from "../../config/env";
+import { bffNetworkErrorMessage } from "./friendly-user-error";
 
 /** Public auth calls (no session cookie). */
 export async function bffPublicAuthPost(upstreamPath: string, body: unknown): Promise<NextResponse> {
@@ -27,7 +28,7 @@ export async function bffPublicAuthPost(upstreamPath: string, body: unknown): Pr
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }

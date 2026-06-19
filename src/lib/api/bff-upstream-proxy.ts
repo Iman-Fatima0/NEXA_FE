@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { env } from "../../config/env";
 import { messageFromUpstreamText } from "./bff-error-message";
+import { bffNetworkErrorMessage } from "./friendly-user-error";
 import {
   ACCESS_COOKIE,
   AUTH_COOKIE_MAX_AGE_SEC,
@@ -82,7 +83,7 @@ export async function bffAuthenticated(
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }
@@ -132,7 +133,7 @@ export async function bffUserResourceGet(
     }
     return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }
@@ -186,7 +187,7 @@ async function bffUserResourceWrite(
     }
     return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }
@@ -248,7 +249,7 @@ export async function bffUserResourceMultipartPost(
     }
     return jsonNoStore(transform(parsed), { status: res.status });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }
@@ -376,7 +377,10 @@ export async function bffAuthenticatedMultipart(
   }
   const base = env.backendApiBaseUrl.trim();
   if (!base) {
-    return NextResponse.json({ error: "pending", message: "Backend API is not configured." }, { status: 503 });
+    return NextResponse.json(
+      { error: "pending", message: "This feature is temporarily unavailable. Please try again later." },
+      { status: 503 },
+    );
   }
   const token = jar.get(ACCESS_COOKIE)?.value;
   const url = `${base.replace(/\/+$/, "")}${upstreamPath.startsWith("/") ? upstreamPath : `/${upstreamPath}`}`;
@@ -399,7 +403,7 @@ export async function bffAuthenticatedMultipart(
       },
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Network error";
+    const msg = bffNetworkErrorMessage(e);
     return NextResponse.json({ message: msg }, { status: 502 });
   }
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
 import { WebsiteSectionsView } from "../../lib/website-sections";
 import { resolveWebsitePublicUrl } from "../../lib/website-public-url";
@@ -32,7 +33,7 @@ export default function WebsitePreviewClient({ backHref }: WebsitePreviewClientP
       } catch (e) {
         if (!cancelled) {
           setSite(null);
-          setError(e instanceof Error ? e.message : "Could not load site.");
+          setError(friendlyUserError(e, "Could not load site.", "website"));
         }
       }
     })();

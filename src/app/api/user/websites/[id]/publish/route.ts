@@ -7,7 +7,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 /** `POST {BACKEND}/websites/:id/publish` */
 export async function POST(_req: Request, context: RouteContext) {
   const { id } = await context.params;
-  const empty = () => jsonNoStore({ message: "Backend not configured." }, { status: 503 });
+  const empty = () =>
+    jsonNoStore({ message: "This feature is temporarily unavailable. Please try again later." }, { status: 503 });
   return bffUserResourcePost(pathUserWebsitePublish(id), {}, empty, (parsed) => {
     const detail = normalizeWebsiteDetailPayload(parsed);
     return detail?.website ?? parsed;

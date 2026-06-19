@@ -9,7 +9,15 @@ describe("bff-error-message", () => {
     expect(messageFromErrorBody({ message: ["a", "b"] }, "x")).toBe("a b");
   });
 
-  it("parses upstream JSON errors", () => {
-    expect(messageFromUpstreamText(JSON.stringify({ message: "Forbidden" }), 403)).toBe("Forbidden");
+  it("sanitizes technical upstream errors for end users", () => {
+    expect(messageFromUpstreamText(JSON.stringify({ message: "Forbidden" }), 403)).toBe(
+      "You do not have access to this.",
+    );
+  });
+
+  it("maps infra jargon to friendly copy", () => {
+    expect(messageFromErrorBody({ message: "Check Redis is running" }, "fallback")).toBe(
+      "This feature is temporarily unavailable. Please try again shortly.",
+    );
   });
 });

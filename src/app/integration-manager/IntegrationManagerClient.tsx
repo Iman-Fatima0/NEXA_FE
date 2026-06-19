@@ -14,6 +14,7 @@ import IntegrationLivePreview from "../../components/integration/IntegrationLive
 import { fetchUserWebsiteById } from "../../lib/fetch-user-websites";
 import { readChatIntegrationFromSections } from "../../lib/integration/chat-integration";
 import type { UserWebsite } from "../../lib/user-websites-types";
+import { friendlyUserError } from "../../lib/api/friendly-user-error";
 import wb from "../website-builder/website-builder.module.css";
 
 const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
@@ -21,11 +22,6 @@ const PREVIEW_WAIT_GIF = "/assets/images/redcirclesquare.gif";
 type IntegrationManagerClientProps = Readonly<{
   hubBackHref: string;
 }>;
-
-function formatErr(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  return "Something went wrong.";
-}
 
 export default function IntegrationManagerClient({ hubBackHref }: IntegrationManagerClientProps) {
   const router = useRouter();
@@ -89,7 +85,7 @@ export default function IntegrationManagerClient({ hubBackHref }: IntegrationMan
           }
         }
       } catch (e) {
-        if (!cancelled) setOptionsError(formatErr(e));
+        if (!cancelled) setOptionsError(friendlyUserError(e, "Could not update the connection. Please try again.", "integration"));
       } finally {
         if (!cancelled) setLoadingOptions(false);
       }
@@ -167,7 +163,7 @@ export default function IntegrationManagerClient({ hubBackHref }: IntegrationMan
       });
       router.push(`/integration-manager/completed?${q.toString()}`);
     } catch (e) {
-      setConnectError(formatErr(e));
+      setConnectError(friendlyUserError(e, "Could not update the connection. Please try again.", "integration"));
     } finally {
       setConnecting(false);
     }
